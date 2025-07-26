@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+{% include "message.html" %}
+
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <div class="overflow-x-auto table-container">
+            <div class="bg-gradient-to-br from-[#a31319] to-black rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">Invoice List</h2>
+                    <div class="overflow-x-auto">
+                        <table id="invoiceTable" class="w-full text-sm text-left text-gray-200">
+                            <thead class="text-xs uppercase bg-[#480d0f] text-gray-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Invoice ID</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Customer</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Invoice Date</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Total Amount</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in invoices %}
+                                <tr class="border-b border-gray-700 hover:bg-[#5a1114] transition-colors cursor-pointer" onclick="window.location='{% url 'customer_vendor:invoice_view' invoice.pk %}';">
+                                    <td class="px-6 py-4 font-medium whitespace-nowrap">{{ invoice.id }}</td>
+                                    <td class="px-6 py-4">{{ invoice.customer.name }}</td>
+                                    <td class="px-6 py-4">{{ invoice.invoice_date }}</td>
+                                    <td class="px-6 py-4">{{ invoice.total_amount|floatformat:2 }}</td>
+                                    <td class="px-6 py-4">{{ invoice.get_status_display }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">No invoices available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% include "includes/pagination.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Table sorting functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('invoiceTable');
+        const headers = table.querySelectorAll('th');
+        const tableBody = table.querySelector('tbody');
+        const rows = tableBody.querySelectorAll('tr');
+
+        const directions = Array.from(headers).map(() => '');
+
+        const sortColumn = (index) => {
+            const direction = directions[index] || 'asc';
+            const multiplier = (direction === 'asc') ? 1 : -1;
+            const newRows = Array.from(rows);
+
+            newRows.sort((rowA, rowB) => {
+                const cellA = rowA.querySelectorAll('td')[index].textContent.trim();
+                const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
+
+                switch (index) {
+                    case 0: // Invoice ID
+                        return parseInt(cellA) - parseInt(cellB) * multiplier;
+                    case 1: // Customer
+                        return cellA.localeCompare(cellB) * multiplier;
+                    case 2: // Invoice Date
+                        return new Date(cellA) - new Date(cellB) * multiplier;
+                    case 3: // Total Amount
+                        return parseFloat(cellA) - parseFloat(cellB) * multiplier;
+                    case 4: // Status
+                        return cellA.localeCompare(cellB) * multiplier;
+                    default:
+                        return 0;
+                }
+            });
+
+            [].forEach.call(rows, (row) => {
+                tableBody.removeChild(row);
+            });
+
+            newRows.forEach(newRow => tableBody.appendChild(newRow));
+
+            directions[index] = direction === 'asc' ? 'desc' : 'asc';
+        };
+
+        [].forEach.call(headers, (header, index) => {
+            header.addEventListener('click', () => {
+                sortColumn(index);
+            });
+        });
+    });
+</script>
+{% endblock %}
+

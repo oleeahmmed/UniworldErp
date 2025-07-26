@@ -1,0 +1,1501 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Design Form</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Remix Icon Font -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))", // Light Gray: #d1d5db
+                        background: "hsl(var(--background))", // Light: #ffffff, Dark: #111827
+                        foreground: "hsl(var(--foreground))", // Dark Gray: #1f2937
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))", // Red: #a31319
+                            foreground: "hsl(var(--primary-foreground))", // White: #ffffff
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(var(--secondary))", // Light Gray: #f9fafb
+                            foreground: "hsl(var(--secondary-foreground))", // Dark Gray: #111827
+                        },
+                        card: {
+                            DEFAULT: "hsl(var(--card))", // White: #ffffff
+                            foreground: "hsl(var(--card-foreground))", // Dark Gray: #1f2937
+                            header: "hsl(var(--card-header))", // Very Light Gray: #f7f7f7
+                            "header-foreground": "hsl(var(--card-header-foreground))", // Dark Gray: #1f2937
+                        },
+                        
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))", // Light Gray: #f1f1f1
+                            foreground: "hsl(var(--muted-foreground))", // Medium Gray: #6b7280
+                        },
+                        gradient: {
+                            DEFAULT: 'var(--component-bg)', // Gradient: Red to Black (#a31319 to #000000)
+                        },
+                        input: "hsl(var(--input))", // Light Gray: #d1d5db
+                        button: {
+                            DEFAULT: "hsl(var(--button))", // Primary button color: #a31319 (Red)
+                            hover: "hsl(var(--button-hover))", // Button Hover Color: #9b1215 (Darker Red)
+                        },
+                        link: {
+                            DEFAULT: "hsl(var(--link))", // Link color: #a31319 (Red)
+                            hover: "hsl(var(--link-hover))", // Link Hover Color: #d4afaf
+                        },
+                    },
+                    backgroundImage: {
+                'primary-gradient': 'var(--primary-gradient)', // Use the gradient variable
+            },
+                    fontFamily: {
+                        sans: ['Poppins', 'Arial', 'sans-serif'],
+                    },
+                    extend: {
+                        spacing: {
+                            "72": "18rem", // 288px
+                            "84": "21rem", // 336px
+                            "96": "24rem", // 384px
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        
+        :root {
+    /* Light Theme */
+    --background: 0 0% 100%; /* #ffffff */
+    --foreground: 215 25% 27%; /* #1f2937 */
+    
+    /* Card Styles */
+    --card-header: 0 0% 97%; /* #f7f7f7 */
+    --card-header-foreground: 215 25% 27%; /* #1f2937 */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 215 25% 27%; /* #1f2937 */
+    
+    /* Table Specific Colors */
+    --table-header-bg: 356 83% 36%; /* #a31319 */
+    --table-header-text: 0 0% 100%; /* #ffffff */
+    --table-row-hover: 356 83% 36% / 0.1; /* #a31319 with opacity */
+    --table-border: 220 13% 91%; /* #e5e7eb */
+    
+    /* Status Colors */
+    --status-pending: 45 93% 47%; /* #f5b800 */
+    --status-completed: 142 76% 36%; /* #16a34a */
+    --status-cancelled: 0 84% 60%; /* #dc2626 */
+    
+    /* Button Colors */
+    --button-primary: 356 83% 36%; /* #a31319 */
+    --button-primary-hover: 356 84% 30%; /* #8a1015 */
+    --button-secondary: 220 13% 91%; /* #e5e7eb */
+    --button-secondary-hover: 220 13% 85%; /* #d1d5db */
+    
+    /* Core Theme Colors */
+    --primary: 356 83% 36%; /* #a31319 */
+    --primary-foreground: 0 0% 100%; /* #ffffff */
+    --primary-gradient: linear-gradient(to bottom right, #a31319, #000000);
+    
+    --secondary: 220 13% 91%; /* #e5e7eb */
+    --secondary-foreground: 215 25% 27%; /* #1f2937 */
+    
+    --muted: 220 13% 91%; /* #e5e7eb */
+    --muted-foreground: 215 25% 46%; /* #6b7280 */
+    
+    --accent: 220 13% 91%; /* #e5e7eb */
+    --accent-foreground: 215 25% 27%; /* #1f2937 */
+    
+    /* Utility Colors */
+    --destructive: 0 84% 60%; /* #dc2626 */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    
+    --border: 220 13% 91%; /* #e5e7eb */
+    --input: 220 13% 91%; /* #e5e7eb */
+    --ring: 356 83% 36%; /* #a31319 */
+    
+    /* Component Specific */
+    --component-bg: linear-gradient(to bottom right, #a31319, #000000);
+    --sidebar-bg: 0 0% 97%; /* #f7f7f7 */
+    --sidebar-hover: 356 83% 36%; /* #a31319 */
+    --sidebar-hover-text: 0 0% 100%; /* #ffffff */
+    --sidebar-text: 215 25% 27%; /* #1f2937 */
+}
+
+.dark {
+    /* Dark Theme */
+    --background: 215 28% 17%; /* #1f2937 */
+    --foreground: 0 0% 100%; /* #ffffff */
+    
+    /* Card Styles */
+    --card-header: 215 28% 17%; /* #1f2937 */
+    --card-header-foreground: 0 0% 100%; /* #ffffff */
+    --card: 215 28% 17%; /* #1f2937 */
+    --card-foreground: 0 0% 100%; /* #ffffff */
+    
+    /* Table Specific Colors */
+    --table-header-bg: 356 83% 36%; /* #a31319 */
+    --table-header-text: 0 0% 100%; /* #ffffff */
+    --table-row-hover: 356 83% 36% / 0.2; /* #a31319 with opacity */
+    --table-border: 215 25% 27% / 0.1; /* #1f2937 with opacity */
+    
+    /* Keep the same status colors for consistency */
+    --status-pending: 45 93% 47%;
+    --status-completed: 142 76% 36%;
+    --status-cancelled: 0 84% 60%;
+    
+    /* Button Colors - Adjusted for dark mode */
+    --button-primary: 356 83% 36%;
+    --button-primary-hover: 356 84% 30%;
+    --button-secondary: 215 25% 27%;
+    --button-secondary-hover: 215 25% 32%;
+    
+    /* Core Theme Colors */
+    --primary: 356 83% 36%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 215 25% 27%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 215 25% 27%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 215 25% 27%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Utility Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 215 25% 27%;
+    --input: 215 25% 27%;
+    --ring: 356 83% 36%;
+    
+    /* Component Specific */
+    --component-bg: linear-gradient(to bottom right, #a31319, #000000);
+    --sidebar-bg: 215 28% 17%;
+    --sidebar-hover: 356 83% 36%;
+    --sidebar-hover-text: 0 0% 100%;
+    --sidebar-text: 0 0% 100%;
+}
+
+        /* Global Font */
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+   /* material Input */
+.form-field {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 4px;
+    background-color: transparent;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #a31319;
+    box-shadow: 0 0 0 1px #a31319;
+    background-color: rgba(163, 19, 25, 0.05);
+}
+
+.form-label {
+    position: absolute;
+    top: 0;
+    left: 0.75rem;
+    padding: 0 0.25rem;
+    font-size: 1rem;
+    color: #718096;
+    pointer-events: none;
+    background-color: white;
+    transition: 0.3s ease all;
+    transform: translateY(-50%);
+}
+
+.form-input:focus ~ .form-label,
+.form-input:not(:placeholder-shown) ~ .form-label {
+    top: 0;
+    font-size: 0.75rem;
+    color: #a31319;
+}
+
+.form-input:focus ~ .form-label {
+    color: #a31319;
+}
+
+.error-message {
+    color: #e53e3e;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Style for required fields */
+.form-input:required ~ .form-label::after {
+    content: " *";
+    color: #e53e3e;
+}
+
+/* Adjust for select inputs */
+select.form-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23718096' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2.5rem;
+}
+
+/* Adjust for textarea inputs */
+textarea.form-input {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Table Scrollbar */
+/* Scrollbar styles for webkit-based browsers */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-radius: 6px;
+    border: 3px solid hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.8);
+}
+
+/* Scrollbar styles for Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary)) hsl(var(--muted));
+}
+
+/* Custom scrollbar styles for table */
+.table-container {
+    max-height: 400px; /* Adjust as needed */
+    overflow-y: auto;
+}
+
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-radius: 4px;
+    border: 2px solid hsl(var(--muted));
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.8);
+}
+
+/* Dark mode styles */
+.dark ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-color: hsl(var(--muted));
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.8);
+}
+
+.dark .table-container::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+}
+
+.dark .table-container::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary));
+    border-color: hsl(var(--muted));
+}
+
+.dark .table-container::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.8);
+}
+
+        /* Enhanced Sidebar Styles */
+
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table th {
+            background: hsl(var(--muted));
+            color: hsl(var(--muted-foreground));
+            font-weight: 500;
+            text-align: left;
+            padding: 0.75rem 1rem;
+        }
+
+        .data-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .data-table tbody tr:hover {
+            background: hsl(var(--muted)/0.3);
+        }
+
+        /* Button Styles */
+        .btn-primary {
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        /* Tabs  */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68D391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #68D391;
+        }
+
+
+        /* Dropdown  */
+        .dropdown-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            
+        }
+        .dropdown.active .dropdown-content {
+            max-height: 500px;
+        }
+        .dropdown-trigger::after {
+            content: "\ea4e";
+            font-family: remixicon;
+            position: absolute;
+            right: 1rem;
+            transition: transform 0.3s ease;
+        }
+        .dropdown.active .dropdown-trigger::after {
+            transform: rotate(180deg);
+        }
+
+        /* Message After save  */
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            max-width: 24rem;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 250px;
+    background: linear-gradient(to bottom, #a31319, #480d0f, #000000);
+    color: #ffffff;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    transition: left 0.3s ease;
+    overflow-x: hidden; /* Disable horizontal scrolling */
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+/* Sidebar when active */
+.sidebar.active {
+    left: 0;
+}
+
+/* Sidebar when hidden */
+.sidebar.hidden {
+    left: -250px;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1001;
+    background: #a31319;
+    color: #ffffff;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+    background: #d82a31;
+}
+
+/* Sidebar Logo */
+.sidebar-logo {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-logo h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #d82a31, #a31319);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+
+.sidebar-logo span {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Sidebar Navigation Links */
+.sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: #ffffff;
+    background-color: transparent;
+    border-radius: 0.5rem;
+    margin: 0.25rem 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(216, 42, 49, 0.7);
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #d82a31;
+    font-weight: bold;
+}
+
+.sidebar .nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 70%;
+    background: #d82a31;
+    border-radius: 0 4px 4px 0;
+}
+
+/* Sidebar Icons */
+.sidebar .nav-link i {
+    font-size: 1.25rem;
+    margin-right: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.sidebar .nav-link:hover i {
+    transform: translateX(4px);
+}
+
+/* Navigation Section Titles */
+.sidebar .nav-section {
+    margin: 1.5rem 0;
+}
+
+.sidebar .nav-section-title {
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 0 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Sidebar Bottom Section */
+.sidebar-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+.sidebar-bottom a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.2s ease;
+}
+
+.sidebar-bottom a:hover {
+    background: rgba(216, 42, 49, 0.7);
+    color: #ffffff;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 250px; /* Sidebar width */
+    padding: 1rem;
+    transition: margin-left 0.3s ease;
+}
+
+.main-content.sidebar-hidden {
+    margin-left: 0;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        max-width: 300px;
+        left: -100%; /* Hide sidebar by default on mobile */
+    }
+
+    .sidebar.active {
+        left: 0; /* Show sidebar when active class is added */
+    }
+
+    .main-content {
+        margin-left: 0; /* No margin on mobile when sidebar is hidden */
+    }
+}
+
+/* Custom Scrollbar Styles */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+
+        /* List Edit And Delete Button */
+        
+        .dropdown-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .dropdown.active .dropdown-content {
+            max-height: 10rem;
+        }
+
+        .dropdown-trigger::after {
+            content: none; /* Removes the caret if it's a pseudo-element */
+        }
+
+
+        
+    </style>
+
+<style>
+
+            /* Mobile menu styles */
+            @media (max-width: 768px) {
+
+                .mobile-bottom-menu {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, #480d0f, #000000); /* Gradient background */
+    border-top: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border */
+    display: flex;
+    justify-content: space-around;
+    padding: 0.75rem; /* Increased padding for better spacing */
+    z-index: 40;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5); /* Add shadow for depth */
+}
+
+.mobile-bottom-menu a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    color: rgba(255, 255, 255, 0.7); /* Light gray for muted text */
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.mobile-bottom-menu a:hover,
+.mobile-bottom-menu a.active {
+    color: #d82a31; /* Primary accent color on hover/active */
+    transform: scale(1.1); /* Slight scale effect for hover feedback */
+}
+
+.mobile-bottom-menu i {
+    font-size: 1.75rem; /* Slightly larger icon size */
+    margin-bottom: 0.25rem;
+    color: rgba(255, 255, 255, 0.8); /* Slightly brighter icons */
+    transition: color 0.3s ease;
+}
+
+.mobile-bottom-menu i:hover {
+    color: #d82a31; /* Matching hover color for icons */
+}
+
+.mobile-bottom-menu span {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6); /* Subtle text for labels */
+    transition: color 0.3s ease;
+}
+
+.mobile-bottom-menu span:hover {
+    color: #ffffff; /* Bright white on hover */
+}
+
+            }
+</style>
+<style>
+            /* Column Toggle Styles */
+/* Column Toggle Styles */
+.column-toggle {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.column-toggle-button {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.column-toggle-button:hover {
+  background-color: hsl(var(--primary) / 0.8);
+  transform: translateY(-2px);
+}
+
+.column-toggle-button i {
+  margin-right: 0.5rem;
+}
+
+.column-checkboxes {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem 1rem;
+  display: none;
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+.column-checkboxes.active {
+  display: block;
+}
+
+.column-checkboxes label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.column-checkboxes input {
+  margin-right: 0.5rem;
+}
+
+.column-checkboxes label:hover {
+  background-color: hsl(var(--muted));
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .column-toggle-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .column-checkboxes {
+    max-width: 200px;
+    left: auto;
+    right: 0;
+  }
+}
+
+</style>
+    {% block extra_css %}
+    
+    {% endblock %}
+</head>
+
+<body class="bg-background text-foreground">
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle " id="sidebarToggle">
+        <i class="ri-menu-line"></i>
+    </button>
+
+    <!-- Enhanced Sidebar -->
+    <aside class="sidebar w-64 border-r border-border/50 shadow-lg bg-gradient-to-b from-[#a31319] via-[#480d0f] to-black text-white" id="sidebar">
+        <!-- Logo Section -->
+        <div class="sidebar-logo bg-gradient-to-r from-[#a31319] to-[#480d0f] backdrop-blur-sm border-b border-border/50 px-4 py-3">
+            <div class="flex items-center gap-3">
+                {% if user.is_authenticated and user.companyprofile %}
+                    <div class="flex flex-col mx-9">
+                        <h1 class="text-lg font-bold bg-gradient-to-r from-[#d82a31] to-[#a31319] bg-clip-text text-transparent">
+                            {{ user.companyprofile.company.name }}
+                        </h1>
+                        <span class="text-xs text-gray-300">Business Management</span>
+                    </div>
+                {% else %}
+                    <div class="flex flex-col mx-9">
+                        <h1 class="text-lg font-bold bg-gradient-to-r from-[#d82a31] to-[#a31319] bg-clip-text text-transparent">
+                            Uniworld ERP
+                        </h1>
+                        <span class="text-xs text-gray-300">Business Management</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto p-2">
+            {% if show_dashboard_link %}
+                <a href="{% url 'permission:dashboard' %}" class="nav-link rounded-lg bg-gradient-to-r from-[#a31319] to-[#480d0f] hover:from-[#d82a31] hover:to-[#a31319] text-gray-200">
+                    <i class="ri-dashboard-2-line"></i> <!-- Updated Icon -->
+                    <span>Dashboard</span>
+                </a>
+            {% endif %}
+        
+            {% if user.is_authenticated and show_permission_menu %}
+                <div class="nav-section">
+                    <h3 class="nav-section-title text-gray-400">Administration</h3>
+                    <div class="dropdown">
+                        <button class="nav-link dropdown-trigger w-full">
+                            <i class="ri-user-settings-line"></i>
+                            <span>User Management</span>
+                        </button>
+                        <div class="dropdown-content">
+                            {% if perms.auth.view_user %}
+                                <a href="{% url 'permission:user_list' %}" class="nav-link">
+                                    <i class="ri-user-3-line"></i> <!-- Updated Icon -->
+                                    <span>User List</span>
+                                </a>
+                            {% endif %}
+                            {% if perms.auth.view_group %}
+                                <a href="{% url 'permission:group_list' %}" class="nav-link">
+                                    <i class="ri-group-line"></i>
+                                    <span>Roles List</span>
+                                </a>
+                            {% endif %}
+                            {% if perms.auth.view_permission %}
+                                <a href="{% url 'permission:permission_list' %}" class="nav-link">
+                                    <i class="ri-key-2-line"></i> <!-- Updated Icon -->
+                                    <span>Permissions List</span>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        
+            <!-- Business Section -->
+            <div class="nav-section">
+                <h3 class="nav-section-title text-gray-400">Business</h3>
+            {% comment %}
+                {% if show_company_menu %}
+                    <a href="{% url 'company:company_list' %}" class="nav-link">
+                        <i class="ri-building-line"></i> <!-- Updated Icon -->
+                        <span>Company</span>
+                    </a>
+                {% endif %}
+            {% endcomment %}
+
+
+                {% if show_customer_menu %}
+                    <a href="{% url 'customer_vendor:customer_list' %}" class="nav-link">
+                        <i class="ri-contacts-line"></i> <!-- Updated Icon -->
+                        <span>Customers</span>
+                    </a>
+                {% endif %}
+                {% if show_sales_employee_menu %}
+                    <a href="{% url 'customer_vendor:sales_employee_list' %}" class="nav-link">
+                        <i class="ri-user-follow-line"></i> <!-- Updated Icon -->
+                        <span>Sales Employees</span>
+                    </a>
+                {% endif %}
+                {% if show_product_menu %}
+                    <a href="{% url 'customer_vendor:product_list' %}" class="nav-link">
+                        <i class="ri-product-hunt-line"></i> <!-- Updated Icon -->
+                        <span>Products</span>
+                    </a>
+                {% endif %}
+                {% if show_sales_order_menu %}
+                    <a href="{% url 'customer_vendor:sales_order_list' %}" class="nav-link">
+                        <i class="ri-shopping-cart-2-line"></i> <!-- Updated Icon -->
+                        <span>Sales Orders</span>
+                    </a>
+                {% endif %}
+                {% if show_invoice_menu %}
+                    <a href="{% url 'customer_vendor:invoice_list' %}" class="nav-link">
+                        <i class="ri-file-text-line"></i> <!-- Updated Icon -->
+                        <span>Invoice </span>
+                    </a>
+                {% endif %}
+                {% if show_purchase_menu %}
+                    {% comment %} <a href="{% url 'customer_vendor:purchase_order_list' %}" class="nav-link">
+                        <i class="ri-store-2-line"></i> <!-- Updated Icon -->
+                        <span>Purchase </span>
+                    </a> {% endcomment %}
+
+                    <a href="{% url 'customer_vendor:materials_purchase_list' %}" class="nav-link">
+                        <i class="ri-store-2-line"></i> <!-- Updated Icon -->
+                        <span>Materials Purchase </span>
+                    </a>
+
+                {% endif %}
+
+                <a href="{% url 'customer_vendor:sales_report' %}" class="nav-link">
+                    <i class="ri-store-2-line"></i> <!-- Updated Icon -->
+                    <span>Report </span>
+                </a>
+            </div>
+        </nav>
+        
+    
+        <!-- Bottom Section -->
+        <div class="sidebar-bottom bg-gradient-to-r from-black to-[#480d0f] px-4 py-2">
+            <div class="flex justify-between">
+                <a href="/logout/" class="flex-1 text-gray-300 hover:text-white">
+                    <i class="ri-logout-box-line"></i>
+                    <span>Logout</span>
+                </a>
+                <a href="#" class="flex-1 text-gray-300 hover:text-white">
+                    <i class="ri-settings-4-line"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+
+    <!-- Main Content -->
+    <div class="main-content flex-1 flex flex-col" id="mainContent">
+        <!-- Header -->
+        <header class="border-b hidden md:block">
+            <div class="container mx-auto px-4">
+                <div class="h-16 flex items-center justify-between flex-wrap">
+                    
+                    <!-- Left Group (First, Previous, Next, Last) -->
+                    <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-between sm:justify-start">
+                        <a href="{% if first_id %}{% url view_url_name first_id %}{% else %}#{% endif %}" 
+                           class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground border border-primary shadow-sm hover:bg-primary-foreground hover:text-primary hover:scale-105 transform transition-all duration-200 {% if not first_id %}opacity-50 cursor-not-allowed{% endif %}">
+                            <i class="ri-skip-back-line text-base mr-2"></i>
+                            First
+                        </a>
+                        
+                        <a href="{% if prev_id %}{% url view_url_name prev_id %}{% else %}#{% endif %}" 
+                           class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground border border-primary shadow-sm hover:bg-primary-foreground hover:text-primary hover:scale-105 transform transition-all duration-200 {% if not prev_id %}opacity-50 cursor-not-allowed{% endif %}">
+                            <i class="ri-arrow-left-s-line text-base mr-2"></i>
+                            Previous
+                        </a>
+                        
+                        <a href="{% if next_id %}{% url view_url_name next_id %}{% else %}#{% endif %}" 
+                           class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground border border-primary shadow-sm hover:bg-primary-foreground hover:text-primary hover:scale-105 transform transition-all duration-200 {% if not next_id %}opacity-50 cursor-not-allowed{% endif %}">
+                            Next
+                            <i class="ri-arrow-right-s-line text-base ml-2"></i>
+                        </a>
+                        
+                        <a href="{% if last_id %}{% url view_url_name last_id %}{% else %}#{% endif %}" 
+                           class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground border border-primary shadow-sm hover:bg-primary-foreground hover:text-primary hover:scale-105 transform transition-all duration-200 {% if not last_id %}opacity-50 cursor-not-allowed{% endif %}">
+                            Last
+                            <i class="ri-skip-forward-line text-base ml-2"></i>
+                        </a>
+                    </div>
+        
+                    <!-- Center Group: Add/All/Print/Refresh -->
+                    <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
+                        {% if create_url %}
+                        <a href="{{ create_url }}" 
+                           class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground border border-primary shadow-sm hover:bg-primary-foreground hover:text-primary hover:scale-105 transform transition-all duration-200">
+                            <i class="ri-add-line text-base mr-2"></i>
+                            Add
+                        </a>
+                        {% endif %}
+                        
+                        {% if list_url %}
+                        <a href="{{ list_url }}" 
+                           class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground border border-primary shadow-sm hover:bg-primary-foreground hover:text-primary hover:scale-105 transform transition-all duration-200">
+                            <i class="ri-file-list-3-line text-base mr-2"></i>
+                            All {{ model_name }}s
+                        </a>
+                        {% endif %}
+                        
+                        {% if object.pk and print_url_name %}
+                        <a href="{% url print_url_name object.pk %}" 
+                           target="_blank"
+                           class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground border border-primary shadow-sm hover:bg-primary-foreground hover:text-primary hover:scale-105 transform transition-all duration-200">
+                            <i class="ri-printer-line text-base mr-2"></i>
+                            Print
+                        </a>
+                        {% endif %}
+                        
+                        <button type="button" 
+                                onclick="location.reload();" 
+                                class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground border border-primary shadow-sm hover:bg-primary-foreground hover:text-primary hover:scale-105 transform transition-all duration-200">
+                            <i class="ri-refresh-line text-base mr-2"></i>
+                            Refresh
+                        </button>
+                    </div>
+        
+                    <!-- Right Group: Theme/Notifications/Profile -->
+                    <div class="flex items-center gap-4 flex-wrap w-full sm:w-auto justify-between sm:justify-end mt-2 sm:mt-0">
+                        <!-- Theme Toggle -->
+                        <div class="relative inline-block w-10 align-middle select-none">
+                            <input type="checkbox" name="toggle" id="toggle" 
+                                   class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" 
+                                   onchange="toggleTheme(this.checked)"/>
+                            <label for="toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+        
+                        <!-- Notifications Icon -->
+                        <button class="p-2 hover:bg-gray-100 rounded-md transition-colors">
+                            <i class="ri-notification-3-line text-lg"></i>
+                        </button>
+        
+                        <!-- User Profile Dropdown -->
+                        <div class="dropdown">
+                            <button class="flex items-center space-x-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                {% if user.is_authenticated %}
+                                    <img src="{% if user.companyprofile.get_picture %}{{ user.companyprofile.get_picture }}{% else %}{% static 'images/demo/demo-profile.jpg' %}{% endif %}" 
+                                         alt="Profile" 
+                                         class="w-8 h-8 rounded-full object-cover border-2 border-gray-200">
+                                    <span class="text-sm font-medium">{{ user.get_full_name|default:user.username }}</span>
+                                {% else %}
+                                    <img src="{% static 'images/demo/demo-profile.jpg' %}" 
+                                         alt="Guest Profile" 
+                                         class="w-8 h-8 rounded-full object-cover border-2 border-gray-200">
+                                    <span class="text-sm font-medium">Guest</span>
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        
+        
+        
+        
+        
+        
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-0 sm:p-6">
+            <div class="space-y-6 sm:space-y-4">
+        
+        
+                {% block main_content %}
+                <!-- Main content goes here -->
+                {% endblock %}
+            </div>
+        </main>
+            <!-- Mobile Bottom Menu (New)
+            <nav class="mobile-bottom-menu lg:hidden">
+                <a href="#" class="active">
+                    <i class="ri-home-4-line"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#">
+                    <i class="ri-file-list-3-line"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="#">
+                    <i class="ri-bar-chart-2-line"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="#">
+                    <i class="ri-user-3-line"></i>
+                    <span>Profile</span>
+                </a>
+            </nav> -->
+
+
+            <!-- Mobile Bottom Menu (Updated) -->
+<nav class="mobile-bottom-menu lg:hidden">
+    <!-- Dashboard -->
+    <a href="{% url 'permission:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="ri-dashboard-line"></i>
+        <span>Dashboard</span>
+    </a>
+
+    <!-- Sales -->
+    <a href="{% url 'customer_vendor:sales_order_list' %}" class="{% if request.resolver_match.url_name == 'sales_order_list' %}active{% endif %}">
+        <i class="ri-file-list-3-line"></i>
+        <span>Sales</span>
+    </a>
+
+    <!-- Products -->
+    <a href="{% url 'customer_vendor:product_list' %}" class="{% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+        <i class="ri-shopping-bag-3-line"></i>
+        <span>Products</span>
+    </a>
+
+    <!-- Purchase -->
+    <a href="{% url 'customer_vendor:purchase_order_list' %}" class="{% if request.resolver_match.url_name == 'purchase_order_list' %}active{% endif %}">
+        <i class="ri-file-list-3-line"></i>
+        <span>Purchase</span>
+    </a>
+</nav>
+
+        <div class="footer-bg-animation text-black rounded-b-lg p-0.5">
+            <!-- Footer -->
+            <footer class="border-t p-4 text-center text-sm text-muted-foreground">
+                <p>Built by <a href="https://kreatech.ca/" class="text-primary hover:underline">Kreatech</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+    
+        // Function to check if the device is mobile
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+    
+        // Function to set initial sidebar state
+        function setInitialSidebarState() {
+            if (isMobile()) {
+                sidebar.style.left = '-250px';
+                mainContent.classList.add('sidebar-hidden');
+            } else {
+                sidebar.style.left = '0px';
+                mainContent.classList.remove('sidebar-hidden');
+            }
+        }
+    
+        // Set initial state on page load
+        setInitialSidebarState();
+    
+        // Update sidebar state on window resize
+        window.addEventListener('resize', setInitialSidebarState);
+    
+        sidebarToggle.addEventListener('click', () => {
+            if (sidebar.style.left === '0px') {
+                sidebar.style.left = '-250px';
+                mainContent.classList.add('sidebar-hidden');
+            } else {
+                sidebar.style.left = '0px';
+                mainContent.classList.remove('sidebar-hidden');
+            }
+        });
+    
+        // Modified: Only close sidebar when clicking outside of both sidebar AND red area
+        document.addEventListener('click', (event) => {
+            const redArea = document.querySelector('.main-content'); // Adjust this selector based on your red area element
+            if (isMobile() && 
+                !sidebar.contains(event.target) && 
+                !sidebarToggle.contains(event.target) && 
+                !redArea.contains(event.target)) {
+                sidebar.style.left = '-250px';
+                mainContent.classList.add('sidebar-hidden');
+            }
+        });
+    </script>
+
+    <script>
+
+
+        // Theme toggle functionality
+        function toggleTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Set initial theme
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('toggle');
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                toggle.checked = true;
+                document.documentElement.classList.add('dark');
+            }
+        });
+
+        // Dropdown functionality
+        document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                trigger.closest('.dropdown').classList.toggle('active');
+            });
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown').forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            }
+        });
+
+        // Notification handling
+        function showToast(id) {
+            const toast = document.getElementById(`notificationToast_${id}`);
+            if (toast) {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+                toast.classList.add('translate-x-0', 'opacity-100');
+                setTimeout(() => hideToast(id), 5000); // Auto hide after 5 seconds
+            }
+        }
+
+        function hideToast(id) {
+            const toast = document.getElementById(`notificationToast_${id}`);
+            if (toast) {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                toast.classList.remove('translate-x-0', 'opacity-100');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }
+        }
+
+        // Show all toasts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('[id^="notificationToast_"]');
+            toasts.forEach((toast, index) => {
+                setTimeout(() => showToast(index + 1), index * 300);
+            });
+        });
+
+        // Table sorting functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.getElementById('companyTable');
+            if (table) {
+                const headers = table.querySelectorAll('th');
+                const tableBody = table.querySelector('tbody');
+                const rows = tableBody.querySelectorAll('tr');
+
+                const directions = Array.from(headers).map(() => '');
+
+                const sortColumn = (index) => {
+                    const direction = directions[index] || 'asc';
+                    const multiplier = (direction === 'asc') ? 1 : -1;
+                    const newRows = Array.from(rows);
+
+                    newRows.sort((rowA, rowB) => {
+                        const cellA = rowA.querySelectorAll('td')[index].textContent.trim();
+                        const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
+
+                        switch (index) {
+                            case 1: // Company Name
+                            case 2: // Address
+                            case 4: // Email
+                                return cellA.localeCompare(cellB) * multiplier;
+                            case 3: // Phone
+                                return cellA.replace(/\D/g, '').localeCompare(cellB.replace(/\D/g, '')) * multiplier;
+                            default:
+                                return 0;
+                        }
+                    });
+
+                    [].forEach.call(rows, (row) => {
+                        tableBody.removeChild(row);
+                    });
+
+                    newRows.forEach(newRow => tableBody.appendChild(newRow));
+
+                    directions[index] = direction === 'asc' ? 'desc' : 'asc';
+                };
+
+                [].forEach.call(headers, (header, index) => {
+                    if (index > 0 && index < 5) {
+                        header.addEventListener('click', () => {
+                            sortColumn(index);
+                        });
+                    }
+                });
+            }
+        });
+
+        // Column toggle functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const table = document.getElementById('companyTable');
+            if (table) {
+                const thead = table.querySelector('thead');
+                const toggleContainer = document.createElement('div');
+                toggleContainer.classList.add('column-toggle');
+
+                // Create the toggle button
+                const toggleButton = document.createElement('button');
+                toggleButton.id = 'toggleColumns';
+                toggleButton.className = 'px-3 py-1 border border-[hsl(var(--border))] rounded-md hover:bg-[hsl(var(--muted))] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500';
+                toggleButton.innerHTML = '<i class="ri-eye-line mr-1"></i> Show | Hide';
+
+                // Create the container for checkboxes
+                const columnCheckboxes = document.createElement('div');
+                columnCheckboxes.id = 'columnCheckboxes';
+                columnCheckboxes.classList.add('column-checkboxes');
+
+                // Extract column names from thead and generate checkboxes
+                const headers = thead.querySelectorAll('th');
+                headers.forEach((th, index) => {
+                    if (index > 0) { // Skip the first column (checkbox column)
+                        const label = document.createElement('label');
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.dataset.column = index;
+                        checkbox.checked = true;
+
+                        label.appendChild(checkbox);
+                        label.appendChild(document.createTextNode(` ${th.textContent.trim()}`));
+                        columnCheckboxes.appendChild(label);
+
+                        // Add change event listener for the checkbox
+                        checkbox.addEventListener('change', function () {
+                            const column = this.dataset.column;
+                            const cells = table.querySelectorAll(
+                                `td:nth-child(${parseInt(column) + 1}), th:nth-child(${parseInt(column) + 1})`
+                            );
+                            cells.forEach(cell => {
+                                cell.style.display = this.checked ? '' : 'none';
+                            });
+                        });
+                    }
+                });
+
+                // Append toggle button and checkboxes to the toggle container
+                toggleContainer.appendChild(toggleButton);
+                toggleContainer.appendChild(columnCheckboxes);
+
+                // Add the toggle container to the DOM (replace with appropriate parent container)
+                const parentContainer = document.querySelector('.flex.items-center.space-x-2');
+                if (parentContainer) {
+                    parentContainer.appendChild(toggleContainer);
+                }
+
+                // Toggle column checkboxes visibility
+                toggleButton.addEventListener('click', function (event) {
+                    columnCheckboxes.classList.toggle('active');
+                    event.stopPropagation();
+                });
+
+                // Hide checkboxes when clicking outside
+                document.addEventListener('click', function (event) {
+                    if (!columnCheckboxes.contains(event.target) && event.target !== toggleButton) {
+                        columnCheckboxes.classList.remove('active');
+                    }
+                });
+            }
+        });
+
+        // Export to CSV functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const exportButton = document.getElementById('exportCSV');
+            if (exportButton) {
+                exportButton.addEventListener('click', exportToCSV);
+            }
+        
+            function exportToCSV() {
+                const table = document.getElementById('companyTable');
+                if (table) {
+                    const rows = table.querySelectorAll('tr');
+                    let csv = [];
+            
+                    for (let i = 0; i < rows.length; i++) {
+                        let row = [], cols = rows[i].querySelectorAll('td, th');
+                        
+                        for (let j = 1; j < cols.length - 1; j++) { // Skip first (checkbox) and last (actions) columns
+                            // Check if the column is hidden
+                            const isHidden = window.getComputedStyle(cols[j]).display === 'none';
+                            if (!isHidden) {
+                                let text = cols[j].innerText.replace(/"/g, '""'); // Escape double quotes
+                                row.push('"' + text + '"');
+                            }
+                        }
+                        if (row.length > 0) {
+                            csv.push(row.join(','));
+                        }
+                    }
+            
+                    const csvContent = csv.join('\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    if (navigator.msSaveBlob) { // IE 10+
+                        navigator.msSaveBlob(blob, 'company_data.csv');
+                    } else {
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'company_data.csv';
+                        link.style.display = 'none';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                }
+            }
+        });
+
+        // Refresh functionality
+        function refreshPage() {
+            location.reload();
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('.tab-button');
+            const contents = document.querySelectorAll('.tab-content');
+        
+            tabs.forEach((tab) => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+        
+                    // Reset styles for all tabs
+                    tabs.forEach((t) => {
+                        t.classList.remove(
+                            'text-[hsl(var(--foreground))]',
+                            'bg-[hsl(var(--background))]',
+                            'ring-[hsl(var(--primary))]',
+                            'shadow'
+                        );
+                        t.classList.add(
+                            'text-[hsl(var(--muted-foreground))]',
+                            'hover:bg-[hsl(var(--secondary))]',
+                            'hover:text-[hsl(var(--primary))]'
+                        );
+                    });
+        
+                    // Apply active styles to the clicked tab
+                    tab.classList.add(
+                        'text-[hsl(var(--foreground))]', 
+                        'bg-[hsl(var(--background))]',
+                        'ring-[hsl(var(--primary))]',
+                        'shadow'
+                    );
+                    tab.classList.remove(
+                        'hover:bg-[hsl(var(--secondary))]',
+                        'hover:text-[hsl(var(--primary))]'
+                    );
+        
+                    // Toggle content visibility
+                    contents.forEach((c) => c.classList.remove('active'));
+                    document.getElementById(target).classList.add('active');
+                });
+            });
+        });
+        
+        
+    </script>
+    
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

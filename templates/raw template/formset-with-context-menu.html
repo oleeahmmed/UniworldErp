@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formset with Right-Click Context Menu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-4">Dynamic Formset</h2>
+        <form id="formset">
+            <div id="formRows">
+                <!-- Initial form row -->
+                <div class="form-row mb-4 flex items-center">
+                    <input type="text" name="name[]" placeholder="Name" class="flex-grow p-2 border rounded mr-2">
+                    <input type="email" name="email[]" placeholder="Email" class="flex-grow p-2 border rounded">
+                </div>
+            </div>
+            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Submit</button>
+        </form>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="hidden fixed bg-white shadow-lg rounded-lg p-2 w-48">
+        <button id="addRowBtn" class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Add Row</button>
+        <button id="removeRowBtn" class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded">Remove Row</button>
+    </div>
+
+    <script>
+        const formset = document.getElementById('formset');
+        const formRows = document.getElementById('formRows');
+        const contextMenu = document.getElementById('contextMenu');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const removeRowBtn = document.getElementById('removeRowBtn');
+
+        let targetRow = null;
+
+        // Show context menu on right-click
+        formRows.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            targetRow = e.target.closest('.form-row');
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.clientX}px`;
+            contextMenu.style.top = `${e.clientY}px`;
+        });
+
+        // Hide context menu when clicking outside
+        document.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+
+        // Add new row
+        addRowBtn.addEventListener('click', () => {
+            const newRow = document.createElement('div');
+            newRow.className = 'form-row mb-4 flex items-center';
+            newRow.innerHTML = `
+                <input type="text" name="name[]" placeholder="Name" class="flex-grow p-2 border rounded mr-2">
+                <input type="email" name="email[]" placeholder="Email" class="flex-grow p-2 border rounded">
+            `;
+            if (targetRow) {
+                targetRow.insertAdjacentElement('afterend', newRow);
+            } else {
+                formRows.appendChild(newRow);
+            }
+            contextMenu.style.display = 'none';
+        });
+
+        // Remove row
+        removeRowBtn.addEventListener('click', () => {
+            if (targetRow && formRows.children.length > 1) {
+                targetRow.remove();
+            }
+            contextMenu.style.display = 'none';
+        });
+
+        // Form submission
+        formset.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(formset);
+            console.log(Array.from(formData.entries()));
+            alert('Form submitted! Check console for form data.');
+        });
+    </script>
+</body>
+</html>

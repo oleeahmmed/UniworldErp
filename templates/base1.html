@@ -1,0 +1,84 @@
+<!-- templates/base.html -->
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Design Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Inter' rel='stylesheet'>
+    <link rel="stylesheet" href="{% static 'css/animation/card-header-animation.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animation/bird.css' %}">
+    <style>
+        /* Apply the 'Inter' font globally */
+        body {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px; /* Default size, can be adjusted */
+            line-height: 1.5; /* Improve line spacing for readability */
+        }
+        </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900">
+        <!-- Moving Bird GIF from left to right inside the header -->
+        <div class="moving-bird">
+          <!-- <img src="{% if user.companyprofile.get_picture %}{{ user.companyprofile.get_picture }}{% else %}{% static 'images/demo/demo-profile.jpg' %}{% endif %}" 
+               alt="Company Logo" class="bird-image rounded-lg"> -->
+        </div>
+      
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        {% include "Sidebar.html" %}
+
+
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation -->
+                    <!-- Main Content -->
+                    <main class="flex-1 overflow-y-auto p-4 bg-gray-100 dark:bg-gray-900">
+                        <div class="max-w-7xl mx-auto">
+                            <!-- Breadcrumbs -->
+                            {% comment %} {% include "Breadcrumbs.html" %} {% endcomment %}
+
+                            
+
+                            
+        
+                            <!-- Stats Cards -->
+                            {% comment %} {% include "StateCard.html" %} {% endcomment %}
+
+                 
+                            
+        
+                            <!-- Form Section -->
+    
+                              <!-- Main Content -->
+            {% block main_content %}
+                <!-- Main content goes here -->
+
+            {% endblock %}
+                                
+
+
+       
+    </main>
+        </div>
+    </div>
+
+
+</div>
+</div>
+
+
+    <!-- Include external JavaScript file from static directory -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/dropdown.js' %}"></script>
+    <script src="{% static 'js/animation/bird.js' %}"></script>
+
+{% block extra_js %}
+{% endblock %}
+</body>
+</html>

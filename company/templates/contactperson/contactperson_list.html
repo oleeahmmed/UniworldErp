@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center space-x-2">
+                <a href="{% url 'company:contact_create' %}" class="px-3 py-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="ri-add-line mr-1"></i> Add New Contact
+                </a>
+
+                   
+                </button>
+            </div>
+            <form method="get" action="{% url 'company:contactperson_list' %}" class="relative">
+                <input type="text" name="search" placeholder="Search contacts..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                </div>
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table  id="companyTable" class="min-w-full divide-y divide-[hsl(var(--border))]">
+                <thead class="bg-[hsl(var(--muted))]">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            <input type="checkbox" class="rounded border-[hsl(var(--border))] text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Name
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Position
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Email
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Phone
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-[hsl(var(--background))] divide-y divide-[hsl(var(--border))]">
+                    {% for contact in contactpersons %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="checkbox" class="rounded border-[hsl(var(--border))] text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-[hsl(var(--foreground))]">{{ contact.name }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--foreground))]">{{ contact.position }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--muted-foreground))]">{{ contact.email }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--muted-foreground))]">{{ contact.phone }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{% url 'company:contact_edit' contact.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                            <a href="{% url 'company:contact_delete' contact.pk %}" class="text-red-600 hover:text-red-900">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">No contacts available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

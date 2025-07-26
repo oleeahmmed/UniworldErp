@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="min-h-screen p-4">
+    <div class="w-full">
+        <!-- Card Container -->
+        <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white border-opacity-20">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-br from-[#a31319] to-black text-white px-6 py-4">
+                <h2 class="text-xl font-semibold text-white">Materials Purchase</h2>
+            </div>
+
+            <!-- Card Content -->
+            <div class="p-6 space-y-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    {% include "message.html" %}
+
+                    {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for field in form %}
+                        <div class="form-field">
+                            {% if field.field.widget.input_type == "select" %}
+                                <select name="{{ field.name }}" 
+                                        id="{{ field.id_for_label }}" 
+                                        class="form-input"
+                                        {% if field.field.required %}required{% endif %}>
+                                    {% for choice in field.field.choices %}
+                                        <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% elif field.field.widget.input_type == "textarea" %}
+                                <textarea name="{{ field.name }}" 
+                                          id="{{ field.id_for_label }}" 
+                                          class="form-input"
+                                          placeholder=" "
+                                          {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                            {% elif field.name == "purchase_date" %}
+                                <input type="date"  
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}" 
+                                       class="form-input"
+                                       value="{{ field.value|date:'Y-m-d' }}"  
+                                       {% if field.field.required %}required{% endif %}>
+                            {% else %}
+                                <input type="{{ field.field.widget.input_type }}" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}" 
+                                       class="form-input"
+                                       placeholder=" "
+                                       value="{{ field.value|default:'' }}"
+                                       {% if field.field.required %}required{% endif %}>
+                            {% endif %}
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                            </label>
+                            {% if field.errors %}
+                            <div class="error-message">
+                                {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="w-full p-4 border border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--background))] shadow-lg">
+                        <div class="overflow-auto max-h-[400px] max-w-full">
+                            <table class="min-w-full">
+                                <thead class="sticky top-0 bg-[hsl(var(--background))]">
+                                    <tr class="border-b border-[hsl(var(--border))]">
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Product Name</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Quantity</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Unit Price</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Total Price</th>
+                                        <th scope="col" class="py-3 text-left text-xs font-semibold uppercase tracking-wider">Delete</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="purchaseItemsFormset" class="divide-y divide-[hsl(var(--border))]">
+                                    {{ formset.management_form }}
+                                    {% for form in formset %}
+                                        <tr class="formset-row group hover:bg-[hsl(var(--accent))] transition-colors duration-150">
+                                            {{ form.id }}
+                                            <td class="py-2">
+                                                {{ form.product_name }}
+                                                {% if form.product_name.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.product_name.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.quantity }}
+                                                {% if form.quantity.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.quantity.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.unit_price }}
+                                                {% if form.unit_price.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.unit_price.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.total_price }}
+                                                {% if form.total_price.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.total_price.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2 relative">
+                                                {{ form.DELETE }}
+                                                <button type="button" class="delete-row opacity-0 group-hover:opacity-100 transition-opacity duration-150 inline-flex items-center justify-center rounded-full w-6 h-6 bg-red-500 text-white hover:bg-red-600">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Single Add Row Button that works for both mobile and desktop -->
+                        <div class="mt-4">
+                            <button type="button" id="addRowBtn" class="w-full px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+                                <span class="mr-2">+</span> Add New Row
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <button type="submit" class="group relative px-6 py-3 text-white font-semibold text-sm uppercase tracking-wider overflow-hidden rounded-md shadow-lg bg-gradient-to-br from-[#a31319] to-black hover:from-[#9b141a] hover:to-[#333333] transition-all duration-300 ease-out hover:shadow-xl">
+                            <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300 ease-out"></span>
+                            <span class="relative flex items-center">
+                                <svg class="w-5 h-5 mr-2 transform group-hover:rotate-12 transition-transform duration-300 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="transform group-hover:translate-x-1 transition-transform duration-300 ease-out">Save Purchase</span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Context Menu -->
+<div id="contextMenu" class="hidden fixed bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+    <button type="button" id="addRowAboveBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Add Row Above</button>
+    <button type="button" id="addRowBelowBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Add Row Below</button>
+    <button type="button" id="deleteRowBtn" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">Delete Row</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const purchaseItemsFormset = document.getElementById('purchaseItemsFormset');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const contextMenu = document.getElementById('contextMenu');
+        let targetRow = null;
+
+        // Add row functionality
+        addRowBtn.addEventListener('click', () => addFormsetRow());
+
+        // Delete row functionality
+        purchaseItemsFormset.addEventListener('click', function(e) {
+            if (e.target.closest('.delete-row')) {
+                const row = e.target.closest('.formset-row');
+                deleteRow(row);
+            }
+        });
+
+        // Context menu functionality
+        purchaseItemsFormset.addEventListener('contextmenu', showContextMenu);
+        document.addEventListener('click', hideContextMenu);
+
+        document.getElementById('addRowAboveBtn').addEventListener('click', () => {
+            if (targetRow) {
+                addFormsetRow(targetRow, 'above');
+                hideContextMenu();
+            }
+        });
+
+        document.getElementById('addRowBelowBtn').addEventListener('click', () => {
+            if (targetRow) {
+                addFormsetRow(targetRow, 'below');
+                hideContextMenu();
+            }
+        });
+
+        document.getElementById('deleteRowBtn').addEventListener('click', () => {
+            if (targetRow) {
+                deleteRow(targetRow);
+                hideContextMenu();
+            }
+        });
+
+        // Calculate total on input change
+        purchaseItemsFormset.addEventListener('input', updateTotal);
+
+        function addFormsetRow(referenceRow = null, position = 'below') {
+            const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+            const newIndex = parseInt(totalForms.value);
+            const templateRow = purchaseItemsFormset.querySelector('.formset-row:last-child');
+            
+            if (templateRow) {
+                const newRow = templateRow.cloneNode(true);
+                
+                // Update indices in the new row
+                newRow.innerHTML = newRow.innerHTML.replace(/-(\d+)-/g, `-${newIndex}-`);
+                
+                // Clear input values and update names/ids
+                newRow.querySelectorAll('input, select').forEach(input => {
+                    input.value = '';
+                    input.name = input.name.replace(/-\d+-/, `-${newIndex}-`);
+                    input.id = input.id.replace(/-\d+-/, `-${newIndex}-`);
+                });
+                
+                // Reset delete checkbox
+                const deleteCheckbox = newRow.querySelector('input[name$="-DELETE"]');
+                if (deleteCheckbox) {
+                    deleteCheckbox.checked = false;
+                }
+                
+                // Show the new row
+                newRow.style.display = '';
+                
+                if (referenceRow && position === 'above') {
+                    referenceRow.parentNode.insertBefore(newRow, referenceRow);
+                } else if (referenceRow && position === 'below') {
+                    referenceRow.parentNode.insertBefore(newRow, referenceRow.nextSibling);
+                } else {
+                    purchaseItemsFormset.appendChild(newRow);
+                }
+                
+                totalForms.value = newIndex + 1;
+                updateFormsetIndexes();
+            }
+        }
+
+        function deleteRow(row) {
+            const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = true;
+                row.style.display = 'none';
+            } else {
+                row.remove();
+            }
+            updateFormsetIndexes();
+        }
+
+        function updateFormsetIndexes() {
+            const rows = purchaseItemsFormset.querySelectorAll('.formset-row');
+            const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+            if (totalForms) {
+                let visibleCount = 0;
+                rows.forEach((row, index) => {
+                    if (row.style.display !== 'none') {
+                        visibleCount++;
+                        row.querySelectorAll('input, select').forEach(input => {
+                            input.name = input.name.replace(/-\d+-/, `-${visibleCount-1}-`);
+                            input.id = input.id.replace(/-\d+-/, `-${visibleCount-1}-`);
+                        });
+                    }
+                });
+                
+                totalForms.value = visibleCount;
+                
+                // Ensure at least one visible row
+                if (visibleCount === 0) {
+                    addFormsetRow();
+                }
+            }
+        }
+
+        function showContextMenu(e) {
+            e.preventDefault();
+            targetRow = e.target.closest('.formset-row');
+            if (targetRow) {
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.pageX}px`;
+                contextMenu.style.top = `${e.pageY}px`;
+            }
+        }
+
+        function hideContextMenu() {
+            contextMenu.style.display = 'none';
+            targetRow = null;
+        }
+
+        function updateTotal(e) {
+            if (e.target.name.includes('quantity') || e.target.name.includes('unit_price')) {
+                const row = e.target.closest('tr');
+                const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
+                const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
+                const total = quantity * unitPrice;
+                const totalInput = row.querySelector('input[name$="total_price"]');
+                if (totalInput) {
+                    totalInput.value = total.toFixed(2);
+                }
+            }
+        }
+
+        // Initialize totals for existing rows
+        document.querySelectorAll('.formset-row').forEach(row => {
+            const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
+            const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
+            const total = quantity * unitPrice;
+            const totalInput = row.querySelector('input[name$="total_price"]');
+            if (totalInput) {
+                totalInput.value = total.toFixed(2);
+            }
+        });
+
+        function removeEmptyRows() {
+            const rows = purchaseItemsFormset.querySelectorAll('.formset-row');
+            rows.forEach(row => {
+                const productName = row.querySelector('input[name$="product_name"]').value;
+                const quantity = row.querySelector('input[name$="quantity"]').value;
+                const unitPrice = row.querySelector('input[name$="unit_price"]').value;
+                if (!productName && !quantity && !unitPrice) {
+                    deleteRow(row);
+                }
+            });
+            updateFormsetIndexes();
+        }
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            removeEmptyRows();
+            this.submit();
+        });
+    });
+
+    function refreshPage() {
+        location.reload();
+    }
+</script>
+{% endblock %}
+

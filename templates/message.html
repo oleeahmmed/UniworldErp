@@ -1,0 +1,68 @@
+<!-- {% if messages %}
+{% for message in messages %}
+    <div id="notificationToast_{{ forloop.counter }}" class="fixed top-6 right-6 max-w-md w-full sm:w-auto transform transition-transform duration-300 ease-in-out translate-x-full opacity-0" role="alert" aria-live="polite">
+        <div class="flex items-center p-4 rounded-lg shadow-lg border 
+            {% if message.tags == 'success' %} bg-green-50 border-green-200 {% elif message.tags == 'error' %} bg-red-50 border-red-200 {% endif %}">
+            
+            <div class="flex-shrink-0 w-6 h-6 mr-3">
+                {% if message.tags == 'success' %}
+                    <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5 4a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {% elif message.tags == 'error' %}
+                    <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                {% endif %}
+            </div>
+            
+            <div class="text-sm font-medium flex-1 
+                {% if message.tags == 'success' %} text-green-800 {% elif message.tags == 'error' %} text-red-800 {% endif %}">
+                <div class="error-message">
+                    {{ message|safe }}
+                </div>
+            </div>
+
+            <button onclick="hideToast('{{ forloop.counter }}')" class="ml-4 text-gray-400 hover:text-gray-600 rounded-full p-1" aria-label="Close notification">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+    </div>
+{% endfor %}
+{% endif %} -->
+
+
+    <!-- Django messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div id="notificationToast_{{ forloop.counter }}" 
+                class="fixed top-6 right-6 max-w-md w-full sm:w-auto transform transition-transform duration-300 ease-in-out translate-x-full opacity-0" 
+                role="alert" 
+                aria-live="polite">
+
+                <div class="flex items-center p-4 rounded-lg shadow-lg border
+                    {% if message.tags == 'success' %} bg-green-50 border-green-200 {% elif message.tags == 'error' %} bg-red-50 border-red-200 {% elif message.tags == 'warning' %} bg-yellow-50 border-yellow-200 {% elif message.tags == 'info' %} bg-blue-50 border-blue-200 {% endif %}">
+
+                    <!-- Icon -->
+                    <div class="flex-shrink-0 w-6 h-6 mr-3">
+                        {% if message.tags == 'success' %}
+                            <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5 4a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {% elif message.tags == 'error' %}
+                            <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                        {% elif message.tags == 'warning' %}
+                            <svg class="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zM12 16v2m0-4h0"/></svg>
+                        {% elif message.tags == 'info' %}
+                            <svg class="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zM12 16v2m0-4h0"/></svg>
+                        {% endif %}
+                    </div>
+
+                    <!-- Message -->
+                    <div class="text-sm font-medium flex-1 
+                        {% if message.tags == 'success' %} text-green-800 {% elif message.tags == 'error' %} text-red-800 {% elif message.tags == 'warning' %} text-yellow-800 {% elif message.tags == 'info' %} text-blue-800 {% endif %}">
+                        {{ message|safe }}
+                    </div>
+
+                    <!-- Close Button -->
+                    <button onclick="hideToast('{{ forloop.counter }}')" class="ml-4 text-gray-400 hover:text-gray-600 rounded-full p-1" aria-label="Close notification">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}

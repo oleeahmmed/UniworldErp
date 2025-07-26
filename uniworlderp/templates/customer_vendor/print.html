@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Information Template</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-[Poppins]">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header Section -->
+        <header class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="border-b pb-4">
+                <h1 class="text-2xl font-bold text-gray-800">{{ company.name }}</h1>
+                <p class="text-gray-600 mt-2">{{ company.address }}</p>
+                <p class="text-gray-600">{{ company.phone }}</p>
+                <p class="text-gray-600">{{ company.email }}</p>
+            </div>
+        </header>
+
+        <!-- Customer Information Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Customer Information</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="space-y-3">
+
+                    <div>
+                        <p class="text-sm text-gray-500"> Name</p>
+                        <p class="font-medium">{{ customer_vendor.name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Address</p>
+                        <p class="font-medium">{{ customer_vendor.address }}</p>
+                    </div>
+                </div>
+                <div class="space-y-3">
+             
+
+                    <div>
+                        <p class="text-sm text-gray-500">Email</p>
+                        <p class="font-medium">{{ customer_vendor.email }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Phone Number</p>
+                        <p class="font-medium">{{ customer_vendor.phone_number }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Summary Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Financial Summary</h2>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="text-sm text-blue-600">Total Purchases</p>
+                    <p class="text-2xl font-semibold text-blue-700">${{ total_purchases }}</p>
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-sm text-red-600">Outstanding Balance</p>
+                    <p class="text-2xl font-semibold text-red-700">${{ outstanding_balance }}</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <p class="text-sm text-green-600">Available Credit</p>
+                    <p class="text-2xl font-semibold text-green-700">${{ available_credit }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Section -->
+        <footer class="bg-white rounded-lg shadow-md p-6">
+            <p class="text-gray-500 text-sm text-center mb-2">This document is computer generated and does not require a signature.</p>
+            <p class="text-gray-600 text-sm text-center">Customer Support: {{ company.support_email }}</p>
+        </footer>
+    </div>
+</body>
+</html>

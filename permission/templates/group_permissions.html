@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+
+<div class="flex flex-col md:flex-row gap-4 w-full">
+    <!-- Available Permissions -->
+    <div class="flex-1 border rounded-lg shadow-sm bg-[var(--card)] text-[var(--card-foreground)]">
+        <div class="p-4 border-b bg-[var(--card-header)] text-[var(--card-header-foreground)]">
+            <h3 class="text-sm font-medium">Available Permissions</h3>
+        </div>
+        <div class="p-4">
+            <input type="text" id="search-available-permissions" placeholder="Search available permissions" class="w-full mb-2 p-2 border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+            <select multiple id="available-permissions" class="w-full h-[400px] border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+                {% for permission in available_permissions %}
+                    <option value="{{ permission.id }}">{{ permission.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Transfer Buttons -->
+    <div class="flex md:flex-col justify-center gap-2">
+        <button id="add-selected-permissions" class="p-2 rounded border bg-[var(--secondary)] text-[var(--secondary-foreground)]">
+            <i class="ri-arrow-right-line"></i>
+        </button>
+        <button id="remove-selected-permissions" class="p-2 rounded border bg-[var(--secondary)] text-[var(--secondary-foreground)]">
+            <i class="ri-arrow-left-line"></i>
+        </button>
+    </div>
+
+    <!-- Assigned Permissions -->
+    <div class="flex-1 border rounded-lg shadow-sm bg-[var(--card)] text-[var(--card-foreground)]">
+        <div class="p-4 border-b bg-[var(--card-header)] text-[var(--card-header-foreground)]">
+            <h3 class="text-sm font-medium">Assigned Permissions</h3>
+        </div>
+        <div class="p-4">
+            <input type="text" id="search-assigned-permissions" placeholder="Search assigned permissions" class="w-full mb-2 p-2 border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+            <select multiple id="assigned-permissions" class="w-full h-[400px] border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+                {% for permission in assigned_permissions %}
+                    <option value="{{ permission.id }}">{{ permission.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Save Button -->
+<div class="mt-4">
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="assigned_permissions" id="permissions-input">
+        <button type="submit" class="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+            Save Changes
+        </button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<!-- JavaScript for Moving Permissions and Search Functionality -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const availablePermissions = document.getElementById('available-permissions');
+        const assignedPermissions = document.getElementById('assigned-permissions');
+        const addSelectedPermissions = document.getElementById('add-selected-permissions');
+        const removeSelectedPermissions = document.getElementById('remove-selected-permissions');
+        const permissionsInput = document.getElementById('permissions-input');
+        const searchAvailablePermissions = document.getElementById('search-available-permissions');
+        const searchAssignedPermissions = document.getElementById('search-assigned-permissions');
+
+        function moveOptions(fromSelect, toSelect) {
+            Array.from(fromSelect.selectedOptions).forEach(option => {
+                toSelect.appendChild(option);
+            });
+            updatePermissionsInput();
+        }
+
+        function updatePermissionsInput() {
+            const assignedValues = Array.from(assignedPermissions.options).map(option => option.value);
+            permissionsInput.value = JSON.stringify(assignedValues);
+        }
+
+        addSelectedPermissions.addEventListener('click', () => moveOptions(availablePermissions, assignedPermissions));
+        removeSelectedPermissions.addEventListener('click', () => moveOptions(assignedPermissions, availablePermissions));
+
+        function filterOptions(select, searchTerm) {
+            Array.from(select.options).forEach(option => {
+                const matchesSearch = option.text.toLowerCase().includes(searchTerm.toLowerCase());
+                option.style.display = matchesSearch ? '' : 'none';
+            });
+        }
+
+        searchAvailablePermissions.addEventListener('input', function() {
+            filterOptions(availablePermissions, this.value);
+        });
+
+        searchAssignedPermissions.addEventListener('input', function() {
+            filterOptions(assignedPermissions, this.value);
+        });
+    });
+</script>
+
+{% endblock %}

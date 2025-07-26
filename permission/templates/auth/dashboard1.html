@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+{% include "message.html" %}
+
+<div class="min-h-screen bg-white">
+  <div class="p-6">
+    <h1 class="text-3xl font-bold mb-6 text-[#a31319]">Welcome to your dashboard, {{ user.username }}!</h1>
+
+    <!-- Tabs Navigation -->
+    <div class="border-b border-gray-200 mb-6">
+      <nav class="relative flex space-x-1 rounded-xl bg-[hsl(var(--muted))] p-1 shadow-md" aria-label="Tabs Navigation">
+        <button type="button" 
+            class="tab-button w-full border-b-2 border-[#a31319] py-4 px-1 text-sm font-medium text-[#a31319]" 
+            data-tab="overview">
+            Overview
+        </button>
+        <button type="button" 
+            class="tab-button w-full border-b-2 border-[#a31319] py-4 px-1 text-sm font-medium text-[#a31319]" 
+            data-tab="sales">
+            Sales
+        </button>
+        <button type="button" 
+            class="tab-button w-full border-b-2 border-[#a31319] py-4 px-1 text-sm font-medium text-[#a31319]" 
+            data-tab="products">
+            Products
+        </button>
+        <button type="button" 
+            class="tab-button w-full border-b-2 border-[#a31319] py-4 px-1 text-sm font-medium text-[#a31319]" 
+            data-tab="finance">
+            Finance
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="overview">
+      <!-- Overview content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-2">Total Users</h3>
+          <p class="text-2xl font-bold">{{ total_users }}</p>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-2">Total Customers</h3>
+          <p class="text-2xl font-bold">{{ total_customers }}</p>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-2">Total Vendors</h3>
+          <p class="text-2xl font-bold">{{ total_vendors }}</p>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-2">New Customers (Last 30 days)</h3>
+          <p class="text-2xl font-bold">{{ new_customers }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Monthly Sales</h3>
+          <canvas id="monthlySalesChart"></canvas>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Top Sales Categories</h3>
+          <canvas id="topSalesChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content hidden" id="sales">
+      <!-- Sales content -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Recent Sales Orders</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-300">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Customer</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Amount</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Date</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-700">
+                {% for order in recent_sales_orders %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ order.customer.name }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">৳{{ order.total_amount|floatformat:2 }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ order.order_date|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Sales Trend (Last 7 Days)</h3>
+          <canvas id="salesTrendChart"></canvas>
+        </div>
+      </div>
+      <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 mb-6">
+        <h3 class="text-lg font-semibold mb-4">Sales Employee Performance</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead>
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Target</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Achieved</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Achievement %</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+              {% for employee in sales_employees %}
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ employee.full_name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ employee.sales_target }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ employee.sales_achieved }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ employee.achievement_percentage|floatformat:2 }}%</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content hidden" id="products">
+      <!-- Products content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Product Information</h3>
+          <p class="mb-2">Total Products: {{ total_products }}</p>
+          <p>Low Stock Products: {{ low_stock_products }}</p>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Top Selling Products</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-300">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Name</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Sold Quantity</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Stock</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-700">
+                {% for product in top_selling_products %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ product.name }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ product.total_sold }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ product.stock_quantity }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {% if product.stock_quantity >= product.reorder_level %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      In Stock
+                    </span>
+                    {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      Low Stock
+                    </span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 mb-6">
+        <h3 class="text-lg font-semibold mb-4">Recent Stock Transactions</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead>
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Product</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Type</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Quantity</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Date</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+              {% for transaction in recent_stock_transactions %}
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ transaction.product.name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ transaction.get_transaction_type_display }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ transaction.quantity }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ transaction.transaction_date|date:"M d, Y" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content hidden" id="finance">
+      <!-- Finance content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Sales Information</h3>
+          <p class="mb-2">Total Sales Orders: {{ total_sales_orders }}</p>
+          <p class="mb-2">Current Month Sales: ৳{{ current_month_sales|floatformat:2 }}</p>
+          <p>Average Order Value: ৳{{ average_order_value|floatformat:2 }}</p>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Purchase Information</h3>
+          <p class="mb-2">Total Purchase Orders: {{ total_purchase_orders }}</p>
+          <p>Current Month Purchases: ৳{{ current_month_purchases|floatformat:2 }}</p>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">AR Invoice Information</h3>
+          <p class="mb-2">Total AR Invoices: {{ total_ar_invoices }}</p>
+          <p class="mb-2">Pending Invoices: {{ pending_invoices }}</p>
+          <p>Overdue Invoices: {{ overdue_invoices }}</p>
+        </div>
+      </div>
+      <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 mb-6">
+        <h3 class="text-lg font-semibold mb-4">Revenue Breakdown</h3>
+        <canvas id="revenueBreakdownChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Parse the JSON data passed from the view
+  const monthlySalesData = JSON.parse('{{ monthly_sales|safe }}');
+  const revenueBreakdownData = JSON.parse('{{ revenue_breakdown|safe }}');
+  const topCategoriesData = JSON.parse('{{ top_categories|safe }}');
+  const salesTrendData = JSON.parse('{{ sales_trend|safe }}');
+
+  // Monthly Sales Chart
+  const ctxMonthlySales = document.getElementById('monthlySalesChart').getContext('2d');
+  new Chart(ctxMonthlySales, {
+    type: 'line',
+    data: {
+      labels: monthlySalesData.map(item => new Date(item.month).toLocaleString('default', { month: 'short' })),
+      datasets: [{
+        label: 'Monthly Sales',
+        data: monthlySalesData.map(item => item.total_sales),
+        borderColor: '#a31319',
+        backgroundColor: 'rgba(163, 19, 25, 0.1)',
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value, index, values) {
+              return '৳' + value.toLocaleString();
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Top Sales Categories Chart
+  const ctxTopSales = document.getElementById('topSalesChart').getContext('2d');
+  new Chart(ctxTopSales, {
+    type: 'pie',
+    data: {
+      labels: topCategoriesData.map(item => item.category),
+      datasets: [{
+        data: topCategoriesData.map(item => item.total_sales),
+        backgroundColor: ['#a31319', '#000000', '#FFFFFF', '#808080']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+        }
+      }
+    }
+  });
+
+  // Sales Trend Chart
+  const ctxSalesTrend = document.getElementById('salesTrendChart').getContext('2d');
+  new Chart(ctxSalesTrend, {
+    type: 'line',
+    data: {
+      labels: salesTrendData.map(item => new Date(item.date).toLocaleDateString()),
+      datasets: [{
+        label: 'Daily Sales',
+        data: salesTrendData.map(item => item.daily_sales),
+        borderColor: '#a31319',
+        backgroundColor: 'rgba(163, 19, 25, 0.1)',
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value, index, values) {
+              return '৳' + value.toLocaleString();
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Revenue Breakdown Chart
+  const ctxRevenueBreakdown = document.getElementById('revenueBreakdownChart').getContext('2d');
+  new Chart(ctxRevenueBreakdown, {
+    type: 'bar',
+    data: {
+      labels: revenueBreakdownData.map(item => item.name),
+      datasets: [{
+        label: 'Revenue',
+        data: revenueBreakdownData.map(item => item.revenue),
+        backgroundColor: ['#a31319', '#000000', '#FFFFFF', '#808080']
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value, index, values) {
+              return '৳' + value.toLocaleString();
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Tab switching functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabName = button.getAttribute('data-tab');
+        
+        tabContents.forEach(content => {
+          content.classList.add('hidden');
+        });
+        
+        document.getElementById(tabName).classList.remove('hidden');
+        
+        tabButtons.forEach(btn => {
+          btn.classList.remove('bg-[#a31319]', 'text-white');
+        });
+        
+        button.classList.add('bg-[#a31319]', 'text-white');
+      });
+    });
+  });
+</script>
+{% endblock %}

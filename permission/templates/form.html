@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+{% endblock %}
+{% block main_content %}
+<div class="min-h-screen p-4">
+    <div class="w-full">
+        <!-- Card Container -->
+        <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white border-opacity-20">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-br from-[#a31319] to-black text-white px-6 py-4">
+                <h2 class="text-xl font-semibold text-white">{{ action }} {{ model_name }}</h2>
+            </div>
+
+            <!-- Card Content -->
+            <div class="p-6 space-y-6 sm:space-y-4">
+                <form method="post" enctype="multipart/form-data" class="space-y-6 sm:space-y-4">
+                    {% csrf_token %}
+                    {% include "message.html" %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for field in form %}
+                        <div class="form-field">
+                            <!-- Handle Select Input -->
+                            {% if field.field.widget.input_type == "select" %}
+                                <select name="{{ field.name }}" 
+                                        id="{{ field.id_for_label }}" 
+                                        class="form-input"
+                                        {% if field.field.required %}required{% endif %}>
+                                    {% for choice in field.field.choices %}
+                                        <option value="{{ choice.0 }}" {% if field.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            <!-- Handle Textarea -->
+                            {% elif field.field.widget.input_type == "textarea" %}
+                                <textarea name="{{ field.name }}" 
+                                          id="{{ field.id_for_label }}" 
+                                          class="form-textarea border-gray-300 rounded-md shadow-sm"
+                                          placeholder=" "
+                                          {% if field.field.required %}required{% endif %}
+                                          {% if is_disabled %}disabled{% endif %}>{{ field.value|default:'' }}</textarea>
+                            <!-- Handle Date -->
+                            {% elif field.field.widget.input_type == "date" %}
+                                <input type="date" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}" 
+                                       class="form-input"
+                                       value="{% if field.value %}{{ field.value|date:'Y-m-d' }}{% elif field.field.initial %}{{ field.field.initial|date:'Y-m-d' }}{% endif %}"
+                                       {% if field.field.required %}required{% endif %}
+                                       {% if is_disabled %}disabled{% endif %}>
+                            <!-- Handle Checkbox -->
+                            {% elif field.field.widget.input_type == "checkbox" %}
+                                <!-- Checkbox Field -->
+                                <div class="form-checkbox-field">
+                                    <input type="checkbox" 
+                                           id="{{ field.id_for_label }}" 
+                                           name="{{ field.name }}" 
+                                           class="form-checkbox"
+                                           {% if field.value %}checked{% endif %}
+                                           {% if is_disabled %}disabled{% endif %}>
+                                    <!-- <label for="{{ field.id_for_label }}">{{ field.label }}</label> -->
+                                </div>
+                            <!-- Handle Radio -->
+                            {% elif field.field.widget.input_type == "radio" %}
+                                <div class="radio-group">
+                                    {% for choice in field.field.choices %}
+                                        <input type="radio" 
+                                               name="{{ field.name }}" 
+                                               id="{{ field.id_for_label }}_{{ forloop.counter }}" 
+                                               class="form-radio"
+                                               value="{{ choice.0 }}"
+                                               {% if field.value|stringformat:"s" == choice.0|stringformat:"s" %}checked{% endif %}
+                                               {% if is_disabled %}disabled{% endif %}>
+                                        <label for="{{ field.id_for_label }}_{{ forloop.counter }}">
+                                            {{ choice.1 }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            <!-- Handle File Input -->
+                            {% elif field.field.widget.input_type == "file" %}
+                                <input type="file" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}" 
+                                       class="form-input border-gray-300 rounded-md shadow-sm"
+                                       {% if is_disabled %}disabled{% endif %}>
+                            <!-- Handle Other Input Types -->
+                            {% else %}
+                                <input type="{{ field.field.widget.input_type }}" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}" 
+                                       class="form-input"
+                                       placeholder=" "
+                                       value="{{ field.value|default:'' }}"
+                                       {% if field.field.required %}required{% endif %}
+                                       {% if is_disabled %}disabled{% endif %}>
+                            {% endif %}
+                            <!-- Label -->
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                            </label>
+                            <!-- Errors -->
+                            {% if field.errors %}
+                            <div class="error-message">
+                                {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if qrcode_id %}
+                    <!-- QR Code Preview Section -->
+                    <div class="qrcode-preview">
+                        <h3 class="text-lg font-semibold mb-2">QR Code Preview</h3>
+                        <canvas id="qrcode"></canvas>
+                        <p id="qrcodeError" class="text-red-500 mt-2"></p>
+                    </div>
+                    {% endif %}
+
+
+
+                    <div class="flex justify-end space-x-3">
+                        {% if can_add %}
+                        <button type="submit" class="group relative px-6 py-3 text-white font-semibold text-sm uppercase tracking-wider overflow-hidden rounded-md shadow-lg bg-gradient-to-br from-[#a31319] to-black hover:from-[#9b141a] hover:to-[#333333] transition-all duration-300 ease-out hover:shadow-xl">
+                            <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300 ease-out"></span>
+                            <span class="relative flex items-center">
+                                <svg class="w-5 h-5 mr-2 transform group-hover:rotate-12 transition-transform duration-300 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="transform group-hover:translate-x-1 transition-transform duration-300 ease-out">Save {{ model_name }}</span>
+                            </span>
+                        </button>
+                        {% elif can_edit %}
+                        <button type="submit" class="group relative px-6 py-3 text-white font-semibold text-sm uppercase tracking-wider overflow-hidden rounded-md shadow-lg bg-gradient-to-br from-[#a31319] to-black hover:from-[#9b141a] hover:to-[#333333] transition-all duration-300 ease-out hover:shadow-xl">
+                            <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300 ease-out"></span>
+                            <span class="relative flex items-center">
+                                <svg class="w-5 h-5 mr-2 transform group-hover:rotate-12 transition-transform duration-300 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                <span class="transform group-hover:translate-x-1 transition-transform duration-300 ease-out">Edit {{ model_name }}</span>
+                            </span>
+                        </button>
+                        {% elif can_view %}
+                        <a href="{{ list_url }}" class="group relative px-6 py-3 text-white font-semibold text-sm uppercase tracking-wider overflow-hidden rounded-md shadow-lg bg-gradient-to-br from-[#a31319] to-black hover:from-[#9b141a] hover:to-[#333333] transition-all duration-300 ease-out hover:shadow-xl">
+                            <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300 ease-out"></span>
+                            <span class="relative flex items-center">
+                                <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform duration-300 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                </svg>
+                                <span class="transform group-hover:translate-x-1 transition-transform duration-300 ease-out">Back to List</span>
+                            </span>
+                        </a>
+                        {% elif can_add %}
+                        <a href="{{ create_url }}" class="group relative px-6 py-3 text-white font-semibold text-sm uppercase tracking-wider overflow-hidden rounded-md shadow-lg bg-gradient-to-br from-[#a31319] to-black hover:from-[#9b141a] hover:to-[#333333] transition-all duration-300 ease-out hover:shadow-xl">
+                            <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300 ease-out"></span>
+                            <span class="relative flex items-center">
+                                <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform duration-300 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"></path>
+                                </svg>
+                                <span class="transform group-hover:translate-x-1 transition-transform duration-300 ease-out">Add {{ model_name }}</span>
+                            </span>
+                        </a>
+
+                        {% elif action == "Search" %}
+                        <button type="submit" class="group relative px-6 py-3 text-white font-semibold text-sm uppercase tracking-wider overflow-hidden rounded-md shadow-lg bg-gradient-to-br from-[#a31319] to-black hover:from-[#9b141a] hover:to-[#333333] transition-all duration-300 ease-out hover:shadow-xl">
+                            <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300 ease-out"></span>
+                            <span class="relative flex items-center">
+                                <svg class="w-5 h-5 mr-2 transform group-hover:rotate-12 transition-transform duration-300 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="transform group-hover:translate-x-1 transition-transform duration-300 ease-out">Search</span>
+                            </span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function refreshPage() {
+        location.reload();
+    }
+</script>
+
+
+{% if js_file %}
+<script src="{% static 'js/module/' %}{{ js_file }}"></script>
+{% endif %}
+{% endblock %}

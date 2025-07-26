@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="min-h-screen p-4">
+    <div class="w-full">
+        <!-- Card Container -->
+        <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white border-opacity-20">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-br from-[#a31319] to-black text-white px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-white">Sales Return Details</h2>
+                <div>
+                    <a href="{% url 'customer_vendor:sales_order_view' sales_order.id %}" class="px-3 py-1 text-sm font-medium rounded-md bg-gray-800 text-white hover:bg-gray-700 transition duration-150">
+                        <i class="ri-arrow-left-line mr-1"></i>Back to Order
+                    </a>
+                 
+                </div>
+            </div>
+
+            <!-- Card Content -->
+            <div class="p-6 space-y-6">
+                {% include "message.html" %}
+
+                <!-- Return Info -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="form-field-view">
+                        <label class="block text-sm font-medium">Return ID</label>
+                        <div class="mt-1 text-lg">{{ return_sales.id }}</div>
+                    </div>
+                    <div class="form-field-view">
+                        <label class="block text-sm font-medium">Return Date</label>
+                        <div class="mt-1 text-lg">{{ return_sales.return_date|date:"Y-m-d" }}</div>
+                    </div>
+                    <div class="form-field-view">
+                        <label class="block text-sm font-medium">Return By</label>
+                        <div class="mt-1 text-lg">{{ return_sales.return_employee }}</div>
+                    </div>
+                </div>
+
+                <!-- Sales Order Information -->
+                <div class="bg-gray-100 bg-opacity-10 p-4 rounded-lg mb-4">
+                    <h3 class="text-lg font-medium mb-2">Sales Order Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Order #</p>
+                            <p class="font-medium">{{ sales_order.id }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Order Date</p>
+                            <p class="font-medium">{{ sales_order.order_date|date:"Y-m-d" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Customer</p>
+                            <p class="font-medium">{{ sales_order.customer.name }}</p>
+                        </div>
+                        <div class="form-field-view">
+                            <label class="block text-sm font-medium">Sales Employee</label>
+                            <div class="mt-1 text-lg">{{ sales_order.sales_employee }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full p-4 border border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--background))] shadow-lg">
+                    <div class="overflow-auto max-h-[400px] max-w-full">
+                        <table class="min-w-full">
+                            <thead class="sticky top-0 bg-[hsl(var(--background))]">
+                                <tr class="border-b border-[hsl(var(--border))]">
+                                    <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Product</th>
+                                    <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Sales Quantity</th>
+                                    <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Return Quantity</th>
+                                    <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Unit Price</th>
+                                    <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[hsl(var(--border))]">
+                                {% for item in return_items %}
+                                <tr class="group hover:bg-[hsl(var(--accent))] transition-colors duration-150">
+                                    <td class="py-2 px-4">
+                                        {{ item.sales_order_item.product.name }}
+                                    </td>
+                                    <td class="py-2 px-4 text-center">
+                                        {{ item.sales_order_item.quantity }}
+                                    </td>
+                                    <td class="py-2 px-4 text-center">
+                                        {{ item.quantity }}
+                                    </td>
+                                    <td class="py-2 px-4 text-right">
+                                        {{ item.unit_price }}
+                                    </td>
+                                    <td class="py-2 px-4 text-right">
+                                        {{ item.total_amount }}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="py-4 text-center text-sm text-gray-400">No return items available.</td>
+                                </tr>
+                                {% endfor %}
+                                
+                                <!-- Total Row -->
+                                <tr class="bg-[hsl(var(--accent))] font-bold">
+                                    <td colspan="3" class="py-3 px-4 text-right">Total Return Amount:</td>
+                                    <td colspan="2" class="py-3 px-4 text-right">{{ return_sales.total_amount }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Notes or Comments Section (if applicable) -->
+                {% if return_sales.notes %}
+                <div class="bg-gray-100 bg-opacity-10 p-4 rounded-lg">
+                    <h3 class="text-lg font-medium mb-2">Notes</h3>
+                    <p>{{ return_sales.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const returnItemsFormset = document.getElementById('returnItemsFormset');
+        
+        // Set current date for the return_date field
+        const returnDateField = document.getElementById('id_return_date');
+        if (returnDateField && !returnDateField.value) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            returnDateField.value = `${year}-${month}-${day}`;
+        }
+    
+        // Initialize searchable dropdown only for return_employee field
+        const returnEmployeeSelect = document.querySelector('select[id="id_return_employee"]');
+        if (returnEmployeeSelect) {
+            createSearchableDropdown(returnEmployeeSelect);
+        }
+    
+        // Calculate total on input change
+        returnItemsFormset.addEventListener('input', updateTotal);
+    
+        function createSearchableDropdown(select) {
+            // Check if this select already has a dropdown
+            if (select.nextSibling && select.nextSibling.classList && select.nextSibling.classList.contains('dropdown-wrapper')) {
+                return;
+            }
+            
+            // Create wrapper container
+            const wrapper = document.createElement('div');
+            wrapper.className = 'relative dropdown-wrapper w-full';
+            
+            // Create button that shows/hides the dropdown
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'form-input text-left w-full flex justify-between items-center';
+            
+            // Create span for selected text
+            const selectedText = document.createElement('span');
+            selectedText.className = 'selected-text';
+            selectedText.textContent = select.options[select.selectedIndex]?.text || 'Select...';
+            
+            // Add arrow icon
+            const arrow = document.createElement('span');
+            arrow.innerHTML = '▼';
+            arrow.className = 'text-xs';
+            
+            button.appendChild(selectedText);
+            button.appendChild(arrow);
+            
+            // Create dropdown container
+            const dropdown = document.createElement('div');
+            dropdown.className = 'absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto hidden';
+            
+            // Create search input
+            const searchContainer = document.createElement('div');
+            searchContainer.className = 'p-2 sticky top-0 bg-white border-b';
+            
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.className = 'w-full p-2 border border-gray-300 rounded-md';
+            searchInput.placeholder = 'Search...';
+            
+            searchContainer.appendChild(searchInput);
+            dropdown.appendChild(searchContainer);
+            
+            // Create options list
+            const optionsList = document.createElement('div');
+            optionsList.className = 'py-1';
+            
+            // Add options from the original select
+            Array.from(select.options).forEach(option => {
+                if (option.value) { // Skip empty options
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+                    optionElement.dataset.value = option.value;
+                    optionElement.textContent = option.text;
+                    
+                    optionElement.addEventListener('click', () => {
+                        select.value = option.value;
+                        selectedText.textContent = option.text;
+                        dropdown.classList.add('hidden');
+                        
+                        // Dispatch change event to trigger any listeners
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    
+                    optionsList.appendChild(optionElement);
+                }
+            });
+            
+            dropdown.appendChild(optionsList);
+            
+            // Add button click handler
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                dropdown.classList.toggle('hidden');
+                if (!dropdown.classList.contains('hidden')) {
+                    searchInput.focus();
+                    
+                    // Close any other open dropdowns
+                    document.querySelectorAll('.dropdown-wrapper .absolute, .dropdown-wrapper .fixed').forEach(el => {
+                        if (el !== dropdown) el.classList.add('hidden');
+                    });
+                }
+            });
+            
+            // Add search functionality
+            searchInput.addEventListener('input', () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                Array.from(optionsList.children).forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    option.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!wrapper.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+            
+            // Insert the custom dropdown after the select
+            wrapper.appendChild(button);
+            wrapper.appendChild(dropdown);
+            
+            // Hide the original select and insert our custom dropdown
+            select.style.display = 'none';
+            select.parentNode.insertBefore(wrapper, select.nextSibling);
+            
+            // Ensure the dropdown is updated when the original select changes
+            select.addEventListener('change', () => {
+                selectedText.textContent = select.options[select.selectedIndex]?.text || 'Select...';
+            });
+        }
+    
+        function updateTotal(e) {
+            if (e.target.name.includes('quantity')) {
+                const row = e.target.closest('tr');
+                const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
+                const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
+                const maxReturnable = parseFloat(row.querySelector('input[name$="max_returnable"]').value) || 0;
+                
+                // Ensure return quantity doesn't exceed max returnable
+                if (quantity > maxReturnable) {
+                    e.target.value = maxReturnable;
+                    quantity = maxReturnable;
+                }
+                
+                // Calculate total
+                const total = quantity * unitPrice;
+                const totalInput = row.querySelector('input[name$="display_total"]');
+                if (totalInput) {
+                    totalInput.value = total.toFixed(2);
+                }
+            }
+        }
+    
+        // Initialize totals for existing rows
+        document.querySelectorAll('.formset-row').forEach(row => {
+            const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
+            const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
+            const total = quantity * unitPrice;
+            const totalInput = row.querySelector('input[name$="display_total"]');
+            if (totalInput) {
+                totalInput.value = total.toFixed(2);
+            }
+        });
+    
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const rows = returnItemsFormset.querySelectorAll('.formset-row');
+            let hasReturns = false;
+            let allRowsValid = true;
+            
+            rows.forEach(row => {
+                const quantityInput = row.querySelector('input[name$="quantity"]');
+                const quantity = parseFloat(quantityInput.value) || 0;
+                const maxReturnable = parseFloat(row.querySelector('input[name$="max_returnable"]').value) || 0;
+                
+                if (quantity > 0) {
+                    hasReturns = true;
+                    
+                    if (quantity > maxReturnable) {
+                        allRowsValid = false;
+                        // Add visual error indication
+                        quantityInput.classList.add('border-red-500');
+                    }
+                }
+            });
+            
+            if (!hasReturns) {
+                alert('Please specify at least one item to return.');
+                return;
+            }
+            
+            if (!allRowsValid) {
+                alert('One or more return quantities exceed the maximum returnable amount.');
+                return;
+            }
+            
+            this.submit();
+        });
+    });
+    
+    function refreshPage() {
+        location.reload();
+    }
+    </script>
+{% endblock %}

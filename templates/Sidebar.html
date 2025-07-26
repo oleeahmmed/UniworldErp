@@ -1,0 +1,140 @@
+
+{% load static %}
+
+<aside class="h-screen w-72 bg-white/80 backdrop-blur-lg shadow-xl transition-all duration-300 ease-in-out overflow-y-auto sidebar" id="sidebar">
+    <div class="p-6 border-b border-gray-100">
+        <div class="flex items-center space-x-4">
+            {% if user.is_authenticated and user.companyprofile %}
+                <!-- Show Company Logo and Name if user has a company profile -->
+                <img src="{% if user.companyprofile.company.get_logo %}{{ user.companyprofile.company.get_logo }}{% else %}{% static 'images/demo/demo-company-logo.png' %}{% endif %}" 
+                     alt="Company Logo" class="w-10 h-10 rounded-lg object-cover">
+                <h1 class="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                    {{ user.companyprofile.company.name }}
+                </h1>
+            {% else %}
+                <!-- Show Default Image and Name for guest or if no company profile -->
+                <img src="{% static 'images/demo/demo-company-logo.jpg' %}" alt="Demo Logo" class="w-10 h-10 rounded-lg object-cover">
+                <h1 class="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                    ERP Suite
+                </h1>
+            {% endif %}
+        </div>
+        
+    </div>
+    <div class="p-4">
+        <div class="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-all cursor-pointer profile-section">
+            <!-- Profile Image and User Info -->
+            <div class="flex items-center space-x-3">
+                <img src="{% if user.companyprofile.get_picture %}{{ user.companyprofile.get_picture }}{% else %}{% static 'images/demo/demo-profile.jpg' %}{% endif %}" 
+                     alt="Profile" 
+                     class="w-10 h-10 rounded-full object-cover border-2 border-blue-100">
+                <div>
+                    <h2 class="text-sm font-semibold">{{ user.get_full_name|default:user.username }}</h2>
+                    <p class="text-xs text-gray-500">Administrator</p>
+                </div>
+            </div>
+    
+            <!-- For guest users -->
+            {% if not user.is_authenticated %}
+                <div>
+                    <h2 class="text-sm font-semibold">Guest</h2>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+
+
+
+    <nav class="p-4 space-y-4 bg-white shadow-md rounded-lg">
+    
+        <!-- Company Menu -->
+        {% if show_company_menu %}
+        <div class="menu-group">
+            <!-- Menu Header -->
+            <div class="flex items-center justify-between p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer"
+                onclick="toggleDropdown('companyDropdown', 'companyIcon')">
+                <div class="flex items-center space-x-2">
+                    <span class="material-icons text-gray-500 dark:text-gray-300">group</span>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Company</span>
+                </div>
+                <span id="companyIcon" class="material-icons text-gray-500 dark:text-gray-300">expand_more</span>
+            </div>
+    
+            <!-- Dropdown Content -->
+            <div id="companyDropdown" class="dropdown-menu hidden scale-y-0 pl-4 mt-2 space-y-2 origin-top transition-all duration-300 ease-out">
+                <a href="{% url 'company:company_list' %}" class="flex items-center space-x-2 p-2 text-sm text-gray-600 dark:text-gray-200 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-all">
+                    <span class="material-icons text-gray-500 dark:text-gray-300">view_list</span>
+                    <span>View Company</span>
+                </a>
+                <a href="{% url 'company:company_create' %}" class="flex items-center space-x-2 p-2 text-sm text-gray-600 dark:text-gray-200 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-all">
+                    <span class="material-icons text-gray-500 dark:text-gray-300">add</span>
+                    <span>Add New Company</span>
+                </a>
+                <a href="#" class="flex items-center space-x-2 p-2 text-sm text-gray-600 dark:text-gray-200 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-all">
+                    <span class="material-icons text-gray-500 dark:text-gray-300">settings</span>
+                    <span>User Settings</span>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    
+        <!-- Dashboard Menu -->
+        <div class="menu-group">
+            <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                onclick="toggleDropdown('dashboardDropdown', 'dashboardIcon')">
+                <div class="flex items-center space-x-2">
+                    <span class="material-icons text-gray-500">dashboard</span>
+                    <span class="text-sm font-medium text-gray-700">Dashboard</span>
+                </div>
+                <span id="dashboardIcon" class="material-icons text-gray-500">expand_more</span>
+            </div>
+            <div id="dashboardDropdown" class="dropdown-menu hidden scale-y-0 pl-4 mt-2 space-y-2">
+                <a href="#" class="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
+                    <span class="material-icons text-gray-500">insights</span>
+                    <span>Overview</span>
+                </a>
+                <a href="#" class="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
+                    <span class="material-icons text-gray-500">analytics</span>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </div>
+    
+        <!-- Reports Menu -->
+        <div class="menu-group">
+            <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer"
+                onclick="toggleDropdown('reportsDropdown', 'reportsIcon')">
+                <div class="flex items-center space-x-2">
+                    <span class="material-icons text-gray-500">assessment</span>
+                    <span class="text-sm font-medium text-gray-700">Reports</span>
+                </div>
+                <span id="reportsIcon" class="material-icons text-gray-500">expand_more</span>
+            </div>
+            <div id="reportsDropdown" class="dropdown-menu hidden scale-y-0 pl-4 mt-2 space-y-2">
+                <a href="#" class="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
+                    <span class="material-icons text-gray-500">insert_chart</span>
+                    <span>Sales Report</span>
+                </a>
+                <a href="#" class="flex items-center space-x-2 p-2 text-sm text-gray-600 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
+                    <span class="material-icons text-gray-500">inventory</span>
+                    <span>Inventory</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+        <div class="flex items-center justify-between">
+            <button class="p-2 rounded-lg hover:bg-gray-100 transition-all tooltip" data-tooltip="Toggle Theme">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+            <button class="p-2 rounded-lg hover:bg-gray-100 transition-all tooltip" data-tooltip="Help">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+            <button class="p-2 rounded-lg hover:bg-gray-100 transition-all tooltip" data-tooltip="Logout">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            </button>
+        </div>
+    </div>
+</aside>

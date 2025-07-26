@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block main_content %}
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="auth-container rounded-lg shadow-lg p-8 w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-white">
+                ERP Suite
+            </h1>
+        </div>
+        <div class="mb-6">
+            <div class="flex border-b border-white">
+                <button id="loginTab" class="flex-1 py-2 px-4 text-white font-semibold focus:outline-none">
+                    Login
+                </button>
+                <button id="registerTab" class="flex-1 py-2 px-4 text-white font-semibold focus:outline-none">
+                    Register
+                </button>
+            </div>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="{% if tab != 'login' %}hidden{% endif %}">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="loginEmail" class="block text-sm font-medium text-white mb-1">Email</label>
+                    <input type="email" id="loginEmail" name="email" required
+                           class="w-full px-3 py-2 border border-white/30 rounded-md bg-white/10 text-white">
+                </div>
+                <div class="mb-6">
+                    <label for="loginPassword" class="block text-sm font-medium text-white mb-1">Password</label>
+                    <input type="password" id="loginPassword" name="password" required
+                           class="w-full px-3 py-2 border border-white/30 rounded-md bg-white/10 text-white">
+                </div>
+                <button type="submit"
+                        class="w-full bg-white text-primary py-2 px-4 rounded-md hover:bg-opacity-90 focus:outline-none">
+                    Log In
+                </button>
+            </form>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" class="{% if tab != 'register' %}hidden{% endif %}">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="registerName" class="block text-sm font-medium text-white mb-1">Full Name</label>
+                    <input type="text" id="registerName" name="name" required
+                           class="w-full px-3 py-2 border border-white/30 rounded-md bg-white/10 text-white">
+                </div>
+                <div class="mb-4">
+                    <label for="registerEmail" class="block text-sm font-medium text-white mb-1">Email</label>
+                    <input type="email" id="registerEmail" name="email" required
+                           class="w-full px-3 py-2 border border-white/30 rounded-md bg-white/10 text-white">
+                </div>
+                <div class="mb-4">
+                    <label for="registerPassword" class="block text-sm font-medium text-white mb-1">Password</label>
+                    <input type="password" id="registerPassword" name="password" required
+                           class="w-full px-3 py-2 border border-white/30 rounded-md bg-white/10 text-white">
+                </div>
+                <div class="mb-6">
+                    <label for="confirmPassword" class="block text-sm font-medium text-white mb-1">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirm-password" required
+                           class="w-full px-3 py-2 border border-white/30 rounded-md bg-white/10 text-white">
+                </div>
+                <button type="submit"
+                        class="w-full bg-white text-primary py-2 px-4 rounded-md hover:bg-opacity-90 focus:outline-none">
+                    Register
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Tab functionality
+const loginTab = document.getElementById('loginTab');
+const registerTab = document.getElementById('registerTab');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+
+loginTab.addEventListener('click', () => {
+    loginForm.classList.remove('hidden');
+    registerForm.classList.add('hidden');
+});
+
+registerTab.addEventListener('click', () => {
+    loginForm.classList.add('hidden');
+    registerForm.classList.remove('hidden');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+<!-- templates/example_page.html -->
+{% extends "base.html" %}
+
+{% block title %}Example Page{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/custom_styles.css' %}">
+{% endblock %}
+
+{% block header %}
+<nav>
+    <a href="/">Home</a>
+    <a href="/services/">Services</a>
+    <a href="/contact/">Contact Us</a>
+</nav>
+{% endblock %}
+
+{% block sidebar %}
+<p>Custom sidebar content for Example Page.</p>
+{% endblock %}
+
+{% block top_content %}
+<div class="top-content">
+    <h2>Welcome to Example Page</h2>
+</div>
+{% endblock %}
+
+{% block main_content %}
+<div class="main-content">
+    <p>This is the main content for the example page.</p>
+</div>
+{% endblock %}
+
+{% block footer %}
+<p>&copy; 2023 Example Application. All rights reserved.</p>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/custom_scripts.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+{% include "message.html" %}
+
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0 sm:space-x-4">
+            <!-- Add New Materials Purchase and Materials Purchase Detailed List Buttons -->
+            <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+                <a href="{% url 'customer_vendor:materials_purchase_create' %}" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#a31319] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-lg">
+                    <i class="ri-add-line mr-2"></i> Add
+                </a>
+                <a href="{% url 'customer_vendor:materials_purchase_report' %}" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#a31319] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-lg">
+                    <i class="ri-file-chart-line mr-2"></i> Purchase Report
+                </a>
+            </div>
+        
+            <!-- Search Form -->
+            <form method="get" action="{% url 'customer_vendor:materials_purchase_list' %}" class="relative w-full sm:w-auto mt-4 sm:mt-0">
+                <input type="text" name="search" placeholder="Search materials purchases..." class="pl-10 pr-4 py-3 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-72 sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                </div>
+            </form>
+        </div>
+        
+        <div class="overflow-x-auto table-container">
+            <div class="bg-gradient-to-br from-[#a31319] to-black rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">Materials Purchases</h2>
+                    <div class="overflow-x-auto">
+                        <table id="materialsPurchaseTable" class="w-full text-sm text-left text-gray-200">
+                            <thead class="text-xs uppercase bg-[#480d0f] text-gray-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        <input type="checkbox" class="rounded border-gray-600 text-[#a31319] shadow-sm focus:border-[#a31319] focus:ring focus:ring-[#a31319] focus:ring-opacity-50">
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Purchase ID</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Vendor Name</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Purchase Date</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Total Amount</th>
+                                    <th scope="col" class="px-6 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for purchase in purchases %}
+                                <tr class="border-b border-gray-700 hover:bg-[#5a1114] transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="rounded border-gray-600 text-[#a31319] shadow-sm focus:border-[#a31319] focus:ring focus:ring-[#a31319] focus:ring-opacity-50">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap font-medium">{{ purchase.id }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ purchase.vendor_name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ purchase.purchase_date|date:"Y-m-d" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ purchase.total_amount }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex space-x-2">
+                                            {% if perms.uniworlderp.change_materialspurchase %}
+                                            <a href="{% url 'customer_vendor:materials_purchase_update' purchase.pk %}" 
+                                               class="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-800 text-indigo-100 hover:bg-indigo-700">
+                                                <i class="ri-edit-line mr-1"></i>Edit
+                                            </a>
+                                            {% endif %}
+                                            {% if perms.uniworlderp.delete_materialspurchase %}
+                                            <a href="{% url 'customer_vendor:materials_purchase_delete' purchase.pk %}" 
+                                               class="px-2 py-1 text-xs font-semibold rounded-full bg-red-800 text-red-100 hover:bg-red-700">
+                                                <i class="ri-delete-bin-line mr-1"></i>Delete
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'customer_vendor:materials_purchase_view' purchase.pk %}" 
+                                               class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-800 text-gray-100 hover:bg-gray-700">
+                                                <i class="ri-eye-line mr-1"></i>View
+                                            </a>
+                                            <a href="{% url 'customer_vendor:materials_purchase_print' purchase.pk %}" target="_blank" 
+                                               class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-800 text-purple-100 hover:bg-purple-700">
+                                                <i class="ri-printer-line mr-1"></i>Print
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-400">No materials purchases available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% include "includes/pagination.html" with page_obj=page_obj %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Table sorting functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('materialsPurchaseTable');
+        const headers = table.querySelectorAll('th');
+        const tableBody = table.querySelector('tbody');
+        const rows = tableBody.querySelectorAll('tr');
+
+        const directions = Array.from(headers).map(() => '');
+
+        const sortColumn = (index) => {
+            const direction = directions[index] || 'asc';
+            const multiplier = (direction === 'asc') ? 1 : -1;
+            const newRows = Array.from(rows);
+
+            newRows.sort((rowA, rowB) => {
+                const cellA = rowA.querySelectorAll('td')[index].textContent.trim();
+                const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
+
+                switch (index) {
+                    case 1: // Purchase ID
+                        return parseInt(cellA) - parseInt(cellB) * multiplier;
+                    case 2: // Vendor Name
+                        return cellA.localeCompare(cellB) * multiplier;
+                    case 3: // Purchase Date
+                        return new Date(cellA) - new Date(cellB) * multiplier;
+                    case 4: // Total Amount
+                        return parseFloat(cellA) - parseFloat(cellB) * multiplier;
+                    default:
+                        return 0;
+                }
+            });
+
+            [].forEach.call(rows, (row) => {
+                tableBody.removeChild(row);
+            });
+
+            newRows.forEach(newRow => tableBody.appendChild(newRow));
+
+            directions[index] = direction === 'asc' ? 'desc' : 'asc';
+        };
+
+        [].forEach.call(headers, (header, index) => {
+            if (index > 0 && index < 5) {
+                header.addEventListener('click', () => {
+                    sortColumn(index);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
+

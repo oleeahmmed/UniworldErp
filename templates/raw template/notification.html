@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Notifications</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 0 0% 3.9%;
+            --primary: 222.2 47.4% 11.2%;
+            --primary-foreground: 0 0% 98%;
+            --muted: 0 0% 96.1%;
+            --muted-foreground: 0 0% 45.1%;
+            --border: 0 0% 89.8%;
+        }
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            max-width: 24rem;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6">Alert Notifications</h1>
+        <div class="space-x-4">
+            <button onclick="showNotification('success')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50">
+                Show Success
+            </button>
+            <button onclick="showNotification('error')" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50">
+                Show Error
+            </button>
+            <button onclick="showNotification('warning')" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50">
+                Show Warning
+            </button>
+            <button onclick="showNotification('info')" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50">
+                Show Info
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function showNotification(type) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            
+            let icon, backgroundColor, textColor;
+            switch (type) {
+                case 'success':
+                    icon = 'ri-checkbox-circle-line';
+                    backgroundColor = 'bg-green-100';
+                    textColor = 'text-green-800';
+                    message = 'Operation completed successfully!';
+                    break;
+                case 'error':
+                    icon = 'ri-error-warning-line';
+                    backgroundColor = 'bg-red-100';
+                    textColor = 'text-red-800';
+                    message = 'An error occurred. Please try again.';
+                    break;
+                case 'warning':
+                    icon = 'ri-alert-line';
+                    backgroundColor = 'bg-yellow-100';
+                    textColor = 'text-yellow-800';
+                    message = 'Warning: This action cannot be undone.';
+                    break;
+                case 'info':
+                    icon = 'ri-information-line';
+                    backgroundColor = 'bg-blue-100';
+                    textColor = 'text-blue-800';
+                    message = 'Here\'s some information you should know.';
+                    break;
+            }
+            
+            notification.className += ` ${backgroundColor} ${textColor}`;
+            notification.innerHTML = `
+                <i class="${icon} text-2xl mr-3"></i>
+                <div>
+                    <h3 class="font-semibold">${type.charAt(0).toUpperCase() + type.slice(1)}</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease-in reverse';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

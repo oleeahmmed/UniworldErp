@@ -1,0 +1,801 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="min-h-screen p-4">
+    <div class="w-full">
+        <!-- Card Container -->
+        <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white border-opacity-20">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-br from-[#a31319] to-black text-white px-6 py-4">
+                <h2 class="text-xl font-semibold text-white">Sales Order</h2>
+            </div>
+
+            <!-- Card Content -->
+            <div class="p-6 space-y-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    {% include "message.html" %}
+
+                    {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for field in form %}
+                            {% if field.name != "discount" and field.name != "shipping" %}
+                            <div class="form-field">
+                                {% if field.field.widget.input_type == "select" %}
+                                    <select name="{{ field.name }}" 
+                                            id="{{ field.id_for_label }}" 
+                                            class="form-input"
+                                            {% if field.field.required %}required{% endif %}>
+                                        {% for choice in field.field.choices %}
+                                            <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>
+                                                {{ choice.1 }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                {% elif field.field.widget.input_type == "textarea" %}
+                                    <textarea name="{{ field.name }}" 
+                                              id="{{ field.id_for_label }}" 
+                                              class="form-input"
+                                              placeholder=" "
+                                              {% if field.field.required %}required{% endif %}>{{ field.value|default:'' }}</textarea>
+                                {% elif field.name == "order_date" %}
+                                    <input type="date"  
+                                           name="{{ field.name }}" 
+                                           id="{{ field.id_for_label }}" 
+                                           class="form-input"
+                                           value="{{ field.value|date:'Y-m-d' }}"  
+                                           {% if field.field.required %}required{% endif %}>
+                                {% else %}
+                                    <input type="{{ field.field.widget.input_type }}" 
+                                           name="{{ field.name }}" 
+                                           id="{{ field.id_for_label }}" 
+                                           class="form-input"
+                                           placeholder=" "
+                                           value="{{ field.value|default:'' }}"
+                                           {% if field.field.required %}required{% endif %}>
+                                {% endif %}
+                                <label for="{{ field.id_for_label }}" class="form-label">
+                                    {{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                                </label>
+                                {% if field.errors %}
+                                <div class="error-message">
+                                    {% for error in field.errors %}
+                                    <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <div class="w-full p-4 border border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--background))] shadow-lg">
+                        <div class="overflow-auto max-h-[400px] max-w-full">
+                            <table class="min-w-full">
+                                <thead class="sticky top-0 bg-[hsl(var(--background))]">
+                                    <tr class="border-b border-[hsl(var(--border))]">
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Product</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Quantity</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Stock Quantity</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Unit Price</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Discount</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Total</th>
+                                        <th scope="col" class="py-3 text-left text-xs font-semibold uppercase tracking-wider">Delete</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orderItemsFormset" class="divide-y divide-[hsl(var(--border))]">
+                                    {{ formset.management_form }}
+                                    {% for form in formset %}
+                                        <tr class="formset-row group hover:bg-[hsl(var(--accent))] transition-colors duration-150">
+                                            {{ form.id }}
+                                            <td class="py-2">
+                                                {{ form.product }}
+                                                {% if form.product.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.product.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.quantity }}
+                                                {% if form.quantity.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.quantity.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.stock_quantity }}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.unit_price }}
+                                                {% if form.unit_price.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.unit_price.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.total_discount }}
+                                                {% if form.discount_amount.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.discount_amount.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.display_total }}
+                                                {% if form.display_total.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.display_total.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2 relative">
+                                                {{ form.DELETE }}
+                                                <button type="button" class="delete-row opacity-0 group-hover:opacity-100 transition-opacity duration-150 inline-flex items-center justify-center rounded-full w-6 h-6 bg-red-500 text-white hover:bg-red-600">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Single Add Row Button that works for both mobile and desktop -->
+                        <div class="mt-4">
+                            <button type="button" id="addRowBtn" class="w-full px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+                                <span class="mr-2">+</span> Add New Row
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Financial Information Section -->
+                    <div class="w-full p-4 border border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--background))] shadow-lg mt-6">
+                        <h3 class="text-lg font-semibold mb-4">Financial Information</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center border-b pb-2">
+                                    <span class="font-medium">Subtotal:</span>
+                                    <span id="subtotal" class="text-lg font-bold">$0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <label for="{{ form.discount.id_for_label }}" class="font-medium">Discount:</label>
+                                    <div class="flex items-center space-x-2">
+                                        <span>$</span>
+                                        {{ form.discount }}
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <label for="{{ form.shipping.id_for_label }}" class="font-medium">Shipping:</label>
+                                    <div class="flex items-center space-x-2">
+                                        <span>$</span>
+                                        {{ form.shipping }}
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center border-t pt-2">
+                                    <span class="font-bold text-lg">Total:</span>
+                                    <span id="finalTotal" class="text-lg font-bold text-[hsl(var(--primary))]">$0.00</span>
+                                </div>
+                            </div>
+<!-- Removed calculation text -->
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button type="button" onclick="history.back()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg hover:bg-opacity-90">
+                            Save Order
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Context Menu -->
+<div id="contextMenu" class="hidden fixed bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+    <button type="button" id="addRowAboveBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Add Row Above</button>
+    <button type="button" id="addRowBelowBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Add Row Below</button>
+    <button type="button" id="deleteRowBtn" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">Delete Row</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const orderItemsFormset = document.getElementById('orderItemsFormset');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const contextMenu = document.getElementById('contextMenu');
+    let targetRow = null;
+    let deletedRows = new Set(); // Track deleted rows
+
+    // Set current date for the order_date field
+    const orderDateField = document.getElementById('id_order_date');
+    if (orderDateField) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        orderDateField.value = `${year}-${month}-${day}`;
+    }
+
+    // Initialize searchable dropdown only for product fields
+    initializeSearchableDropdowns();
+
+    // Add row functionality
+    addRowBtn.addEventListener('click', () => addFormsetRow());
+
+    // Delete row functionality
+    orderItemsFormset.addEventListener('click', function(e) {
+        if (e.target.closest('.delete-row')) {
+            const row = e.target.closest('.formset-row');
+            deleteRow(row);
+        }
+    });
+
+    // Context menu functionality
+    orderItemsFormset.addEventListener('contextmenu', showContextMenu);
+    document.addEventListener('click', hideContextMenu);
+
+    document.getElementById('addRowAboveBtn').addEventListener('click', () => {
+        if (targetRow) {
+            addFormsetRow(targetRow, 'above');
+            hideContextMenu();
+        }
+    });
+
+    document.getElementById('addRowBelowBtn').addEventListener('click', () => {
+        if (targetRow) {
+            addFormsetRow(targetRow, 'below');
+            hideContextMenu();
+        }
+    });
+
+    document.getElementById('deleteRowBtn').addEventListener('click', () => {
+        if (targetRow) {
+            deleteRow(targetRow);
+            hideContextMenu();
+        }
+    });
+
+    // Calculate total on input change
+    orderItemsFormset.addEventListener('input', function(e) {
+        updateTotal(e);
+        updateOrderTotals();
+    });
+
+    // Product selection change event
+    orderItemsFormset.addEventListener('change', function(e) {
+        if (e.target.name.includes('product')) {
+            updateProductDetails(e.target);
+        }
+    });
+
+    // Listen for discount and shipping changes
+    const discountField = document.getElementById('id_discount');
+    const shippingField = document.getElementById('id_shipping');
+    
+    if (discountField) {
+        discountField.addEventListener('input', updateOrderTotals);
+    }
+    if (shippingField) {
+        shippingField.addEventListener('input', updateOrderTotals);
+    }
+
+    function initializeSearchableDropdowns() {
+        // ONLY initialize product dropdowns, not all select fields
+        const productSelects = orderItemsFormset.querySelectorAll('select[name$="product"]');
+        productSelects.forEach(createSearchableDropdown);
+        
+        // Initialize customer dropdown if needed (but not delivery status)
+        const customerSelect = document.querySelector('select[id="id_customer"]');
+        if (customerSelect) {
+            createSearchableDropdown(customerSelect);
+        }
+        
+        // Initialize salesperson dropdown if needed
+        const salespersonSelect = document.querySelector('select[id="id_salesperson"]');
+        if (salespersonSelect) {
+            createSearchableDropdown(salespersonSelect);
+        }
+    }
+
+    function createSearchableDropdown(select) {
+        // Check if this select already has a dropdown
+        if (select.nextSibling && select.nextSibling.classList && select.nextSibling.classList.contains('dropdown-wrapper')) {
+            return;
+        }
+        
+        // Determine if this is a product select
+        const isProductSelect = select.name && select.name.includes('product');
+        
+        // Create wrapper container
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative dropdown-wrapper w-full';
+        
+        // Create button that shows/hides the dropdown
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'form-input text-left w-full flex justify-between items-center';
+        
+        // Create span for selected text
+        const selectedText = document.createElement('span');
+        selectedText.className = 'selected-text';
+        selectedText.textContent = select.options[select.selectedIndex]?.text || 'Select...';
+        
+        // Add arrow icon
+        const arrow = document.createElement('span');
+        arrow.innerHTML = '▼';
+        arrow.className = 'text-xs';
+        
+        button.appendChild(selectedText);
+        button.appendChild(arrow);
+        
+        // Create dropdown container
+        const dropdown = document.createElement('div');
+        
+        // Special positioning for product selects inside table cells
+        if (isProductSelect) {
+            dropdown.className = 'fixed bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto hidden';
+            dropdown.style.width = '300px'; // Fixed width for product dropdown
+        } else {
+            dropdown.className = 'absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto hidden';
+        }
+        
+        // Create search input
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'p-2 sticky top-0 bg-white border-b';
+        
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'w-full p-2 border border-gray-300 rounded-md';
+        searchInput.placeholder = 'Search...';
+        
+        searchContainer.appendChild(searchInput);
+        dropdown.appendChild(searchContainer);
+        
+        // Create options list
+        const optionsList = document.createElement('div');
+        optionsList.className = 'py-1';
+        
+        // Add options from the original select
+        Array.from(select.options).forEach(option => {
+            if (option.value) { // Skip empty options
+                const optionElement = document.createElement('div');
+                optionElement.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+                optionElement.dataset.value = option.value;
+                optionElement.textContent = option.text;
+                optionElement.dataset.sku = option.getAttribute('sku') || '';
+                
+                optionElement.addEventListener('click', () => {
+                    select.value = option.value;
+                    selectedText.textContent = option.text;
+                    dropdown.classList.add('hidden');
+                    
+                    // Dispatch change event to trigger any listeners
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                
+                optionsList.appendChild(optionElement);
+            }
+        });
+        
+        dropdown.appendChild(optionsList);
+        
+        // Add button click handler
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // For product selects, position the dropdown at the button
+            if (isProductSelect) {
+                const rect = button.getBoundingClientRect();
+                dropdown.style.top = rect.bottom + 'px';
+                dropdown.style.left = rect.left + 'px';
+            }
+            
+            dropdown.classList.toggle('hidden');
+            if (!dropdown.classList.contains('hidden')) {
+                searchInput.focus();
+                
+                // Close any other open dropdowns
+                document.querySelectorAll('.dropdown-wrapper .absolute, .dropdown-wrapper .fixed').forEach(el => {
+                    if (el !== dropdown) el.classList.add('hidden');
+                });
+            }
+        });
+        
+        // Add search functionality
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            Array.from(optionsList.children).forEach(option => {
+                const text = option.textContent.toLowerCase();
+                option.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+        
+        // Insert the custom dropdown after the select
+        wrapper.appendChild(button);
+        
+        // For product selects, append the dropdown to the body
+        if (isProductSelect) {
+            document.body.appendChild(dropdown);
+        } else {
+            wrapper.appendChild(dropdown);
+        }
+        
+        // Hide the original select and insert our custom dropdown
+        select.style.display = 'none';
+        select.parentNode.insertBefore(wrapper, select.nextSibling);
+        
+        // Ensure the dropdown is updated when the original select changes
+        select.addEventListener('change', () => {
+            selectedText.textContent = select.options[select.selectedIndex]?.text || 'Select...';
+        });
+    }
+    function addFormsetRow(referenceRow = null, position = 'below') {
+        const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+        const newIndex = parseInt(totalForms.value);
+        const templateRow = orderItemsFormset.querySelector('.formset-row:last-child');
+        
+        if (templateRow) {
+            const newRow = templateRow.cloneNode(true);
+            
+            // Remove any existing custom dropdowns from the new row
+            const existingDropdowns = newRow.querySelectorAll('.dropdown-wrapper');
+            existingDropdowns.forEach(dropdown => dropdown.remove());
+            
+            // Update indices in the new row
+            newRow.innerHTML = newRow.innerHTML.replace(/-(\d+)-/g, `-${newIndex}-`);
+            
+            // Clear input values and update names/ids
+            newRow.querySelectorAll('input, select').forEach(input => {
+                if (input.tagName === 'SELECT') {
+                    // Preserve the original options
+                    const originalSelect = templateRow.querySelector(`select[name$="${input.name.split('-').pop()}"]`);
+                    input.innerHTML = originalSelect.innerHTML;
+                    input.value = ''; // Clear selection
+                    input.style.display = ''; // Make sure select is visible
+                } else {
+                    input.value = '';
+                }
+                
+                // Update name and id attributes
+                const oldName = input.name;
+                const oldId = input.id;
+                input.name = oldName.replace(/-\d+-/, `-${newIndex}-`);
+                input.id = oldId ? oldId.replace(/-\d+-/, `-${newIndex}-`) : '';
+            });
+            
+            // Reset delete checkbox
+            const deleteCheckbox = newRow.querySelector('input[name$="-DELETE"]');
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = false;
+            }
+            
+            // Show the new row
+            newRow.style.display = '';
+            
+            if (referenceRow && position === 'above') {
+                referenceRow.parentNode.insertBefore(newRow, referenceRow);
+            } else if (referenceRow && position === 'below') {
+                referenceRow.parentNode.insertBefore(newRow, referenceRow.nextSibling);
+            } else {
+                orderItemsFormset.appendChild(newRow);
+            }
+            
+            totalForms.value = newIndex + 1;
+            updateFormsetIndexes();
+            
+            // Initialize searchable dropdown for the new row's product select only
+            const newProductSelect = newRow.querySelector('select[name$="product"]');
+            if (newProductSelect) {
+                createSearchableDropdown(newProductSelect);
+            }
+        }
+    }
+
+    function deleteRow(row) {
+        // Check if we have more than one row before deletion
+        const visibleRows = Array.from(orderItemsFormset.querySelectorAll('.formset-row')).filter(
+            r => r.style.display !== 'none'
+        );
+        
+        // Add row ID to our deleted rows tracker
+        const rowId = row.querySelector('input[type="hidden"][name$="-id"]')?.value;
+        if (rowId) {
+            deletedRows.add(rowId);
+        }
+        
+        const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+        if (deleteCheckbox) {
+            deleteCheckbox.checked = true;
+            row.style.display = 'none';
+        } else {
+            row.remove();
+        }
+        
+        // Ensure at least one row is visible
+        if (visibleRows.length <= 1) {
+            addFormsetRow();
+        }
+        
+        updateFormsetIndexes();
+    }
+
+    function updateFormsetIndexes() {
+        const visibleRows = Array.from(orderItemsFormset.querySelectorAll('.formset-row')).filter(
+            row => row.style.display !== 'none'
+        );
+        
+        const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+        if (totalForms) {
+            totalForms.value = visibleRows.length;
+            
+            // Ensure at least one visible row
+            if (visibleRows.length === 0) {
+                addFormsetRow();
+            }
+        }
+    }
+
+    function showContextMenu(e) {
+        e.preventDefault();
+        targetRow = e.target.closest('.formset-row');
+        if (targetRow) {
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.style.top = `${e.pageY}px`;
+        }
+    }
+
+    function hideContextMenu() {
+        contextMenu.style.display = 'none';
+        targetRow = null;
+    }
+
+    function updateTotal(e) {
+        if (e.target.name.includes('quantity') || e.target.name.includes('unit_price')) {
+            const row = e.target.closest('tr');
+            const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
+            const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
+            
+            // Get discount amount (per unit)
+            const discountField = row.querySelector('input[name$="total_discount"]');
+            const discountAmount = discountField ? (parseFloat(discountField.value) || 0) : 0;
+            
+            // Calculate total with discount applied to each unit
+            const totalBeforeDiscount = quantity * unitPrice;
+            const totalDiscount = quantity * discountAmount;
+            const totalAfterDiscount = totalBeforeDiscount - totalDiscount;
+            
+            const totalInput = row.querySelector('input[name$="display_total"]');
+            if (totalInput) {
+                totalInput.value = totalAfterDiscount.toFixed(2);
+            }
+        }
+    }
+
+    function updateOrderTotals() {
+        const rows = orderItemsFormset.querySelectorAll('.formset-row');
+        let subtotal = 0;
+
+        rows.forEach(row => {
+            if (row.style.display !== 'none') { // Only calculate for visible rows
+                const totalInput = row.querySelector('input[name$="display_total"]');
+                subtotal += parseFloat(totalInput.value) || 0;
+            }
+        });
+
+        const discount = parseFloat(discountField?.value) || 0;
+        const shipping = parseFloat(shippingField?.value) || 0;
+
+        const total = subtotal - discount + shipping;
+
+        document.getElementById('subtotal').innerText = `$${subtotal.toFixed(2)}`;
+        document.getElementById('finalTotal').innerText = `$${total.toFixed(2)}`;
+    }
+
+    function updateProductDetails(productSelect) {
+        const row = productSelect.closest('tr');
+        let sku;
+        
+        // Handle both original select and custom dropdown
+        if (productSelect.tagName === 'SELECT') {
+            sku = productSelect.options[productSelect.selectedIndex]?.getAttribute('sku');
+        } else {
+            // For custom dropdown, get the data from the selected option
+            const selectedValue = productSelect.value;
+            const originalSelect = row.querySelector('select[name$="product"]');
+            const selectedOption = Array.from(originalSelect.options).find(opt => opt.value === selectedValue);
+            sku = selectedOption?.getAttribute('sku');
+        }
+    
+        if (sku) {
+            // Dynamically generate the URL using Django's reverse function in the template
+            const fetchUrl = `{% url 'customer_vendor:get_product_info' %}?sku=${sku}`;
+    
+            fetch(fetchUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update fields with the fetched product data
+                    row.querySelector('input[name$="stock_quantity"]').value = data.stock_quantity;
+                    row.querySelector('input[name$="unit_price"]').value = data.price.toFixed(2);
+                    
+                    // Handle discount if present in API response
+                    if ('discount_amount' in data) {
+                        const discountField = row.querySelector('input[name$="total_discount"]');
+                        if (discountField) {
+                            discountField.value = data.discount_amount.toFixed(2);
+                        }
+                    }
+    
+                    // Call the function to update the total
+                    updateTotal({ target: row.querySelector('input[name$="quantity"]') });
+                })
+                .catch(error => {
+                    console.error('Error fetching product info:', error);
+                });
+        } else {
+            // Reset fields if no product SKU is selected
+            row.querySelector('input[name$="stock_quantity"]').value = '';
+            row.querySelector('input[name$="unit_price"]').value = '';
+            row.querySelector('input[name$="display_total"]').value = '';
+            
+            // Also reset discount
+            const discountField = row.querySelector('input[name$="total_discount"]');
+            if (discountField) {
+                discountField.value = '';
+            }
+        }
+    }
+    
+    // Initialize totals for existing rows
+    document.querySelectorAll('.formset-row').forEach(row => {
+        // Skip initialization for deleted rows
+        const rowId = row.querySelector('input[type="hidden"][name$="-id"]')?.value;
+        if (rowId && deletedRows.has(rowId)) {
+            return;
+        }
+        
+        const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
+        const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
+        const total = quantity * unitPrice;
+        const totalInput = row.querySelector('input[name$="display_total"]');
+        if (totalInput) {
+            totalInput.value = total.toFixed(2);
+        }
+        const productSelect = row.querySelector('select[name$="product"]');
+        if (productSelect && productSelect.value) {
+            updateProductDetails(productSelect);
+        }
+    });
+
+    // Initialize order totals on page load
+    updateOrderTotals();
+
+    function isRowEmpty(row) {
+        const product = row.querySelector('select[name$="product"]').value;
+        const quantity = row.querySelector('input[name$="quantity"]').value;
+        const unitPrice = row.querySelector('input[name$="unit_price"]').value;
+        return !product && !quantity && !unitPrice;
+    }
+
+    function isValidUUID(uuid) {
+        if (!uuid) return false;
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(uuid);
+    }
+
+    function validateRow(row) {
+        if (row.style.display === 'none') return true; // Skip hidden/deleted rows
+        
+        const product = row.querySelector('select[name$="product"]');
+        const quantity = row.querySelector('input[name$="quantity"]');
+        const unitPrice = row.querySelector('input[name$="unit_price"]');
+        
+        // If row is completely empty, it's valid (will be removed before submission)
+        if (!product.value && !quantity.value && !unitPrice.value) {
+            return true;
+        }
+        
+        // If row has any value, all required fields must be filled
+        if (!product.value || !quantity.value || !unitPrice.value) {
+            return false;
+        }
+        
+        // Validate UUID only if product is selected
+        if (product.value && !isValidUUID(product.value)) {
+            return false;
+        }
+        
+        return true;
+    }
+
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const rows = orderItemsFormset.querySelectorAll('.formset-row');
+        let hasValidData = false;
+        let allRowsValid = true;
+        
+        rows.forEach(row => {
+            if (row.style.display !== 'none') { // Only check visible rows
+                if (!isRowEmpty(row)) {
+                    hasValidData = true;
+                    if (!validateRow(row)) {
+                        allRowsValid = false;
+                    }
+                }
+            }
+        });
+        
+        if (!hasValidData) {
+            alert('Please add at least one product to the order.');
+            return;
+        }
+        
+        if (!allRowsValid) {
+            alert('Please ensure all products are properly selected and all required fields are filled.');
+            return;
+        }
+        
+        removeEmptyRows();
+        this.submit();
+    });
+
+    function removeEmptyRows() {
+        const rows = orderItemsFormset.querySelectorAll('.formset-row');
+        rows.forEach(row => {
+            if (isRowEmpty(row)) {
+                deleteRow(row);
+            }
+        });
+        updateFormsetIndexes();
+    }
+});
+
+function refreshPage() {
+    location.reload();
+}
+</script>
+{% endblock %}

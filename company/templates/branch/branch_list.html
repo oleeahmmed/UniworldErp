@@ -1,0 +1,146 @@
+
+
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+
+
+<!-- Messages -->
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center space-x-2">
+                <a href="{% url 'company:branch_create' %}" class="px-3 py-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="ri-add-line mr-1"></i> Add New Branch
+                </a>
+
+                   
+                </button>
+            </div>
+            <form method="get" action="{% url 'company:branch_list' %}" class="relative">
+                <input type="text" name="search" placeholder="Search branches..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                </div>
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table  id="companyTable" class="min-w-full divide-y divide-[hsl(var(--border))]">
+                <thead class="bg-[hsl(var(--muted))]">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            <input type="checkbox" class="rounded border-[hsl(var(--border))] text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Branch Name
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Address
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Phone
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Email
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider ">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-[hsl(var(--background))] divide-y divide-[hsl(var(--border))]">
+                    {% for branch in branches %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="checkbox" class="rounded border-[hsl(var(--border))] text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-[hsl(var(--foreground))]">{{ branch.name }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--foreground))]">{{ branch.address }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--muted-foreground))]">{{ branch.phone }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--muted-foreground))]">{{ branch.email }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{% url 'company:branch_edit' branch.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                            <a href="{% url 'company:branch_delete' branch.pk %}" class="text-red-600 hover:text-red-900">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">No branches available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="bg-[hsl(var(--background))] px-4 py-3 flex items-center justify-between border-t border-[hsl(var(--border))] sm:px-6">
+            <!-- Pagination controls -->
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if branches.has_previous %}
+                    <a href="?page=1" class="relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] text-sm font-medium rounded-md text-[hsl(var(--foreground))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))]">
+                        Previous
+                    </a>
+                    <a href="?page={{ branches.previous_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] text-sm font-medium rounded-md text-[hsl(var(--foreground))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))]">
+                        Previous
+                    </a>
+                {% endif %}
+                {% if branches.has_next %}
+                    <a href="?page={{ branches.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] text-sm font-medium rounded-md text-[hsl(var(--foreground))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))]">
+                        Next
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-[hsl(var(--muted-foreground))]">
+                        Showing <span class="font-medium">{{ branches.start_index }}</span> to <span class="font-medium">{{ branches.end_index }}</span> of <span class="font-medium">{{ branches.paginator.count }}</span> results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="?page=1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
+                            <span class="sr-only">Previous</span>
+                            <i class="ri-arrow-left-s-line"></i>
+                        </a>
+                        {% for page_num in branches.paginator.page_range %}
+                            {% if page_num == branches.number %}
+                                <a href="?page={{ page_num }}" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium bg-indigo-50 text-indigo-600">
+                                    {{ page_num }}
+                                </a>
+                            {% else %}
+                                <a href="?page={{ page_num }}" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
+                                    {{ page_num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        <a href="?page={{ branches.paginator.num_pages }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
+                            <span class="sr-only">Next</span>
+                            <i class="ri-arrow-right-s-line"></i>
+                        </a>
+                    </nav>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+
+    
+</script>
+{% endblock %}
+

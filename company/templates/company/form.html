@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="footer-bg-animation bg-[hsl(var(--muted))] rounded-t-lg p-2">
+    <h2 class="text-lg font-semibold">{{ action }} {{ model_name }}</h2>
+</div>
+
+
+
+
+
+
+
+
+<div class="bg-[hsl(var(--card))] rounded-lg shadow-lg overflow-hidden">
+    <!-- Card Content -->
+    <div class="p-6 space-y-3">
+ <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% include "message.html" %}
+            {% comment %} {% if form.instance.image %}
+            <div class="mb-4">
+                <img src="{{ form.instance.image.url }}" alt="{{ form.instance.name }}" class="max-w-xs rounded-lg shadow-md">
+            </div>
+        {% endif %} {% endcomment %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-[hsl(var(--foreground))]">
+                        {{ field.label }}{% if field.field.required %}*{% endif %}
+                    </label>
+
+                    <!-- Display the field -->
+                    {{ field }}
+
+                    <!-- Display the field errors -->
+                    {% if field.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                        {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if can_add %}
+            <button type="submit" class="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+                Save {{ model_name }}
+            </button>
+            {% elif can_edit %}
+            <button type="submit" class="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+                Edit {{ model_name }}
+            </button>
+            {% elif can_view %}
+            <a href="{% url list_url %}" class="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+                Back to List
+            </a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Card Footer -->
+<div class="footer-bg-animation text-white rounded-b-lg p-0.5"></div>
+
+<script>
+    function refreshPage() {
+        location.reload();
+    }
+</script>
+{% endblock %}
+

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="footer-bg-animation bg-[hsl(var(--muted))] rounded-t-lg p-2 ">
+    <h2 class="text-lg font-semibold">{{ model_name }}</h2>
+</div>
+<div class="bg-[hsl(var(--card))] rounded-lg shadow-lg overflow-hidden">
+    <!-- Card Header -->
+
+    <div class="flex items-center justify-between p-4 rounded-xl bg-[hsl(var(--muted))] shadow-md">
+        <div class="flex items-center space-x-2 mt-4">
+            <!-- First Button -->
+            <a href="{% if first_id %}{% url 'customer_vendor:customer_edit' first_id %}{% else %}#{% endif %}" 
+               class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition {% if not first_id %}opacity-50 cursor-not-allowed{% endif %}">
+                <i class="ri-skip-back-line text-base mr-2"></i>
+                First
+            </a>
+        
+            <!-- Previous Button -->
+            <a href="{% if prev_id %}{% url 'customer_vendor:customer_edit' prev_id %}{% else %}#{% endif %}" 
+               class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition {% if not prev_id %}opacity-50 cursor-not-allowed{% endif %}">
+                <i class="ri-arrow-left-s-line text-base mr-2"></i>
+                Previous
+            </a>
+        
+            <!-- Next Button -->
+            <a href="{% if next_id %}{% url 'customer_vendor:customer_edit' next_id %}{% else %}#{% endif %}" 
+               class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition {% if not next_id %}opacity-50 cursor-not-allowed{% endif %}">
+                Next
+                <i class="ri-arrow-right-s-line text-base ml-2"></i>
+            </a>
+        
+            <!-- Last Button -->
+            <a href="{% if last_id %}{% url 'customer_vendor:customer_edit' last_id %}{% else %}#{% endif %}" 
+               class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition {% if not last_id %}opacity-50 cursor-not-allowed{% endif %}">
+                Last
+                <i class="ri-skip-forward-line text-base ml-2"></i>
+            </a>
+        </div>
+
+                    <!-- Add Button in the Center -->
+                    <div class="flex items-center space-x-2">
+                        <a href="{% url 'customer_vendor:customer_create' %}" 
+                        class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition">
+                            <i class="ri-add-line text-base mr-2"></i>
+                            Add
+                        </a>
+        
+                        <a href="{% url 'customer_vendor:customer_list' %}" 
+                        class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition">
+                            <i class="ri-file-list-3-line text-base mr-2"></i>
+                            All Customer
+                        </a>
+                    </div>
+                <!-- Right Area: Action Buttons -->
+                <div class="flex items-center space-x-2">
+                    {% comment %} <!-- Search Button -->
+                    <button class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition">
+                        <i class="ri-search-line text-base mr-2"></i>
+                        Search
+                    </button> {% endcomment %}
+            <!-- Print Button -->
+            <a href="{% if object.pk %}{% url 'customer_vendor:customer_print' object.pk %}{% else %}#{% endif %}" 
+               target="_blank"
+               class="flex items-center px-4 py-2 text-sm font-medium rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition {% if not object.pk %}opacity-50 pointer-events-none{% endif %}">
+                <i class="ri-printer-line text-base mr-2"></i>
+                Print
+            </a>  
+                    <!-- Refresh Button -->
+                    <button type="button" onclick="refreshPage()" class="px-4 py-2 text-sm font-medium rounded-lg bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))] transition">
+                        <i class="ri-refresh-line text-base mr-2"></i>
+                        Refresh
+                    </button>
+                </div>
+    </div>
+    <!-- Card Content -->
+    <div class="p-6 space-y-3">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-[hsl(var(--foreground))]">
+                        {{ field.label }}{% if field.field.required %}*{% endif %}
+                    </label>
+
+                    <!-- Display the field -->
+                    {{ field }}
+
+                    <!-- Display the field errors -->
+                    {% if field.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                        {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if can_edit %}
+            <button type="submit" class="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+                Save Customer
+            </button>
+            {% else %}
+            <button type="button" class="px-4 py-2 bg-gray-300 text-gray-600 rounded-md cursor-not-allowed" disabled>
+                You do not have permission
+            </button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Card Footer -->
+<div class="footer-bg-animation text-white rounded-b-lg p-0.5"></div>
+{% endblock %}
+

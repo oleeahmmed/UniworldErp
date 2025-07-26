@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+{% include "message.html" %}
+
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0 sm:space-x-4">
+            <!-- Add New Customer Button -->
+            <div class="flex items-center space-x-2">
+                <a href="{% url 'customer_vendor:customer_create' %}" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#a31319] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-lg">
+                    <i class="ri-add-line mr-1"></i> Add New Customer
+                </a>
+            </div>
+        
+            <!-- Search Form -->
+            <form method="get" action="{% url 'customer_vendor:customer_list' %}" class="relative w-full sm:w-auto">
+                <input type="text" name="search" placeholder="Search customers..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-72 sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                </div>
+            </form>
+        </div>
+        
+        <div class="overflow-x-auto  table-container">
+            <div class="bg-gradient-to-br from-[#a31319] to-black rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">Customer List</h2>
+                    <div class="overflow-x-auto">
+                        <table id="customerTable" class="w-full text-sm text-left text-gray-200">
+                            <thead class="text-xs uppercase bg-[#480d0f] text-gray-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        <input type="checkbox" class="rounded border-gray-600 text-[#a31319] shadow-sm focus:border-[#a31319] focus:ring focus:ring-[#a31319] focus:ring-opacity-50">
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Name</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Address</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Phone Number</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Total Sales</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Total Invoices</th>
+                                    <th scope="col" class="px-6 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer in customers %}
+                                <tr class="border-b border-gray-700 hover:bg-[#5a1114] transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="rounded border-gray-600 text-[#a31319] shadow-sm focus:border-[#a31319] focus:ring focus:ring-[#a31319] focus:ring-opacity-50">
+                                    </td>
+                                    <td class="px-6 py-4 font-medium whitespace-nowrap">{{ customer.name }}</td>
+                                    <td class="px-6 py-4">{{ customer.address }}</td>
+                                    <td class="px-6 py-4">{{ customer.phone_number }}</td>
+                                    <td class="px-6 py-4">{{ customer.total_sales|floatformat:2 }}</td>
+                                    <td class="px-6 py-4">{{ customer.total_invoices|floatformat:2 }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex space-x-2">
+                                            {% if perms.uniworlderp.view_customervendor %}
+                                            <a href="{% url 'customer_vendor:customer_view' customer.pk %}" class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-800 text-blue-100 hover:bg-blue-700">
+                                                <i class="ri-eye-line mr-1"></i>View
+                                            </a>
+                                            {% endif %}
+                                            {% if perms.uniworlderp.change_customervendor %}
+                                            <a href="{% url 'customer_vendor:customer_edit' customer.pk %}" class="px-2 py-1 text-xs font-semibold rounded-full bg-green-800 text-green-100 hover:bg-green-700">
+                                                <i class="ri-edit-line mr-1"></i>Edit
+                                            </a>
+                                            {% endif %}
+                                            {% if perms.uniworlderp.delete_customervendor %}
+                                            <a href="{% url 'customer_vendor:customer_delete' customer.pk %}" class="px-2 py-1 text-xs font-semibold rounded-full bg-red-800 text-red-100 hover:bg-red-700">
+                                                <i class="ri-delete-bin-line mr-1"></i>Delete
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'customer_vendor:customer_print' customer.pk %}" target="_blank" class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-800 text-yellow-100 hover:bg-yellow-700">
+                                                <i class="ri-printer-line mr-1"></i>Print
+                                            </a>
+                                            <a href="{% url 'customer_vendor:sales_order_list' customer.pk %}" class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-800 text-purple-100 hover:bg-purple-700">
+                                                <i class="ri-shopping-cart-line mr-1"></i>Sales Orders
+                                            </a>
+                                            <a href="{% url 'customer_vendor:purchase_order_list' customer.pk %}" class="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-800 text-indigo-100 hover:bg-indigo-700">
+                                                <i class="ri-shopping-bag-line mr-1"></i>Purchase Orders
+                                            </a>
+                                            <a href="{% url 'customer_vendor:invoice_list' customer.pk %}" class="px-2 py-1 text-xs font-semibold rounded-full bg-teal-800 text-teal-100 hover:bg-teal-700">
+                                                <i class="ri-file-list-3-line mr-1"></i>Invoices
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-400">No customers available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-[hsl(var(--background))] px-4 py-3 flex items-center justify-between border-t border-[hsl(var(--border))] sm:px-6">
+            <!-- Pagination -->
+            <div class="flex-1 flex justify-between sm:hidden">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] text-sm font-medium rounded-md text-[hsl(var(--foreground))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))]">
+                        Previous
+                    </a>
+                {% endif %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] text-sm font-medium rounded-md text-[hsl(var(--foreground))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))]">
+                        Next
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-[hsl(var(--muted-foreground))]">
+                        Showing <span class="font-medium">{{ page_obj.start_index }}</span> to <span class="font-medium">{{ page_obj.end_index }}</span> of <span class="font-medium">{{ paginator.count }}</span> results
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
+                                <span class="sr-only">Previous</span>
+                                <i class="ri-arrow-left-s-line"></i>
+                            </a>
+                        {% endif %}
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <a href="?page={{ num }}" aria-current="page" class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                    {{ num }}
+                                </a>
+                            {% else %}
+                                <a href="?page={{ num }}" class="bg-[hsl(var(--background))] border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] relative inline-flex items-center px-4 py-2 border text-sm font-medium hover:bg-[hsl(var(--muted))]">
+                                    {{ num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
+                                <span class="sr-only">Next</span>
+                                <i class="ri-arrow-right-s-line"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    // Table sorting functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('customerTable');
+        const headers = table.querySelectorAll('th');
+        const tableBody = table.querySelector('tbody');
+        const rows = tableBody.querySelectorAll('tr');
+
+        const directions = Array.from(headers).map(() => '');
+
+        const sortColumn = (index) => {
+            const direction = directions[index] || 'asc';
+            const multiplier = (direction === 'asc') ? 1 : -1;
+            const newRows = Array.from(rows);
+
+            newRows.sort((rowA, rowB) => {
+                const cellA = rowA.querySelectorAll('td')[index].textContent.trim();
+                const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
+
+                switch (index) {
+                    case 1: // Name
+                    case 2: // Email
+                        return cellA.localeCompare(cellB) * multiplier;
+                    case 3: // Phone Number
+                        return cellA.replace(/\D/g, '').localeCompare(cellB.replace(/\D/g, '')) * multiplier;
+                    default:
+                        return 0;
+                }
+            });
+
+            [].forEach.call(rows, (row) => {
+                tableBody.removeChild(row);
+            });
+
+            newRows.forEach(newRow => tableBody.appendChild(newRow));
+
+            directions[index] = direction === 'asc' ? 'desc' : 'asc';
+        };
+
+        [].forEach.call(headers, (header, index) => {
+            if (index > 0 && index < 4) {
+                header.addEventListener('click', () => {
+                    sortColumn(index);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
+

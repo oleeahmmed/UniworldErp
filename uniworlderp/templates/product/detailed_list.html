@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="bg-gradient-to-br from-[#a31319] to-black rounded-lg shadow-lg overflow-hidden">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+            <form method="get" action="" class="relative">
+                <input type="text" name="search" placeholder="Search transfers..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                </div>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto  table-container ">
+            <table class="min-w-full divide-y divide-[hsl(var(--border))]" id="stockTransferTable">
+                <thead class="text-xs uppercase bg-[#480d0f] text-gray-100">
+                    <tr>
+                        <th class="px-6 py-3 cursor-pointer">Product Name</th>
+                        <th class="px-6 py-3 cursor-pointer">Transaction Type</th>
+                        <th class="px-6 py-3 cursor-pointer">Quantity</th>
+                        <th class="px-6 py-3 cursor-pointer">Previous Stock</th>
+                        <th class="px-6 py-3 cursor-pointer">Current Stock</th>
+                        <th class="px-6 py-3 cursor-pointer">Reference</th>
+                        <th class="px-6 py-3 cursor-pointer">Date & Time</th> <!-- New column for Date & Time -->
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transfer in stock_transactions %}
+                        <tr class="border-b border-gray-700 hover:bg-[#5a1114] transition-colors">
+                            <td class="px-6 py-4 text-white">{{ transfer.product.name }}</td>
+                            <td class="px-6 py-4 text-white ">{{ transfer.get_transaction_type_display }}</td>
+                            <td class="px-6 py-4 text-white">{{ transfer.quantity }}</td>
+                            <td class="px-6 py-4 text-white">{{ transfer.previous_stock }}</td>
+                            <td class="px-6 py-4 text-white">{{ transfer.current_stock }}</td>
+                            <td class="px-6 py-4 text-white">{{ transfer.reference }}</td>
+                            <td class="px-6 py-4 text-white">{{ transfer.transaction_date|date:"d-m-Y H:i:s" }}</td> <!-- Display transaction date -->
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Table sorting functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('stockTransferTable');
+        const headers = table.querySelectorAll('th');
+        const tableBody = table.querySelector('tbody');
+        const rows = tableBody.querySelectorAll('tr');
+        const directions = Array.from(headers).map(() => 'asc');
+
+        const sortColumn = (index) => {
+            const direction = directions[index];
+            const multiplier = (direction === 'asc') ? 1 : -1;
+            const newRows = Array.from(rows);
+
+            newRows.sort((rowA, rowB) => {
+                const cellA = rowA.querySelectorAll('td')[index].textContent.trim();
+                const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
+
+                switch (index) {
+                    case 0: // Product Name
+                    case 1: // Transaction Type
+                    case 5: // Reference
+                        return cellA.localeCompare(cellB) * multiplier;
+                    case 2: // Quantity
+                    case 3: // Previous Stock
+                    case 4: // Current Stock
+                        return parseInt(cellA, 10) - parseInt(cellB, 10) * multiplier;
+                    default:
+                        return 0;
+                }
+            });
+
+            // Reorder rows in the table
+            rows.forEach(row => tableBody.removeChild(row));
+            newRows.forEach(newRow => tableBody.appendChild(newRow));
+
+            directions[index] = direction === 'asc' ? 'desc' : 'asc';  // Toggle direction
+        };
+
+        headers.forEach((header, index) => {
+            if (index < 7) { // Allow sorting on all columns
+                header.addEventListener('click', () => {
+                    sortColumn(index);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

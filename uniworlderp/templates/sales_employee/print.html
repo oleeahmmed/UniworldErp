@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ model_name }} Details</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; color: #2c3e50; }
+        .details div { margin-bottom: 10px; }
+        .label { font-weight: bold; margin-right: 10px; }
+        @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ model_name }} Details</h1>
+        <div class="details">
+            <div><span class="label">Username:</span> {{ sales_employee.user.username }}</div>
+            <div><span class="label">Email:</span> {{ sales_employee.user.email }}</div>
+            <div><span class="label">Phone Number:</span> {{ sales_employee.phone_number }}</div>
+            <div><span class="label">Created At:</span> {{ sales_employee.created_at }}</div>
+            <div><span class="label">Updated At:</span> {{ sales_employee.updated_at }}</div>
+        </div>
+    </div>
+    <script>
+        window.onload = function() { window.print(); }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,415 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="min-h-screen p-4">
+    <div class="w-full">
+        <!-- Card Container -->
+        <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white border-opacity-20">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-br from-[#a31319] to-black text-white px-6 py-4">
+                <h2 class="text-xl font-semibold text-white">Sales Return</h2>
+            </div>
+
+            <!-- Card Content -->
+            <div class="p-6 space-y-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    {% include "message.html" %}
+
+                    {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for field in form %}
+                        <div class="form-field">
+                            {% if field.name == "return_employee" %}
+                                <select name="{{ field.name }}" 
+                                        id="{{ field.id_for_label }}" 
+                                        class="form-input"
+                                        {% if field.field.required %}required{% endif %}>
+                                    {% for choice in field.field.choices %}
+                                        <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>
+                                            {{ choice.1 }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% elif field.name == "id_return_date" %}
+                                <input type="date"  
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}" 
+                                       class="form-input"
+                                       value="{{ field.value|date:'Y-m-d' }}"  
+                                       {% if field.field.required %}required{% endif %}>
+                            {% else %}
+                                <input type="{{ field.field.widget.input_type }}" 
+                                       name="{{ field.name }}" 
+                                       id="{{ field.id_for_label }}" 
+                                       class="form-input"
+                                       placeholder=" "
+                                       value="{{ field.value|default:'' }}"
+                                       {% if field.field.required %}required{% endif %}
+                                       {% if field.name != "return_employee" and field.name != "return_date" %}readonly{% endif %}>
+                            {% endif %}
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                            </label>
+                            {% if field.errors %}
+                            <div class="error-message">
+                                {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Sales Order Information -->
+                    <div class="bg-gray-100 bg-opacity-10 p-4 rounded-lg mb-4">
+                        <h3 class="text-lg font-medium mb-2">Sales Order Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-600">Order #</p>
+                                <p class="font-medium">{{ sales_order.id }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Order Date</p>
+                                <p class="font-medium">{{ sales_order.order_date|date:"Y-m-d" }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Customer</p>
+                                <p class="font-medium">{{ sales_order.customer.name }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full p-4 border border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--background))] shadow-lg">
+                        <div class="overflow-auto max-h-[400px] max-w-full">
+                            <table class="min-w-full">
+                                <thead class="sticky top-0 bg-[hsl(var(--background))]">
+                                    <tr class="border-b border-[hsl(var(--border))]">
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Product</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Sales Quantity</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Return Quantity</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Max Returnable</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Unit Price</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="returnItemsFormset" class="divide-y divide-[hsl(var(--border))]">
+                                    {{ formset.management_form }}
+                                    {% for form in formset %}
+                                        <tr class="formset-row group hover:bg-[hsl(var(--accent))] transition-colors duration-150 {% if form.initial.max_returnable == 0 %}opacity-50{% endif %}">
+                                            {{ form.id }}
+                                            {{ form.sales_order_item }}
+                                            <td class="py-2">
+                                                {{ form.product_name }}
+                                                {% if form.product_name.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.product_name.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2 text-center">
+                                                {{ form.initial.sales_quantity }}
+                                            </td>
+                                            <td class="py-2">
+                                                <input type="number" 
+                                                       name="{{ form.quantity.html_name }}" 
+                                                       id="{{ form.quantity.id_for_label }}" 
+                                                       class="form-input" 
+                                                       value="{{ form.quantity.value|default:'0' }}" 
+                                                       min="0" 
+                                                       max="{{ form.initial.max_returnable }}"
+                                                       {% if form.initial.max_returnable == 0 %}disabled{% endif %}>
+                                                {% if form.quantity.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.quantity.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.max_returnable }}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.unit_price }}
+                                                {% if form.unit_price.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.unit_price.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.display_total }}
+                                                {% if form.display_total.errors %}
+                                                    <div class="text-red-600 text-sm mt-1">
+                                                        {% for error in form.display_total.errors %}
+                                                            <p>{{ error }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <a href="{% url 'customer_vendor:sales_order_view' sales_order.id %}" class="px-6 py-3 text-sm font-semibold uppercase tracking-wider rounded-md border border-[hsl(var(--border))]">Cancel</a>
+                        <button type="submit" class="group relative px-6 py-3 text-white font-semibold text-sm uppercase tracking-wider overflow-hidden rounded-md shadow-lg bg-gradient-to-br from-[#a31319] to-black hover:from-[#9b141a] hover:to-[#333333] transition-all duration-300 ease-out hover:shadow-xl">
+                            <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300 ease-out"></span>
+                            <span class="relative flex items-center">
+                                <svg class="w-5 h-5 mr-2 transform group-hover:rotate-12 transition-transform duration-300 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="transform group-hover:translate-x-1 transition-transform duration-300 ease-out">Process Return</span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const returnItemsFormset = document.getElementById('returnItemsFormset');
+    
+    // Set current date for the return_date field
+    const returnDateField = document.getElementById('id_return_date');
+    if (returnDateField && !returnDateField.value) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        returnDateField.value = `${year}-${month}-${day}`;
+    }
+
+    // Initialize searchable dropdown only for return_employee field
+    const returnEmployeeSelect = document.querySelector('select[id="id_return_employee"]');
+    if (returnEmployeeSelect) {
+        createSearchableDropdown(returnEmployeeSelect);
+    }
+
+    // Calculate total on input change
+    returnItemsFormset.addEventListener('input', updateTotal);
+
+    function createSearchableDropdown(select) {
+        // Check if this select already has a dropdown
+        if (select.nextSibling && select.nextSibling.classList && select.nextSibling.classList.contains('dropdown-wrapper')) {
+            return;
+        }
+        
+        // Create wrapper container
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative dropdown-wrapper w-full';
+        
+        // Create button that shows/hides the dropdown
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'form-input text-left w-full flex justify-between items-center';
+        
+        // Create span for selected text
+        const selectedText = document.createElement('span');
+        selectedText.className = 'selected-text';
+        selectedText.textContent = select.options[select.selectedIndex]?.text || 'Select...';
+        
+        // Add arrow icon
+        const arrow = document.createElement('span');
+        arrow.innerHTML = '▼';
+        arrow.className = 'text-xs';
+        
+        button.appendChild(selectedText);
+        button.appendChild(arrow);
+        
+        // Create dropdown container
+        const dropdown = document.createElement('div');
+        dropdown.className = 'absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto hidden';
+        
+        // Create search input
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'p-2 sticky top-0 bg-white border-b';
+        
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'w-full p-2 border border-gray-300 rounded-md';
+        searchInput.placeholder = 'Search...';
+        
+        searchContainer.appendChild(searchInput);
+        dropdown.appendChild(searchContainer);
+        
+        // Create options list
+        const optionsList = document.createElement('div');
+        optionsList.className = 'py-1';
+        
+        // Add options from the original select
+        Array.from(select.options).forEach(option => {
+            if (option.value) { // Skip empty options
+                const optionElement = document.createElement('div');
+                optionElement.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+                optionElement.dataset.value = option.value;
+                optionElement.textContent = option.text;
+                
+                optionElement.addEventListener('click', () => {
+                    select.value = option.value;
+                    selectedText.textContent = option.text;
+                    dropdown.classList.add('hidden');
+                    
+                    // Dispatch change event to trigger any listeners
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                
+                optionsList.appendChild(optionElement);
+            }
+        });
+        
+        dropdown.appendChild(optionsList);
+        
+        // Add button click handler
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            dropdown.classList.toggle('hidden');
+            if (!dropdown.classList.contains('hidden')) {
+                searchInput.focus();
+                
+                // Close any other open dropdowns
+                document.querySelectorAll('.dropdown-wrapper .absolute, .dropdown-wrapper .fixed').forEach(el => {
+                    if (el !== dropdown) el.classList.add('hidden');
+                });
+            }
+        });
+        
+        // Add search functionality
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            Array.from(optionsList.children).forEach(option => {
+                const text = option.textContent.toLowerCase();
+                option.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!wrapper.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+        
+        // Insert the custom dropdown after the select
+        wrapper.appendChild(button);
+        wrapper.appendChild(dropdown);
+        
+        // Hide the original select and insert our custom dropdown
+        select.style.display = 'none';
+        select.parentNode.insertBefore(wrapper, select.nextSibling);
+        
+        // Ensure the dropdown is updated when the original select changes
+        select.addEventListener('change', () => {
+            selectedText.textContent = select.options[select.selectedIndex]?.text || 'Select...';
+        });
+    }
+
+    function updateTotal(e) {
+        if (e.target.name.includes('quantity')) {
+            const row = e.target.closest('tr');
+            const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
+            const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
+            const maxReturnable = parseFloat(row.querySelector('input[name$="max_returnable"]').value) || 0;
+            
+            // Ensure return quantity doesn't exceed max returnable
+            if (quantity > maxReturnable) {
+                e.target.value = maxReturnable;
+                quantity = maxReturnable;
+            }
+            
+            // Calculate total
+            const total = quantity * unitPrice;
+            const totalInput = row.querySelector('input[name$="display_total"]');
+            if (totalInput) {
+                totalInput.value = total.toFixed(2);
+            }
+        }
+    }
+
+    // Initialize totals for existing rows
+    document.querySelectorAll('.formset-row').forEach(row => {
+        const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
+        const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
+        const total = quantity * unitPrice;
+        const totalInput = row.querySelector('input[name$="display_total"]');
+        if (totalInput) {
+            totalInput.value = total.toFixed(2);
+        }
+
+
+    });
+
+    // Form validation
+
+document.querySelector('form').addEventListener('submit', function(e) {
+    e.preventDefault();
+     const returnEmployeeSelect = document.getElementById('id_return_employee');
+     if (!returnEmployeeSelect.value) {
+         alert('Please select a return employee.');
+         return;
+     }
+     
+        
+    const rows = returnItemsFormset.querySelectorAll('.formset-row');
+    let hasReturns = false;
+    let allRowsValid = true;
+    
+    rows.forEach(row => {
+        const quantityInput = row.querySelector('input[name$="quantity"]');
+        const quantity = parseFloat(quantityInput.value) || 0;
+        const maxReturnable = parseFloat(row.querySelector('input[name$="max_returnable"]').value) || 0;
+        
+        // Only validate rows where quantity is greater than 0
+        if (quantity > 0) {
+            hasReturns = true;
+            
+            if (quantity > maxReturnable) {
+                allRowsValid = false;
+                // Add visual error indication
+                quantityInput.classList.add('border-red-500');
+            }
+        }
+    });
+    
+    if (!hasReturns) {
+        alert('Please specify at least one item to return.');
+        return;
+    }
+    
+    if (!allRowsValid) {
+        alert('One or more return quantities exceed the maximum returnable amount.');
+        return;
+    }
+    
+    this.submit();
+});
+
+function refreshPage() {
+    location.reload();
+}
+</script>
+{% endblock %}

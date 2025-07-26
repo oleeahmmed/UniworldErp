@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="flex flex-col md:flex-row gap-4 w-full">
+    <!-- Available Permissions -->
+    <div class="flex-1 border rounded-lg shadow-sm bg-[var(--card)] text-[var(--card-foreground)]">
+        <div class="p-4 border-b bg-[var(--card-header)] text-[var(--card-header-foreground)]">
+            <h3 class="text-sm font-medium">Available Permissions</h3>
+        </div>
+        <div class="p-4">
+            <input type="text" id="search-available-permissions" placeholder="Search permissions" class="w-full mb-2 p-2 border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+            <select multiple id="available-permissions" class="w-full h-[400px] border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+                {% for permission in available_permissions %}
+                    <option value="{{ permission.id }}">{{ permission.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Transfer Buttons -->
+    <div class="flex md:flex-col justify-center gap-2">
+        <button id="add-selected-permissions" class="p-2 rounded border bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-opacity-90">
+            <i class="ri-arrow-right-line"></i>
+        </button>
+        <button id="remove-selected-permissions" class="p-2 rounded border bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-opacity-90">
+            <i class="ri-arrow-left-line"></i>
+        </button>
+    </div>
+
+    <!-- Assigned Permissions -->
+    <div class="flex-1 border rounded-lg shadow-sm">
+        <div class="p-4 border-b bg-[hsl(var(--card-header))]">
+            <h3 class="text-sm font-medium text-[hsl(var(--card-header-foreground))]">Assigned Permissions</h3>
+        </div>
+        <div class="p-4">
+            <input type="text" id="search-assigned-permissions" placeholder="Search permissions" class="w-full mb-2 p-2 border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+            <select multiple id="assigned-permissions" class="w-full h-[400px] border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+                {% for permission in assigned_permissions %}
+                    <option value="{{ permission.id }}">{{ permission.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Group Management -->
+<div class="flex flex-col md:flex-row gap-4 w-full mt-6">
+    <!-- Available Groups -->
+    <div class="flex-1 border rounded-lg shadow-sm">
+        <div class="p-4 border-b bg-[hsl(var(--card-header))]">
+            <h3 class="text-sm font-medium text-[hsl(var(--card-header-foreground))]">Available Roles </h3>
+        </div>
+        <div class="p-4">
+            <input type="text" id="search-available-groups" placeholder="Search roles" class="w-full mb-2 p-2 border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+            <select multiple id="available-groups" class="w-full h-[400px] border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+                {% for group in available_groups %}
+                    <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Transfer Buttons -->
+    <div class="flex md:flex-col justify-center gap-2">
+        <button id="add-selected-groups" class="p-2 rounded border bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-opacity-90">
+            <i class="ri-arrow-right-line"></i>
+        </button>
+        <button id="remove-selected-groups" class="p-2 rounded border bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-opacity-90">
+            <i class="ri-arrow-left-line"></i>
+        </button>
+    </div>
+
+    <!-- Assigned Groups -->
+    <div class="flex-1 border rounded-lg shadow-sm">
+        <div class="p-4 border-b bg-[hsl(var(--card-header))]">
+            <h3 class="text-sm font-medium text-[hsl(var(--card-header-foreground))]">Assigned Roles </h3>
+        </div>
+        <div class="p-4">
+            <input type="text" id="search-assigned-groups" placeholder="Search roles" class="w-full mb-2 p-2 border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+            <select multiple id="assigned-groups" class="w-full h-[400px] border bg-[var(--input)] text-[var(--foreground)] rounded-md">
+                {% for group in assigned_groups %}
+                    <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Save Button -->
+<div class="mt-4">
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="assigned_permissions" id="permissions-input">
+        <input type="hidden" name="assigned_groups" id="groups-input">
+        <button type="submit" class="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+            Save Changes
+        </button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Permissions Logic
+    const availablePermissions = document.getElementById('available-permissions');
+    const assignedPermissions = document.getElementById('assigned-permissions');
+    const addSelectedPermissions = document.getElementById('add-selected-permissions');
+    const removeSelectedPermissions = document.getElementById('remove-selected-permissions');
+    const permissionsInput = document.getElementById('permissions-input');
+    const searchAvailablePermissions = document.getElementById('search-available-permissions');
+    const searchAssignedPermissions = document.getElementById('search-assigned-permissions');
+
+    // Group Logic
+    const availableGroups = document.getElementById('available-groups');
+    const assignedGroups = document.getElementById('assigned-groups');
+    const addSelectedGroups = document.getElementById('add-selected-groups');
+    const removeSelectedGroups = document.getElementById('remove-selected-groups');
+    const groupsInput = document.getElementById('groups-input');
+    const searchAvailableGroups = document.getElementById('search-available-groups');
+    const searchAssignedGroups = document.getElementById('search-assigned-groups');
+
+    // Move options between available and assigned lists for permissions and groups
+    function moveOptions(fromSelect, toSelect) {
+        Array.from(fromSelect.selectedOptions).forEach(option => {
+            toSelect.appendChild(option);
+        });
+        updatePermissionsInput();
+        updateGroupsInput();
+    }
+
+    // Update hidden input field for permissions
+    function updatePermissionsInput() {
+        const assignedValues = Array.from(assignedPermissions.options).map(option => option.value);
+        permissionsInput.value = JSON.stringify(assignedValues);
+    }
+
+    // Update hidden input field for groups
+    function updateGroupsInput() {
+        const assignedGroupValues = Array.from(assignedGroups.options).map(option => option.value);
+        groupsInput.value = JSON.stringify(assignedGroupValues);
+    }
+
+    // Add selected permissions
+    addSelectedPermissions.addEventListener('click', () => moveOptions(availablePermissions, assignedPermissions));
+    // Remove selected permissions
+    removeSelectedPermissions.addEventListener('click', () => moveOptions(assignedPermissions, availablePermissions));
+
+    // Add selected groups
+    addSelectedGroups.addEventListener('click', () => moveOptions(availableGroups, assignedGroups));
+    // Remove selected groups
+    removeSelectedGroups.addEventListener('click', () => moveOptions(assignedGroups, availableGroups));
+
+    // Ensure the inputs are updated when the form is submitted
+    document.querySelector('form').addEventListener('submit', () => {
+        updatePermissionsInput();
+        updateGroupsInput();
+    });
+
+    // Search functionality
+    function filterOptions(select, searchTerm) {
+        Array.from(select.options).forEach(option => {
+            const matchesSearch = option.text.toLowerCase().includes(searchTerm.toLowerCase());
+            option.style.display = matchesSearch ? '' : 'none';
+        });
+    }
+
+    // Add search event listeners
+    searchAvailablePermissions.addEventListener('input', (e) => filterOptions(availablePermissions, e.target.value));
+    searchAssignedPermissions.addEventListener('input', (e) => filterOptions(assignedPermissions, e.target.value));
+    searchAvailableGroups.addEventListener('input', (e) => filterOptions(availableGroups, e.target.value));
+    searchAssignedGroups.addEventListener('input', (e) => filterOptions(assignedGroups, e.target.value));
+});
+</script>
+{% endblock %}

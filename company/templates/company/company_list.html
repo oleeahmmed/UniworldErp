@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+                    {% include "message.html" %}
+
+
+
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center space-x-2">
+                <a href="{% url 'company:company_create' %}" class="px-3 py-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="ri-add-line mr-1"></i> Add New Company
+                </a>
+
+                <button id="exportCSV" class="px-3 py-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="ri-download-line mr-1"></i> Export CSV
+                </button>
+
+            </div>
+            <form method="get" action="{% url 'company:company_list' %}" class="relative">
+                <input type="text" name="search" placeholder="Search companies..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                </div>
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table  id="companyTable" class="min-w-full divide-y divide-[hsl(var(--border))]">
+
+                
+                <thead class="bg-[hsl(var(--muted))]">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            <input type="checkbox" class="rounded border-[hsl(var(--border))] text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider   cursor-pointer">
+                            Company Name
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider   cursor-pointer">
+                            Address
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider   cursor-pointer">
+                            Phone
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider   cursor-pointer">
+                            Email
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-[hsl(var(--background))] divide-y divide-[hsl(var(--border))]">
+                    {% for company in companies %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="checkbox" class="rounded border-[hsl(var(--border))] text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-[hsl(var(--foreground))]">{{ company.name }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--foreground))]">{{ company.address }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--muted-foreground))]">{{ company.phone }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--muted-foreground))]">{{ company.email }}</div>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="dropdown inline-block">
+                                <button class="dropdown-trigger p-2 rounded-full bg-transparent focus:outline-none">
+                                    <i class="ri-more-2-line text-lg"></i> <!-- Dropdown trigger icon -->
+                                </button>
+                                <div class="dropdown-content absolute w-32 bg-[hsl(var(--background))] shadow-md rounded-md">
+                                    <!-- Edit Link -->
+                                    <a href=" {% url 'company:company_edit' company.pk %}" 
+                                       class="block px-4 py-2 text-sm text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]">
+                                       Edit
+                                    </a>
+                                    <!-- Delete Link -->
+                                    <a href="{% url 'company:company_delete' company.pk %}" 
+                                       class="block px-4 py-2 text-sm text-red-600 hover:bg-[hsl(var(--muted))]">
+                                       Delete
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">No companies available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+
+        </div>
+        <div class="bg-[hsl(var(--background))] px-4 py-3 flex items-center justify-between border-t border-[hsl(var(--border))] sm:px-6">
+        <!-- Pagination -->
+        <div class="mt-4">
+            <nav class="flex justify-between">
+                {% if page_obj.has_previous %}
+                <a href="?search={{ search_query }}&page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] rounded-md">Previous</a>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                <a href="?search={{ search_query }}&page={{ num }}" class="{% if page_obj.number == num %}bg-indigo-500 text-white{% else %}text-[hsl(var(--muted-foreground))]{% endif %} px-4 py-2 rounded-md">{{ num }}</a>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <a href="?search={{ search_query }}&page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] rounded-md">Next</a>
+                {% endif %}
+            </nav>
+        </div>
+
+
+
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+
+    // Table sorting functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('companyTable');
+        const headers = table.querySelectorAll('th');
+        const tableBody = table.querySelector('tbody');
+        const rows = tableBody.querySelectorAll('tr');
+
+        const directions = Array.from(headers).map(() => '');
+
+        const sortColumn = (index) => {
+            const direction = directions[index] || 'asc';
+            const multiplier = (direction === 'asc') ? 1 : -1;
+            const newRows = Array.from(rows);
+
+            newRows.sort((rowA, rowB) => {
+                const cellA = rowA.querySelectorAll('td')[index].textContent.trim();
+                const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
+
+                switch (index) {
+                    case 1: // Company Name
+                    case 2: // Address
+                    case 4: // Email
+                        return cellA.localeCompare(cellB) * multiplier;
+                    case 3: // Phone
+                        return cellA.replace(/\D/g, '').localeCompare(cellB.replace(/\D/g, '')) * multiplier;
+                    default:
+                        return 0;
+                }
+            });
+
+            [].forEach.call(rows, (row) => {
+                tableBody.removeChild(row);
+            });
+
+            newRows.forEach(newRow => tableBody.appendChild(newRow));
+
+            directions[index] = direction === 'asc' ? 'desc' : 'asc';
+        };
+
+        [].forEach.call(headers, (header, index) => {
+            if (index > 0 && index < 5) {
+                header.addEventListener('click', () => {
+                    sortColumn(index);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

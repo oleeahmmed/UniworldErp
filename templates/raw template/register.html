@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - ERP Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Arial', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 0 0% 3.9%;
+            --primary: 222.2 47.4% 11.2%;
+            --primary-foreground: 0 0% 98%;
+            --muted: 0 0% 96.1%;
+            --muted-foreground: 0 0% 45.1%;
+            --border: 0 0% 89.8%;
+        }
+        .dark {
+            --background: 0 0% 3.9%;
+            --foreground: 0 0% 98%;
+            --primary: 0 0% 98%;
+            --primary-foreground: 0 0% 9%;
+            --muted: 0 0% 14.9%;
+            --muted-foreground: 0 0% 63.9%;
+            --border: 0 0% 14.9%;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="bg-background border border-border rounded-lg shadow-lg p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                    ERP Suite Registration
+                </h1>
+            </div>
+            <form>
+                <div class="mb-4">
+                    <label for="name" class="block text-sm font-medium text-muted-foreground mb-1">Full Name</label>
+                    <input type="text" id="name" name="name" required
+                           class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background">
+                </div>
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-muted-foreground mb-1">Email</label>
+                    <input type="email" id="email" name="email" required
+                           class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background">
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-sm font-medium text-muted-foreground mb-1">Password</label>
+                    <input type="password" id="password" name="password" required
+                           class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background">
+                </div>
+                <div class="mb-6">
+                    <label for="confirm-password" class="block text-sm font-medium text-muted-foreground mb-1">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" required
+                           class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background">
+                </div>
+                <button type="submit"
+                        class="w-full bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                    Register
+                </button>
+            </form>
+            <div class="mt-4 text-center text-sm text-muted-foreground">
+                Already have an account? <a href="login.html" class="text-primary hover:underline">Login here</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</body>
+</html>

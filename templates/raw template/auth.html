@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Suite - Login/Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Arial', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 0 0% 3.9%;
+            --primary: 222.2 47.4% 11.2%;
+            --primary-foreground: 0 0% 98%;
+            --muted: 0 0% 96.1%;
+            --muted-foreground: 0 0% 45.1%;
+            --border: 0 0% 89.8%;
+        }
+        .dark {
+            --background: 0 0% 3.9%;
+            --foreground: 0 0% 98%;
+            --primary: 0 0% 98%;
+            --primary-foreground: 0 0% 9%;
+            --muted: 0 0% 14.9%;
+            --muted-foreground: 0 0% 63.9%;
+            --border: 0 0% 14.9%;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .animated-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #3490dc, #6574cd, #9561e2);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        .auth-container {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground">
+    <div class="animated-background"></div>
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="auth-container rounded-lg shadow-lg p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-bold text-white">
+                    ERP Suite
+                </h1>
+            </div>
+            <div class="mb-6">
+                <div class="flex border-b border-white">
+                    <button id="loginTab" class="flex-1 py-2 px-4 text-white font-semibold focus:outline-none">Login</button>
+                    <button id="registerTab" class="flex-1 py-2 px-4 text-white font-semibold focus:outline-none">Register</button>
+                </div>
+            </div>
+            <div id="loginForm">
+                <form>
+                    <div class="mb-4">
+                        <label for="loginEmail" class="block text-sm font-medium text-white mb-1">Email</label>
+                        <input type="email" id="loginEmail" name="email" required
+                               class="w-full px-3 py-2 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/10 text-white">
+                    </div>
+                    <div class="mb-6">
+                        <label for="loginPassword" class="block text-sm font-medium text-white mb-1">Password</label>
+                        <input type="password" id="loginPassword" name="password" required
+                               class="w-full px-3 py-2 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/10 text-white">
+                    </div>
+                    <button type="submit"
+                            class="w-full bg-white text-primary py-2 px-4 rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">
+                        Log In
+                    </button>
+                </form>
+            </div>
+            <div id="registerForm" class="hidden">
+                <form>
+                    <div class="mb-4">
+                        <label for="registerName" class="block text-sm font-medium text-white mb-1">Full Name</label>
+                        <input type="text" id="registerName" name="name" required
+                               class="w-full px-3 py-2 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/10 text-white">
+                    </div>
+                    <div class="mb-4">
+                        <label for="registerEmail" class="block text-sm font-medium text-white mb-1">Email</label>
+                        <input type="email" id="registerEmail" name="email" required
+                               class="w-full px-3 py-2 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/10 text-white">
+                    </div>
+                    <div class="mb-4">
+                        <label for="registerPassword" class="block text-sm font-medium text-white mb-1">Password</label>
+                        <input type="password" id="registerPassword" name="password" required
+                               class="w-full px-3 py-2 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/10 text-white">
+                    </div>
+                    <div class="mb-6">
+                        <label for="confirmPassword" class="block text-sm font-medium text-white mb-1">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirm-password" required
+                               class="w-full px-3 py-2 border border-white/30 rounded-md focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/10 text-white">
+                    </div>
+                    <button type="submit"
+                            class="w-full bg-white text-primary py-2 px-4 rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">
+                        Register
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Tab functionality
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        loginTab.addEventListener('click', () => {
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+            loginTab.classList.add('border-b-2', 'border-white');
+            registerTab.classList.remove('border-b-2', 'border-white');
+        });
+
+        registerTab.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            registerTab.classList.add('border-b-2', 'border-white');
+            loginTab.classList.remove('border-b-2', 'border-white');
+        });
+
+        // Initialize active tab
+        loginTab.click();
+
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+</body>
+</html>

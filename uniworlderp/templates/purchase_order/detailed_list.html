@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold text-[hsl(var(--foreground))]">Purchase Order Detailed List</h1>
+            <form method="get" action="" class="relative">
+                <input type="text" name="search" placeholder="Search orders..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm bg-[hsl(var(--background))]" value="{{ search_query }}">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                </div>
+            </form>
+        </div>
+
+        <div class="overflow-x-auto  table-container">
+            <table class="min-w-full divide-y divide-[hsl(var(--border))]" id="purchaseOrderDetailedTable">
+                <thead class="bg-[hsl(var(--muted))]">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Order ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Vendor</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Order Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Product</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Quantity</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Unit Price</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Total Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Order Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-[hsl(var(--background))] divide-y divide-[hsl(var(--border))]">
+                    {% for item in order_items %}
+                    <tr class="hover:bg-[hsl(var(--muted))]">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[hsl(var(--foreground))]">{{ item.purchase_order.id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[hsl(var(--foreground))]">{{ item.purchase_order.supplier.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[hsl(var(--muted-foreground))]">{{ item.purchase_order.order_date|date:"Y-m-d" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[hsl(var(--foreground))]">{{ item.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[hsl(var(--foreground))]">{{ item.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[hsl(var(--foreground))]">{{ item.unit_price|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[hsl(var(--foreground))]">{{ item.total_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[hsl(var(--foreground))]">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if item.purchase_order.delivery_status == 'P' %}bg-yellow-100 text-yellow-800{% elif item.purchase_order.delivery_status == 'R' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ item.purchase_order.get_delivery_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">No purchase order items found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Table sorting functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('purchaseOrderDetailedTable');
+        const headers = table.querySelectorAll('th');
+        const tableBody = table.querySelector('tbody');
+        const rows = tableBody.querySelectorAll('tr');
+
+        const directions = Array.from(headers).map(() => '');
+
+        const sortColumn = (index) => {
+            const direction = directions[index] || 'asc';
+            const multiplier = (direction === 'asc') ? 1 : -1;
+            const newRows = Array.from(rows);
+
+            newRows.sort((rowA, rowB) => {
+                const cellA = rowA.querySelectorAll('td')[index].textContent.trim();
+                const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
+
+                switch (index) {
+                    case 0: // Order ID
+                        return (parseInt(cellA) - parseInt(cellB)) * multiplier;
+                    case 2: // Order Date
+                        return (new Date(cellA) - new Date(cellB)) * multiplier;
+                    case 4: // Quantity
+                    case 5: // Unit Price
+                    case 6: // Total Amount
+                        return (parseFloat(cellA.replace(/[^0-9.-]+/g,"")) - parseFloat(cellB.replace(/[^0-9.-]+/g,""))) * multiplier;
+                    default: // Vendor, Product, Order Status
+                        return cellA.localeCompare(cellB) * multiplier;
+                }
+            });
+
+            [].forEach.call(rows, (row) => {
+                tableBody.removeChild(row);
+            });
+
+            newRows.forEach(newRow => tableBody.appendChild(newRow));
+
+            directions[index] = direction === 'asc' ? 'desc' : 'asc';
+        };
+
+        headers.forEach((header, index) => {
+            header.addEventListener('click', () => {
+                sortColumn(index);
+            });
+        });
+    });
+</script>
+{% endblock %}
+

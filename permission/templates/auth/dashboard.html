@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+{% include "message.html" %}
+
+<div class="min-h-screen ">
+  <div class="p-6">
+    <h1 class="text-3xl font-bold mb-6 text-[#a31319]">Welcome to your dashboard, {{ user.username }}!</h1>
+
+    <!-- {% if error %}
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+      <strong class="font-bold">Error:</strong>
+      <span class="block sm:inline">{{ error }}</span>
+    </div>
+    {% endif %} -->
+
+<!-- Tabs Navigation -->
+<div class="mb-6">
+  <nav class="relative flex space-x-1 rounded-xl bg-gradient-to-r from-[#480d0f] to-[#000000] p-1 shadow-lg" aria-label="Tabs Navigation">
+    <button type="button" class="tab-button w-full border-b-2 border-transparent py-4 px-1 text-sm font-medium text-[#d82a31] bg-transparent rounded-lg hover:bg-[#480d0f] hover:text-white transition-all text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))]" data-tab="overview">
+      Overview
+  </button>
+  <button type="button" class="tab-button w-full border-b-2 border-transparent py-4 px-1 text-sm font-medium text-[#d82a31] bg-transparent rounded-lg hover:bg-[#480d0f] hover:text-white transition-all text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))] hover:text-[hsl(var(--primary))]" data-tab="sales">
+      Sales
+  </button>
+    <button type="button" 
+        class="tab-button w-full border-b-2 border-transparent py-4 px-1 text-sm font-medium text-[#d82a31] bg-transparent rounded-lg hover:bg-[#480d0f] hover:text-white transition-all" 
+        data-tab="products">
+        Products
+    </button>
+    <button type="button" 
+        class="tab-button w-full border-b-2 border-transparent py-4 px-1 text-sm font-medium text-[#d82a31] bg-transparent rounded-lg hover:bg-[#480d0f] hover:text-white transition-all" 
+        data-tab="finance">
+        Finance
+    </button>
+  </nav>
+</div>
+
+
+    <!-- Tab Contents -->
+    <div class="tab-content active" id="overview">
+      <!-- Overview content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-2">Total Users</h3>
+          <p class="text-2xl font-bold">{{ total_users }}</p>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-2">Total Customers</h3>
+          <p class="text-2xl font-bold">{{ total_customers }}</p>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-2">Total Vendors</h3>
+          <p class="text-2xl font-bold">{{ total_vendors }}</p>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-2">New Customers (Last 30 days)</h3>
+          <p class="text-2xl font-bold">{{ new_customers }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Monthly Sales</h3>
+          <div class="chart-container" style="position: relative; height:300px; width:100%">
+            <canvas id="monthlySalesChart"></canvas>
+          </div>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Top Sales Categories</h3>
+          <div class="chart-container" style="position: relative; height:300px; width:100%">
+            <canvas id="topSalesChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content hidden" id="sales">
+      <!-- Sales content -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Recent Sales Orders</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-300">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Customer</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Amount</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Date</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-700">
+                {% for order in recent_sales_orders %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ order.customer.name }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">৳{{ order.total_amount|floatformat:2 }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ order.order_date|date:"M d, Y" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Sales Trend (Last 7 Days)</h3>
+          <div class="chart-container" style="position: relative; height:300px; width:100%">
+            <canvas id="salesTrendChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 mb-6">
+        <h3 class="text-lg font-semibold mb-4">Sales Employee Performance</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead>
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Target</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Achieved</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Achievement %</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+              {% for employee in sales_employees %}
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ employee.full_name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ employee.sales_target }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ employee.sales_achieved }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ employee.achievement_percentage|floatformat:2 }}%</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content hidden" id="products">
+      <!-- Products content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="p-6 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-[#d82a31] relative">
+          <div class="absolute -top-3 -right-3 p-2 bg-[#d82a31] text-white text-sm rounded-full shadow-md">
+            <span>Info</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-4 border-b border-[#d82a31] pb-2">Product Information</h3>
+          <p class="mb-4 p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Total Products:</strong> {{ total_products }}
+          </p>
+          <p class="p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Low Stock Products:</strong> {{ low_stock_products }}
+          </p>
+        </div>
+        
+        <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300">
+          <h3 class="text-lg font-semibold mb-4">Top Selling Products</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-300">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Name</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Sold Quantity</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Stock</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-700">
+                {% for product in top_selling_products %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ product.name }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ product.total_sold }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ product.stock_quantity }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    {% if product.stock_quantity >= product.reorder_level %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      In Stock
+                    </span>
+                    {% else %}
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      Low Stock
+                    </span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 mb-6">
+        <h3 class="text-lg font-semibold mb-4">Recent Stock Transactions</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-300">
+            <thead>
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Product</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Type</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Quantity</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-200 uppercase tracking-wider">Date</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-700">
+              {% for transaction in recent_stock_transactions %}
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ transaction.product.name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ transaction.get_transaction_type_display }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ transaction.quantity }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ transaction.transaction_date|date:"M d, Y" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content hidden" id="finance">
+      <!-- Finance content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div class="p-6 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-[#d82a31] relative">
+          <div class="absolute -top-3 -right-3 p-2 bg-[#d82a31] text-white text-sm rounded-full shadow-md">
+            <span>Info</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-4 border-b border-[#d82a31] pb-2">Sales Information</h3>
+          <p class="mb-4 p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Total Sales Orders:</strong> {{ total_sales_orders }}
+          </p>
+          <p class="mb-4 p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Current Month Sales:</strong> ৳{{ current_month_sales|floatformat:2 }}
+          </p>
+          <p class="p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Average Order Value:</strong> ৳{{ average_order_value|floatformat:2 }}
+          </p>
+        </div>
+        
+        <div class="p-6 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-[#d82a31] relative">
+          <div class="absolute -top-3 -right-3 p-2 bg-[#d82a31] text-white text-sm rounded-full shadow-md">
+            <span>Info</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-4 border-b border-[#d82a31] pb-2">Purchase Information</h3>
+          <p class="mb-4 p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Total Purchase Orders:</strong> {{ total_purchase_orders }}
+          </p>
+          <p class="mb-4 p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Current Month Purchases:</strong> ৳{{ current_month_purchases|floatformat:2 }}
+          </p>
+        </div>
+        
+        <div class="p-6 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 border border-[#d82a31] relative">
+          <div class="absolute -top-3 -right-3 p-2 bg-[#d82a31] text-white text-sm rounded-full shadow-md">
+            <span>Info</span>
+          </div>
+          <h3 class="text-2xl font-bold mb-4 border-b border-[#d82a31] pb-2">AR Invoice Information</h3>
+          <p class="mb-4 p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Total AR Invoices:</strong> {{ total_ar_invoices }}
+          </p>
+          <p class="mb-4 p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Pending Invoices:</strong> {{ pending_invoices }}
+          </p>
+          <p class="p-3 bg-opacity-20 bg-black border-l-4 border-[#d82a31] rounded text-sm">
+            <strong>Overdue Invoices:</strong> {{ overdue_invoices }}
+          </p>
+        </div>
+        
+      </div>
+      <div class="p-4 bg-gradient-to-br from-[#a31319] to-black text-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 mb-6">
+        <h3 class="text-lg font-semibold mb-4">Revenue Breakdown</h3>
+        <div class="chart-container" style="position: relative; height:300px; width:100%">
+          <canvas id="revenueBreakdownChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Parse the JSON data passed from the view with error handling
+  let monthlySalesData = [];
+  let revenueBreakdownData = [];
+  let topCategoriesData = [];
+  let salesTrendData = [];
+
+  try {
+      monthlySalesData = JSON.parse('{{ monthly_sales|safe }}') || [];
+      revenueBreakdownData = JSON.parse('{{ revenue_breakdown|safe }}') || [];
+      topCategoriesData = JSON.parse('{{ top_categories|safe }}') || [];
+      salesTrendData = JSON.parse('{{ sales_trend|safe }}') || [];
+  } catch (e) {
+      console.error('Error parsing chart data:', e);
+  }
+
+  // Monthly Sales Chart
+  if (document.getElementById('monthlySalesChart')) {
+      const ctxMonthlySales = document.getElementById('monthlySalesChart').getContext('2d');
+      new Chart(ctxMonthlySales, {
+          type: 'line',
+          data: {
+              labels: monthlySalesData.map(item => {
+                  const date = new Date(item.month);
+                  return date.toLocaleString('default', { month: 'short' });
+              }),
+              datasets: [{
+                  label: 'Monthly Sales',
+                  data: monthlySalesData.map(item => item.total_sales),
+                  borderColor: '#fff',
+                  backgroundColor: 'rgba(163, 19, 25, 0.1)',
+                  tension: 0.4,
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      ticks: {
+                          callback: function(value) {
+                              return '৳' + value.toLocaleString();
+                          },
+                          color: '#fff'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      }
+                  },
+                  x: {
+                      ticks: {
+                          color: '#fff'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      }
+                  }
+              },
+              plugins: {
+                  legend: {
+                      labels: {
+                          color: '#fff'
+                      }
+                  }
+              }
+          }
+      });
+  }
+
+  // Top Sales Categories Chart
+  if (document.getElementById('topSalesChart')) {
+      const ctxTopSales = document.getElementById('topSalesChart').getContext('2d');
+      new Chart(ctxTopSales, {
+          type: 'pie',
+          data: {
+              labels: topCategoriesData.map(item => item.category),
+              datasets: [{
+                  data: topCategoriesData.map(item => item.total_sales),
+                  backgroundColor: [
+                      '#a31319',
+                      '#c41e25',
+                      '#da4950',
+                      '#e47178',
+                      '#ed999e'
+                  ]
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                  legend: {
+                      position: 'bottom',
+                      labels: {
+                          color: '#fff'
+                      }
+                  }
+              }
+          }
+      });
+  }
+
+  // Sales Trend Chart
+  if (document.getElementById('salesTrendChart')) {
+      const ctxSalesTrend = document.getElementById('salesTrendChart').getContext('2d');
+      new Chart(ctxSalesTrend, {
+          type: 'line',
+          data: {
+              labels: salesTrendData.map(item => {
+                  const date = new Date(item.date);
+                  return date.toLocaleDateString();
+              }),
+              datasets: [{
+                  label: 'Daily Sales',
+                  data: salesTrendData.map(item => item.daily_sales),
+                  borderColor: '#a31319',
+                  backgroundColor: 'rgba(163, 19, 25, 0.1)',
+                  tension: 0.4,
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      ticks: {
+                          callback: function(value) {
+                              return '৳' + value.toLocaleString();
+                          },
+                          color: '#fff'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      }
+                  },
+                  x: {
+                      ticks: {
+                          color: '#fff'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      }
+                  }
+              },
+              plugins: {
+                  legend: {
+                      labels: {
+                          color: '#fff'
+                      }
+                  }
+              }
+          }
+      });
+  }
+
+  // Revenue Breakdown Chart
+  if (document.getElementById('revenueBreakdownChart')) {
+      const ctxRevenueBreakdown = document.getElementById('revenueBreakdownChart').getContext('2d');
+      new Chart(ctxRevenueBreakdown, {
+          type: 'bar',
+          data: {
+              labels: revenueBreakdownData.map(item => item.name),
+              datasets: [{
+                  label: 'Revenue',
+                  data: revenueBreakdownData.map(item => item.revenue),
+                  backgroundColor: [
+                      '#a31319',
+                      '#c41e25',
+                      '#da4950',
+                      '#e47178',
+                      '#ed999e'
+                  ]
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      ticks: {
+                          callback: function(value) {
+                              return '৳' + value.toLocaleString();
+                          },
+                          color: '#fff'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      }
+                  },
+                  x: {
+                      ticks: {
+                          color: '#fff'
+                      },
+                      grid: {
+                          color: 'rgba(255, 255, 255, 0.1)'
+                      }
+                  }
+              },
+              plugins: {
+                  legend: {
+                      display: false
+                  },
+                  tooltip: {
+                      callbacks: {
+                          label: function(context) {
+                              let label = context.dataset.label || '';
+                              if (label) {
+                                  label += ': ';
+                              }
+                              if (context.parsed.y !== null) {
+                                  label += '৳' + context.parsed.y.toLocaleString();
+                              }
+                              return label;
+                          }
+                      }
+                  }
+              }
+          }
+      });
+  }
+
+  // Tab switching functionality
+  document.addEventListener('DOMContentLoaded', function() {
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      // Set "Overview" tab as active by default
+      const defaultTab = document.querySelector('.tab-button[data-tab="overview"]');
+      defaultTab.classList.add('bg-[#a31319]', 'text-white');
+
+      tabButtons.forEach(button => {
+          button.addEventListener('click', () => {
+              const tabName = button.getAttribute('data-tab');
+              
+              // Hide all tab contents
+              tabContents.forEach(content => {
+                  content.classList.add('hidden');
+              });
+              
+              // Show the selected tab content
+              document.getElementById(tabName).classList.remove('hidden');
+              
+              // Remove active styles from all buttons
+              tabButtons.forEach(btn => {
+                  btn.classList.remove('bg-[#a31319]', 'text-white');
+              });
+              
+              // Add active styles to the clicked button
+              button.classList.add('bg-[#a31319]', 'text-white');
+          });
+      });
+  });
+</script>
+{% endblock %}
+

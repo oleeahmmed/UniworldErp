@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/form.css' %}">
+
+{% endblock %}
+{% block main_content %}
+<div class="min-h-screen bg-background">
+    <div class="">
+        <!-- Card Container -->
+        <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white border-opacity-20">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-br from-[#a31319] to-black text-white px-6 py-4">
+                <h2 class="text-xl font-semibold text-white">Add Stock</h2>
+            </div>
+
+            <!-- Card Content -->
+            <div class="p-6 space-y-6">
+                <form method="post" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+                    {% include "message.html" %}
+                    
+                    <div class="w-full p-4 border border-[hsl(var(--border))] rounded-xl bg-[hsl(var(--background))] shadow-lg">
+                        <div class="overflow-auto max-h-[400px] max-w-full">
+                            <table class="min-w-full">
+                                <thead class="sticky top-0 bg-[hsl(var(--background))]">
+                                    <tr class="border-b border-[hsl(var(--border))]">
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Product</th>
+                                        <th scope="col" class="py-3 text-center text-xs font-semibold uppercase tracking-wider">Quantity</th>
+                                        <th scope="col" class="py-3 text-left text-xs font-semibold uppercase tracking-wider">Delete</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stockItemsFormset" class="divide-y divide-[hsl(var(--border))]">
+                                    {{ formset.management_form }}
+                                    {% for form in formset.forms %}
+                                        <tr class="formset-row group hover:bg-[hsl(var(--accent))] transition-colors duration-150">
+                                            {{ form.id }}
+                                            <td class="py-2">
+                                                {{ form.product }}
+                                            </td>
+                                            <td class="py-2">
+                                                {{ form.quantity }}
+                                            </td>
+                                            <td class="py-2 relative">
+                                                {{ form.DELETE }}
+                                                <button type="button" class="delete-row opacity-0 group-hover:opacity-100 transition-opacity duration-150 inline-flex items-center justify-center rounded-full w-6 h-6 bg-red-500 text-white hover:bg-red-600">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Single Add Row Button that works for both mobile and desktop -->
+                        <div class="mt-4">
+                            <button type="button" id="addRowBtn" class="w-full px-4 py-2 bg-gradient-to-br from-[#a31319] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+                                <span class="mr-2">+</span> Add New Row
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button type="submit" class="group relative px-6 py-3 text-white font-semibold text-sm uppercase tracking-wider overflow-hidden rounded-md shadow-lg bg-gradient-to-br from-[#a31319] to-black hover:from-[#9b141a] hover:to-[#333333] transition-all duration-300 ease-out hover:shadow-xl">
+                            <span class="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300 ease-out"></span>
+                            <span class="relative flex items-center">
+                                <svg class="w-5 h-5 mr-2 transform group-hover:rotate-12 transition-transform duration-300 ease-out" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="transform group-hover:translate-x-1 transition-transform duration-300 ease-out">
+                                    Add Stock
+                                </span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Context Menu -->
+<div id="contextMenu" class="hidden fixed bg-white border border-gray-300 rounded-lg shadow-lg z-50">
+    <button type="button" id="addRowAboveBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Add Row Above</button>
+    <button type="button" id="addRowBelowBtn" class="block w-full text-left px-4 py-2 hover:bg-gray-100">Add Row Below</button>
+    <button type="button" id="deleteRowBtn" class="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">Delete Row</button>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stockItemsFormset = document.getElementById('stockItemsFormset');
+        const addRowBtn = document.getElementById('addRowBtn');
+        const contextMenu = document.getElementById('contextMenu');
+        const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+        let targetRow = null;
+        
+        // Initialize formset if empty
+        if (stockItemsFormset.children.length === 0) {
+            addFormsetRow();
+        }
+
+        // Add row functionality
+        addRowBtn.addEventListener('click', () => addFormsetRow());
+
+        // Delete row functionality
+        stockItemsFormset.addEventListener('click', function(e) {
+            if (e.target.closest('.delete-row')) {
+                const row = e.target.closest('.formset-row');
+                deleteRow(row);
+            }
+        });
+
+        // Context menu functionality
+        stockItemsFormset.addEventListener('contextmenu', showContextMenu);
+        document.addEventListener('click', hideContextMenu);
+
+        document.getElementById('addRowAboveBtn').addEventListener('click', () => {
+            if (targetRow) {
+                addFormsetRow(targetRow, 'above');
+                hideContextMenu();
+            }
+        });
+
+        document.getElementById('addRowBelowBtn').addEventListener('click', () => {
+            if (targetRow) {
+                addFormsetRow(targetRow, 'below');
+                hideContextMenu();
+            }
+        });
+
+        document.getElementById('deleteRowBtn').addEventListener('click', () => {
+            if (targetRow) {
+                deleteRow(targetRow);
+                hideContextMenu();
+            }
+        });
+
+        function addFormsetRow(referenceRow = null, position = 'below') {
+            const forms = stockItemsFormset.getElementsByClassName('formset-row');
+            const formCount = forms.length;
+            const template = forms[0] ? forms[0].cloneNode(true) : null;
+
+            if (template) {
+                // Update form index
+                template.innerHTML = template.innerHTML.replace(/-\d+-/g, `-${formCount}-`);
+                
+                // Clear input values and update names/ids
+                template.querySelectorAll('input:not([type=hidden]), select').forEach(input => {
+                    input.value = '';
+                    input.name = input.name.replace(/-\d+-/, `-${formCount}-`);
+                    input.id = input.id.replace(/-\d+-/, `-${formCount}-`);
+                });
+                
+                // Reset delete checkbox
+                const deleteCheckbox = template.querySelector('input[type="checkbox"]');
+                if (deleteCheckbox) {
+                    deleteCheckbox.checked = false;
+                }
+                
+                // Show the new row
+                template.style.display = '';
+                
+                if (referenceRow && position === 'above') {
+                    referenceRow.parentNode.insertBefore(template, referenceRow);
+                } else if (referenceRow && position === 'below') {
+                    referenceRow.parentNode.insertBefore(template, referenceRow.nextSibling);
+                } else {
+                    stockItemsFormset.appendChild(template);
+                }
+                
+                totalForms.value = formCount + 1;
+                updateFormsetIndexes();
+            }
+        }
+
+        function deleteRow(row) {
+            const deleteCheckbox = row.querySelector('input[type="checkbox"]');
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = true;
+                row.style.display = 'none';
+            } else {
+                row.remove();
+            }
+            updateFormsetIndexes();
+        }
+
+        function updateFormsetIndexes() {
+            const rows = stockItemsFormset.querySelectorAll('.formset-row');
+            if (totalForms) {
+                let visibleCount = 0;
+                rows.forEach((row, index) => {
+                    if (row.style.display !== 'none') {
+                        visibleCount++;
+                        row.querySelectorAll('input, select').forEach(input => {
+                            input.name = input.name.replace(/-\d+-/, `-${visibleCount-1}-`);
+                            input.id = input.id.replace(/-\d+-/, `-${visibleCount-1}-`);
+                        });
+                    }
+                });
+                
+                totalForms.value = visibleCount;
+                
+                // Ensure at least one visible row
+                if (visibleCount === 0) {
+                    addFormsetRow();
+                }
+            }
+        }
+
+        function showContextMenu(e) {
+            e.preventDefault();
+            targetRow = e.target.closest('.formset-row');
+            if (targetRow) {
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.pageX}px`;
+                contextMenu.style.top = `${e.pageY}px`;
+            }
+        }
+
+        function hideContextMenu() {
+            contextMenu.style.display = 'none';
+            targetRow = null;
+        }
+
+        function removeEmptyRows() {
+            const rows = stockItemsFormset.querySelectorAll('.formset-row');
+            rows.forEach(row => {
+                const product = row.querySelector('select[name$="product"]').value;
+                const quantity = row.querySelector('input[name$="quantity"]').value;
+                if (!product && !quantity) {
+                    deleteRow(row);
+                }
+            });
+            updateFormsetIndexes();
+        }
+
+        // Add form submission event listener to remove empty rows
+        document.querySelector('form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            removeEmptyRows();
+            this.submit();
+        });
+    });
+</script>
+{% endblock %}
+

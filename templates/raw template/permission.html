@@ -1,0 +1,109 @@
+                <div class="flex flex-col md:flex-row gap-4 w-full">
+                    <!-- Available Permissions -->
+                    <div class="flex-1 border rounded-lg shadow-sm">
+                      <div class="p-4 border-b bg-[hsl(var(--card-header))] text-[hsl(var(--card-header-foreground))]">
+                        <h3 class="text-sm font-medium">Available user permissions</h3>
+                      </div>
+                      <div class="p-4">
+                        <div class="relative mb-4">
+                          <i class="ri-search-line absolute left-3 top-2.5 text-muted-foreground"></i>
+                          <input type="text" 
+                                 id="available-filter"
+                                 placeholder="Filter" 
+                                 class="w-full pl-9 pr-4 py-2 rounded-md bg-[hsl(var(--input))] border-[hsl(var(--border))] text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]">
+                        </div>
+                        <select multiple id="available-permissions" class="w-full h-[400px] border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] rounded-md">
+                          <option value="1">Accounts | email address | Can add email address</option>
+                          <option value="2">Accounts | email address | Can change email address</option>
+                          <option value="3">Accounts | email address | Can delete email address</option>
+                          <option value="4">Accounts | email address | Can view email address</option>
+                          <option value="5">Administration | log entry | Can add log entry</option>
+                          <option value="6">Administration | log entry | Can change log entry</option>
+                          <option value="7">Administration | log entry | Can delete log entry</option>
+                          <option value="8">Administration | log entry | Can view log entry</option>
+                        </select>
+                      </div>
+                    </div>
+                  
+                    <!-- Transfer Buttons -->
+                    <div class="flex md:flex-col justify-center gap-2">
+                      <button id="add-all" class="p-2 rounded hover:bg-[hsl(var(--muted))] border-[hsl(var(--border))] text-[hsl(var(--foreground))]">
+                        <i class="ri-arrow-right-double-line"></i>
+                      </button>
+                      <button id="add-selected" class="p-2 rounded hover:bg-[hsl(var(--muted))] border-[hsl(var(--border))] text-[hsl(var(--foreground))]">
+                        <i class="ri-arrow-right-line"></i>
+                      </button>
+                      <button id="remove-selected" class="p-2 rounded hover:bg-[hsl(var(--muted))] border-[hsl(var(--border))] text-[hsl(var(--foreground))]">
+                        <i class="ri-arrow-left-line"></i>
+                      </button>
+                      <button id="remove-all" class="p-2 rounded hover:bg-[hsl(var(--muted))] border-[hsl(var(--border))] text-[hsl(var(--foreground))]">
+                        <i class="ri-arrow-left-double-line"></i>
+                      </button>
+                    </div>
+                  
+                    <!-- Chosen Permissions -->
+                    <div class="flex-1 border rounded-lg shadow-sm">
+                      <div class="p-4 border-b bg-[hsl(var(--card-header))] text-[hsl(var(--card-header-foreground))]">
+                        <h3 class="text-sm font-medium">Chosen user permissions</h3>
+                      </div>
+                      <div class="p-4">
+                        <div class="relative mb-4">
+                          <i class="ri-search-line absolute left-3 top-2.5 text-muted-foreground"></i>
+                          <input type="text" 
+                                 id="chosen-filter"
+                                 placeholder="Filter" 
+                                 class="w-full pl-9 pr-4 py-2 rounded-md bg-[hsl(var(--input))] border-[hsl(var(--border))] text-[hsl(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]">
+                        </div>
+                        <select multiple id="chosen-permissions" class="w-full h-[400px] border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] rounded-md">
+                          <!-- Chosen permissions will appear here -->
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="mt-4 text-sm text-[hsl(var(--muted-foreground))]">
+                    <p>Specific permissions for this user. Hold down "Control", or "Command" on a Mac to select more than one.</p>
+                  </div>
+
+
+
+                  <!-- permissions -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const availablePermissions = document.getElementById('available-permissions');
+    const chosenPermissions = document.getElementById('chosen-permissions');
+    const addAll = document.getElementById('add-all');
+    const addSelected = document.getElementById('add-selected');
+    const removeSelected = document.getElementById('remove-selected');
+    const removeAll = document.getElementById('remove-all');
+    const availableFilter = document.getElementById('available-filter');
+    const chosenFilter = document.getElementById('chosen-filter');
+
+    function moveOptions(fromSelect, toSelect) {
+      Array.from(fromSelect.selectedOptions).forEach(option => {
+        toSelect.appendChild(option);
+      });
+    }
+
+    function moveAllOptions(fromSelect, toSelect) {
+      Array.from(fromSelect.options).forEach(option => {
+        toSelect.appendChild(option);
+      });
+    }
+
+    addSelected.addEventListener('click', () => moveOptions(availablePermissions, chosenPermissions));
+    removeSelected.addEventListener('click', () => moveOptions(chosenPermissions, availablePermissions));
+    addAll.addEventListener('click', () => moveAllOptions(availablePermissions, chosenPermissions));
+    removeAll.addEventListener('click', () => moveAllOptions(chosenPermissions, availablePermissions));
+
+    function filterOptions(select, filterValue) {
+      Array.from(select.options).forEach(option => {
+        const matchesFilter = option.text.toLowerCase().includes(filterValue.toLowerCase());
+        option.style.display = matchesFilter ? '' : 'none';
+      });
+    }
+
+    availableFilter.addEventListener('input', () => filterOptions(availablePermissions, availableFilter.value));
+    chosenFilter.addEventListener('input', () => filterOptions(chosenPermissions, chosenFilter.value));
+  });
+</script>

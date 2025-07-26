@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <h1 class="text-3xl font-bold mb-6">Materials Purchase Report</h1>
+
+        <!-- Top Products Section -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Top 5 Products by Purchase Amount</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 border-b">Product Name</th>
+                            <th class="py-2 px-4 border-b">Total Amount</th>
+                            <th class="py-2 px-4 border-b">Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in top_products %}
+                        <tr>
+                            <td class="py-2 px-4 border-b">{{ product.product_name }}</td>
+                            <td class="py-2 px-4 border-b">{{ product.total_amount }}</td>
+                            <td class="py-2 px-4 border-b">{{ product.quantity }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Top Vendors Section -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Top 5 Vendors by Purchase Amount</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 border-b">Vendor Name</th>
+                            <th class="py-2 px-4 border-b">Total Amount</th>
+                            <th class="py-2 px-4 border-b">Purchase Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vendor in top_vendors %}
+                        <tr>
+                            <td class="py-2 px-4 border-b">{{ vendor.vendor_name }}</td>
+                            <td class="py-2 px-4 border-b">{{ vendor.total_amount }}</td>
+                            <td class="py-2 px-4 border-b">{{ vendor.purchase_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Recent Purchases Section -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Last 30 Days Purchases</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 border-b">Purchase ID</th>
+                            <th class="py-2 px-4 border-b">Vendor Name</th>
+                            <th class="py-2 px-4 border-b">Purchase Date</th>
+                            <th class="py-2 px-4 border-b">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for purchase in recent_purchases %}
+                        <tr>
+                            <td class="py-2 px-4 border-b">{{ purchase.id }}</td>
+                            <td class="py-2 px-4 border-b">{{ purchase.vendor_name }}</td>
+                            <td class="py-2 px-4 border-b">{{ purchase.purchase_date }}</td>
+                            <td class="py-2 px-4 border-b">{{ purchase.total_amount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Monthly Purchase Amounts Section -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Monthly Purchase Amounts (Last 12 Months)</h2>
+            <div class="h-64">
+                <canvas id="monthlyPurchasesChart"></canvas>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var ctx = document.getElementById('monthlyPurchasesChart').getContext('2d');
+        var monthlyPurchases = {{ monthly_purchases|safe }};
+        
+        var labels = monthlyPurchases.map(function(item) {
+            return item.month;
+        });
+        
+        var data = monthlyPurchases.map(function(item) {
+            return item.total_amount;
+        });
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Monthly Purchase Amount',
+                    data: data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Total Amount'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Month'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+

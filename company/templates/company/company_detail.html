@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+
+<!-- Messages -->
+{% include "message.html" %}
+<div class="text-sm breadcrumbs" data-pc-el-id="div-68-74">
+    <span class="text-gray-500" data-pc-el-id="span-69-69">Dashboard</span>
+    <span class="mx-2" data-pc-el-id="span-70-70">›</span>
+    <span class="text-gray-500" data-pc-el-id="span-71-71">Companies</span>
+    <span class="mx-2" data-pc-el-id="span-72-72">›</span>
+    <span data-pc-el-id="span-73-73">Tech Corp International</span>
+</div>
+
+
+<main class="container mx-auto px-6 py-8">
+    <div class="flex gap-6">
+        <div class="w-3/4">
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="flex items-start justify-between mb-6" data-pc-el-id="div-79-97">
+                    <div class="flex items-center" data-pc-el-id="div-80-88">
+                        <img src="https://images.unsplash.com/photo-1560179707-f14e90ef3623" alt="Company Logo" class="h-16 w-16 rounded-lg mr-4" data-pc-el-id="img-81-81">
+                        <div data-pc-el-id="div-82-87">
+                            <h2 class="text-xl font-bold" data-pc-el-id="h2-83-83">Tech Corp International</h2>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800" data-pc-el-id="span-84-86">
+                                <span class="mr-2" data-pc-el-id="span-85-85">●</span> Active
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2" data-pc-el-id="div-89-96">
+                        <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Edit</button>
+                        <button class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Delete</button>
+                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Back</button>
+                    </div>
+                </div>
+
+                <div class="border-b mb-6">
+                    <nav class="flex space-x-4" id="tabs">
+                        <!-- Tabs -->
+                        <button 
+                            class="px-4 py-2 border-b-2 border-blue-600 text-blue-600" 
+                            data-tab="company-information">
+                            Company Information 
+                        </button>
+                        <button 
+                            class="px-4 py-2 text-gray-500 hover:text-gray-700" 
+                            data-tab="contact-information">
+                            Contact Information
+                        </button>
+ 
+                    </nav>
+                </div>
+                
+                <!-- Tab Contents -->
+                <div class="space-y-6">
+                    <!-- Overview Tab -->
+                    <div id="company-information" class="tab-content grid grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg shadow-md">
+                    <!-- Company Information -->
+             
+                        
+                        <div class="border-b pb-3">
+                        <label class="block text-sm font-medium text-gray-500">Company Name</label>
+                        <p class="text-gray-800 mt-1">{{ company.name }}</p>
+                        </div>
+                        <div class="border-b pb-3">
+                        <label class="block text-sm font-medium text-gray-500">Registration Number</label>
+                        <p class="text-gray-800 mt-1">{{ company.registration_number }}</p>
+                        </div>
+                        <div class="border-b pb-3">
+                        <label class="block text-sm font-medium text-gray-500">Founded Date</label>
+                        <p class="text-gray-800 mt-1">{{ company.established_date }}</p>
+                        </div>
+                        <div class="border-b pb-3">
+                        <label class="block text-sm font-medium text-gray-500">Website</label>
+                        <a href="{{ company.website }}" target="_blank" class="text-blue-500 hover:text-blue-700">{{ company.website }}</a>
+                        </div>
+               
+                    </div>
+                                
+                    <!-- Contact Tab -->
+                    <div id="contact-information" class="tab-content hidden  grid grid-cols-2 gap-6 bg-gray-50 p-6 rounded-lg shadow-md ">
+                        <!-- Contact Information -->
+                        
+                            
+                            <div class="border-b pb-3">
+                            <label class="block text-sm font-medium text-gray-500">Email Address</label>
+                            <p class="text-gray-800 mt-1">{{ company.email }}</p>
+                            </div>
+                            <div class="border-b pb-3">
+                            <label class="block text-sm font-medium text-gray-500">Phone Number</label>
+                            <p class="text-gray-800 mt-1">{{ company.phone }}</p>
+                            </div>
+                            <div class="border-b pb-3">
+                            <label class="block text-sm font-medium text-gray-500">Address</label>
+                            <p class="text-gray-800 mt-1">{{ company.address }}</p>
+                            </div>
+                       
+                    </div>
+                
+  
+                </div>
+            </div>
+        </div>
+        <div class="w-1/4">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                <div class="space-y-3">
+                    <button class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                        <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                            <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                        View Details
+                    </button>
+                    <button class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                        <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                        Edit Record
+                    </button>
+                    <button class="w-full text-left px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+                        <svg class="h-5 w-5 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                        Delete Record
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- JavaScript for Tabs -->
+<script>
+    const tabs = document.querySelectorAll('#tabs button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active styles from all tabs
+            tabs.forEach(t => t.classList.remove('border-blue-600', 'text-blue-600'));
+            tabContents.forEach(content => content.classList.add('hidden'));
+
+            // Add active styles to the clicked tab
+            tab.classList.add('border-blue-600', 'text-blue-600');
+
+            // Show the corresponding content
+            const target = tab.getAttribute('data-tab');
+            document.getElementById(target).classList.remove('hidden');
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+{% include "message.html" %}
+
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0 sm:space-x-4">
+            <!-- Add New Invoice Button -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <a href="{% url 'customer_vendor:invoice_create' %}" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#a31319] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-lg">
+                    <i class="ri-add-line mr-1"></i> Add New Invoice
+                </a>
+            </div>
+        
+            <!-- Search Form -->
+            <form method="get" action="{% url 'customer_vendor:invoice_list' %}" class="relative w-full sm:w-auto">
+                <input type="text" name="search" placeholder="Search invoices..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-72 sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                </div>
+            </form>
+        </div>
+        
+        <div class="overflow-x-auto  table-container">
+            <div class="bg-gradient-to-br from-[#a31319] to-black rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">Invoices</h2>
+                    <div class="overflow-x-auto">
+                        <table id="invoiceTable" class="w-full text-sm text-left text-gray-200">
+                            <thead class="text-xs uppercase bg-[#480d0f] text-gray-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">
+                                        <input type="checkbox" class="rounded border-gray-600 text-[#a31319] shadow-sm focus:border-[#a31319] focus:ring focus:ring-[#a31319] focus:ring-opacity-50">
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Invoice ID</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Customer</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Sales Order</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Invoice Date</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Due Date</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Total Amount</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Status</th>
+                                    <th scope="col" class="px-6 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in invoices %}
+                                <tr class="border-b border-gray-700 hover:bg-[#5a1114] transition-colors">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="rounded border-gray-600 text-[#a31319] shadow-sm focus:border-[#a31319] focus:ring focus:ring-[#a31319] focus:ring-opacity-50">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap font-medium">{{ invoice.id }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ invoice.customer.name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ invoice.sales_order.id|default:"N/A" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ invoice.invoice_date|date:"Y-m-d" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ invoice.due_date|date:"Y-m-d" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">${{ invoice.total_amount|floatformat:2 }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                            {% if invoice.payment_status == 'paid' %}
+                                                bg-green-800 text-green-100
+                                            {% elif invoice.payment_status == 'partial' %}
+                                                bg-yellow-800 text-yellow-100
+                                            {% else %}
+                                                bg-red-800 text-red-100
+                                            {% endif %}">
+                                            {{ invoice.get_payment_status_display }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex space-x-2">
+                                            {% if perms.uniworlderp.change_arinvoice %}
+                                            <a href="{% url 'customer_vendor:invoice_update' invoice.pk %}" 
+                                               class="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-800 text-indigo-100 hover:bg-indigo-700">
+                                                <i class="ri-edit-line mr-1"></i>Edit
+                                            </a>
+                                            {% endif %}
+                                            {% if perms.uniworlderp.delete_arinvoice %}
+                                            <a href="{% url 'customer_vendor:invoice_delete' invoice.pk %}" 
+                                               class="px-2 py-1 text-xs font-semibold rounded-full bg-red-800 text-red-100 hover:bg-red-700">
+                                                <i class="ri-delete-bin-line mr-1"></i>Delete
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'customer_vendor:invoice_view' invoice.pk %}" 
+                                               class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-800 text-blue-100 hover:bg-blue-700">
+                                                <i class="ri-eye-line mr-1"></i>View
+                                            </a>
+                                            <a href="{% url 'customer_vendor:invoice_print' invoice.pk %}" target="_blank" 
+                                               class="px-2 py-1 text-xs font-semibold rounded-full bg-green-800 text-green-100 hover:bg-green-700">
+                                                <i class="ri-printer-line mr-1"></i>Print
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-400">No invoices available.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+            
+                        <!-- Pagination Controls -->
+
+                        </div>
+
+                    </div>
+                    {% include "includes/pagination.html" with page_obj=page_obj %}
+
+                </div>
+            </div>
+            
+        </div>
+        <!-- Pagination section remains unchanged -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Table sorting functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('invoiceTable');
+        const headers = table.querySelectorAll('th');
+        const tableBody = table.querySelector('tbody');
+        const rows = tableBody.querySelectorAll('tr');
+
+        const directions = Array.from(headers).map(() => '');
+
+        const sortColumn = (index) => {
+            const direction = directions[index] || 'asc';
+            const multiplier = (direction === 'asc') ? 1 : -1;
+            const newRows = Array.from(rows);
+
+            newRows.sort((rowA, rowB) => {
+                const cellA = rowA.querySelectorAll('td')[index].textContent.trim();
+                const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
+
+                switch (index) {
+                    case 1: // Invoice ID
+                    case 3: // Sales Order
+                        return parseInt(cellA) - parseInt(cellB) * multiplier;
+                    case 2: // Customer
+                    case 7: // Status
+                        return cellA.localeCompare(cellB) * multiplier;
+                    case 4: // Invoice Date
+                    case 5: // Due Date
+                        return new Date(cellA) - new Date(cellB) * multiplier;
+                    case 6: // Total Amount
+                        return parseFloat(cellA.replace('$', '')) - parseFloat(cellB.replace('$', '')) * multiplier;
+                    default:
+                        return 0;
+                }
+            });
+
+            [].forEach.call(rows, (row) => {
+                tableBody.removeChild(row);
+            });
+
+            newRows.forEach(newRow => tableBody.appendChild(newRow));
+
+            directions[index] = direction === 'asc' ? 'desc' : 'asc';
+        };
+
+        [].forEach.call(headers, (header, index) => {
+            if (index > 0 && index < 8) {
+                header.addEventListener('click', () => {
+                    sortColumn(index);
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
+

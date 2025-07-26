@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block main_content %}
+{% include "message.html" %}
+
+<div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center space-x-2">
+                <a href="{% url 'permission:permission_create' %}" class="px-3 py-1 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <i class="ri-add-line mr-1"></i> Add New Permission
+                </a>
+            </div>
+            <form method="get" action="{% url 'permission:permission_list' %}" class="relative">
+                <input type="text" name="search" placeholder="Search permissions..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                </div>
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table id="permissionTable" class="min-w-full divide-y divide-[hsl(var(--border))]">
+                <thead class="bg-[hsl(var(--muted))]">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
+                            Name
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
+                            Code
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-[hsl(var(--background))] divide-y divide-[hsl(var(--border))]">
+                    {% for permission in permissions %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-[hsl(var(--foreground))]">{{ permission.name }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-[hsl(var(--foreground))]">{{ permission.codename }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-4">
+                                <a href="{% url 'permission:permission_edit' permission.pk %}" class="flex items-center px-4 py-2 bg-indigo-100 text-indigo-600 hover:bg-indigo-200 hover:text-indigo-900 rounded-lg transition-all duration-300 ease-in-out shadow-md hover:shadow-lg">
+                                    <i class="ri-edit-line text-lg mr-2"></i> Edit
+                                </a>
+                                <a href="{% url 'permission:permission_delete' permission.pk %}" class="flex items-center px-4 py-2 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-900 rounded-lg transition-all duration-300 ease-in-out shadow-md hover:shadow-lg">
+                                    <i class="ri-delete-bin-line text-lg mr-2"></i> Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-center text-sm text-[hsl(var(--muted-foreground))]">No permissions available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "includes/pagination.html" with page_obj=page_obj %}
+    </div>
+</div>
+{% endblock %}

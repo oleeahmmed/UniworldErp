@@ -1,0 +1,260 @@
+
+
+
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Responsive Login Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .animate-background {
+            background: linear-gradient(-45deg, #a31319, #000000, #ffffff, #a31319);
+            background-size: 300% 300%;
+            animation: gradientAnimation 8s ease infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse-on-hover:hover {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes shine {
+            0% { background-position: -100px; }
+            100% { background-position: 300px; }
+        }
+
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100px;
+            width: 50px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shine 2s infinite linear;
+            pointer-events: none;
+        }
+
+        /* Material Design Input Styles */
+        .form-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-field {
+            width: 100%;
+            height: 56px;
+            padding: 0 16px 0 40px;
+            border: 2px solid #e2e8f0;
+            border-radius: 4px;
+            font-size: 16px;
+            outline: none;
+            background: transparent;
+            transition: 0.3s ease all;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-label {
+            position: absolute;
+            left: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: white;
+            color: #666;
+            padding: 0 4px;
+            margin-left: -4px;
+            transition: 0.3s ease all;
+            cursor: text;
+        }
+
+        .form-field:focus {
+            border-color: #a31319;
+            box-shadow: 0 4px 6px rgba(163, 19, 25, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-field:focus + .form-label,
+        .form-field:not(:placeholder-shown) + .form-label {
+            top: 0;
+            left: 16px;
+            font-size: 12px;
+            color: #a31319;
+            font-weight: 600;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            transition: 0.3s ease all;
+        }
+
+        .form-field:focus ~ .input-icon {
+            color: #a31319;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .custom-checkbox {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #a31319;
+            border-radius: 4px;
+            margin-right: 8px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.2s all;
+        }
+
+        .custom-checkbox:checked {
+            background-color: #a31319;
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .login-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+
+        .login-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(163, 19, 25, 0.2);
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        .floating-icon {
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center animate-background">
+    <div class="flex flex-col md:flex-row w-[90%] md:w-[80%] lg:w-[70%] h-auto md:h-[500px] bg-white shadow-2xl rounded-lg overflow-hidden">
+        <!-- Left Section -->
+        <div class="relative w-full md:w-1/2 bg-[#a31319] flex flex-col justify-center items-center px-6 py-8 md:px-8 text-white">
+            <img src="{% static 'images/logo.png' %}" alt="" class="company-logo">
+
+            <h1 class="text-3xl md:text-4xl font-bold mb-4 text-center">Welcome to UniWorld</h1>
+            <p class="text-center text-lg mb-8 opacity-90">World class adhesive solutions            </p>
+
+            <!-- Floating Shapes -->
+            <div class="absolute bottom-0 left-0 right-0 flex justify-evenly opacity-30">
+                <div class="w-16 h-16 bg-white rounded-lg floating" style="animation-delay: 0s;"></div>
+                <div class="w-20 h-20 bg-gray-300 rounded-lg floating" style="animation-delay: 0.5s;"></div>
+                <div class="w-24 h-24 bg-black rounded-lg floating" style="animation-delay: 1s;"></div>
+            </div>
+        </div>
+
+        <!-- Right Section -->
+        <div class="w-full md:w-1/2 flex flex-col justify-center items-center px-8 py-8 bg-gray-50">
+            <!-- Login Heading -->
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-[#a31319] flex items-center justify-center">
+                    <i class="fas fa-user-shield mr-2 floating-icon"></i>
+                    <span> LOGIN</span>
+                </h2>
+                <p class="text-gray-600 mt-2 text-sm">Please enter your credentials</p>
+            </div>
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="post" enctype="multipart/form-data" class="space-y-6 w-full max-w-md">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="form-group">
+                    <!-- Input field -->
+                    <input type="{{ field.field.widget.input_type }}"
+                           name="{{ field.name }}"
+                           id="{{ field.id_for_label }}"
+                           class="form-field"
+                           placeholder=" "
+                           {% if field.field.required %}required{% endif %}>
+                    
+                    <!-- Label -->
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    
+                    <!-- Icon for input field -->
+                    <i class="fas fa-{% if field.name == 'username' %}user{% elif field.name == 'password' %}lock{% else %}pencil-alt{% endif %} input-icon"></i>
+                    
+                    <!-- Display field errors -->
+                    {% if field.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <!-- Submit button -->
+                <button type="submit" class="login-btn w-full bg-[#a31319] text-white py-3 rounded-lg font-semibold hover:bg-[#800f14] transition-all shine-effect">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    <span>LOGIN</span>
+                </button>
+            </form>
+        
+            
+            
+        
+        </div>
+    </div>
+</body>
+</html>

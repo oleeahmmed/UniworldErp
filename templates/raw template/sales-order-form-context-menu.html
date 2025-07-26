@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Order Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 0 0% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 0 0% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 0 0% 3.9%;
+            --primary: 222.2 47.4% 11.2%;
+            --primary-foreground: 0 0% 98%;
+            --secondary: 0 0% 96.1%;
+            --secondary-foreground: 0 0% 9%;
+            --muted: 0 0% 96.1%;
+            --muted-foreground: 0 0% 45.1%;
+            --accent: 0 0% 96.1%;
+            --accent-foreground: 0 0% 9%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 0 0% 89.8%;
+            --input: 0 0% 89.8%;
+            --ring: 0 0% 3.9%;
+        }
+        .dark {
+            --background: 0 0% 3.9%;
+            --foreground: 0 0% 98%;
+            --card: 0 0% 3.9%;
+            --card-foreground: 0 0% 98%;
+            --popover: 0 0% 3.9%;
+            --popover-foreground: 0 0% 98%;
+            --primary: 0 0% 98%;
+            --primary-foreground: 0 0% 9%;
+            --secondary: 0 0% 14.9%;
+            --secondary-foreground: 0 0% 98%;
+            --muted: 0 0% 14.9%;
+            --muted-foreground: 0 0% 63.9%;
+            --accent: 0 0% 14.9%;
+            --accent-foreground: 0 0% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 0 0% 14.9%;
+            --input: 0 0% 14.9%;
+            --ring: 0 0% 83.1%;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68D391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #68D391;
+        }
+    </style>
+</head>
+<body class="bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors duration-200">
+    <div class="container mx-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">Sales Order Form</h1>
+            <div class="flex items-center">
+                <span class="mr-2 text-sm">Light</span>
+                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="toggle" id="toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                    <label for="toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                </div>
+                <span class="text-sm">Dark</span>
+            </div>
+        </div>
+        <div class="bg-[hsl(var(--card))] rounded-lg shadow-lg overflow-hidden">
+            <form class="p-6">
+                <!-- Order Info (before tabs) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label for="orderNumber" class="block text-sm font-medium text-[hsl(var(--foreground))]">Order Number*</label>
+                        <input type="text" id="orderNumber" name="orderNumber" required class="mt-1 block w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="orderDate" class="block text-sm font-medium text-[hsl(var(--foreground))]">Order Date*</label>
+                        <input type="date" id="orderDate" name="orderDate" required class="mt-1 block w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="customerName" class="block text-sm font-medium text-[hsl(var(--foreground))]">Customer Name*</label>
+                        <input type="text" id="customerName" name="customerName" required class="mt-1 block w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                    </div>
+                    <div>
+                        <label for="customerEmail" class="block text-sm font-medium text-[hsl(var(--foreground))]">Customer Email*</label>
+                        <input type="email" id="customerEmail" name="customerEmail" required class="mt-1 block w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                    </div>
+                </div>
+
+                <!-- Order Items Formset -->
+                <div class="mt-8">
+                    <h2 class="text-xl font-semibold mb-4">Order Items</h2>
+                    <div class="overflow-x-auto">
+                        <table id="companyTable" class="min-w-full divide-y divide-[hsl(var(--border))]">
+                            <thead class="bg-[hsl(var(--muted))]">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Item</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Quantity</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Unit Price</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase tracking-wider cursor-pointer">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderItemsFormset">
+                                <tr class="formset-row">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="text" name="itemName[]" placeholder="Item Name" class="w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="number" name="quantity[]" placeholder="Quantity" min="1" class="w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="number" name="unitPrice[]" placeholder="Unit Price" step="0.01" class="w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="number" name="total[]" placeholder="Total" step="0.01" readonly class="w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] shadow-sm">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                    <button type="submit" class="px-4 py-2 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))]">
+                        Submit Order
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="hidden fixed bg-[hsl(var(--popover))] text-[hsl(var(--popover-foreground))] shadow-lg rounded-lg p-2 w-48">
+        <button id="addRowBtn" class="w-full text-left px-4 py-2 hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] rounded">Add Row</button>
+        <button id="removeRowBtn" class="w-full text-left px-4 py-2 hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] rounded">Remove Row</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const html = document.documentElement;
+            const orderItemsFormset = document.getElementById('orderItemsFormset');
+            const contextMenu = document.getElementById('contextMenu');
+            const addRowBtn = document.getElementById('addRowBtn');
+            const removeRowBtn = document.getElementById('removeRowBtn');
+
+            let targetRow = null;
+
+
+
+            // Formset functionality
+            orderItemsFormset.addEventListener('contextmenu', showContextMenu);
+            document.addEventListener('click', hideContextMenu);
+
+            addRowBtn.addEventListener('click', () => {
+                addFormsetRow();
+                hideContextMenu();
+            });
+
+            removeRowBtn.addEventListener('click', () => {
+                if (targetRow && orderItemsFormset.children.length > 1) {
+                    targetRow.remove();
+                }
+                hideContextMenu();
+            });
+
+            orderItemsFormset.addEventListener('input', updateTotal);
+
+            function addFormsetRow() {
+                const newRow = document.createElement('tr');
+                newRow.className = 'formset-row';
+                newRow.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <input type="text" name="itemName[]" placeholder="Item Name" class="w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <input type="number" name="quantity[]" placeholder="Quantity" min="1" class="w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <input type="number" name="unitPrice[]" placeholder="Unit Price" step="0.01" class="w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--input))] text-[hsl(var(--foreground))] shadow-sm focus:border-[hsl(var(--ring))] focus:ring focus:ring-[hsl(var(--ring))] focus:ring-opacity-50">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <input type="number" name="total[]" placeholder="Total" step="0.01" readonly class="w-full rounded-md border-[hsl(var(--border))] bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] shadow-sm">
+                    </td>
+                `;
+                orderItemsFormset.appendChild(newRow);
+            }
+
+            function showContextMenu(e) {
+                e.preventDefault();
+                targetRow = e.target.closest('.formset-row');
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = `${e.clientX}px`;
+                contextMenu.style.top = `${e.clientY}px`;
+            }
+
+            function hideContextMenu() {
+                contextMenu.style.display = 'none';
+            }
+
+            function updateTotal(e) {
+                if (e.target.name === 'quantity[]' || e.target.name === 'unitPrice[]') {
+                    const row = e.target.closest('tr');
+                    const quantity = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
+                    const unitPrice = parseFloat(row.querySelector('input[name="unitPrice[]"]').value) || 0;
+                    const total = quantity * unitPrice;
+                    row.querySelector('input[name="total[]"]').value = total.toFixed(2);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

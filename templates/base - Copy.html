@@ -1,0 +1,914 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Design Form</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Remix Icon Font -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Arial', 'sans-serif'], // Add fallback fonts
+                    },
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Fonts -->
+    <style>
+        /* Import Google Fonts with additional weights */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+        /* Light Mode Variables */
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 0 0% 3.9%;
+            --card-header: 0 0% 90%;
+            --card-header-foreground: 0 0% 3.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 0 0% 3.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 0 0% 3.9%;
+            --primary: 222.2 47.4% 11.2%;
+            {% comment %} --primary: 356 83% 36%; /* Adjusted for #b01116 */ {% endcomment %}
+
+            --primary-foreground: 0 0% 98%;
+            --secondary: 0 0% 96.1%;
+            --secondary-foreground: 0 0% 9%;
+            --muted: 0 0% 96.1%;
+            --muted-foreground: 0 0% 45.1%;
+            --accent: 0 0% 96.1%;
+            --accent-foreground: 0 0% 9%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 0 0% 89.8%;
+            --input: 0 0% 89.8%;
+            --ring: 0 0% 3.9%;
+        }
+
+        /* Dark Mode Variables */
+        .dark {
+            --background: 0 0% 3.9%;
+            --foreground: 0 0% 98%;
+            --card-header: 0 0% 3.9%;
+            --card-header-foreground: 0 0% 98%;
+            --card: 0 0% 3.9%;
+            --card-foreground: 0 0% 98%;
+            --popover: 0 0% 3.9%;
+            --popover-foreground: 0 0% 98%;
+            --primary: 0 0% 98%;
+            {% comment %} --primary: 356 83% 36%; /* Adjusted for #b01116 */ {% endcomment %}
+
+            --primary-foreground: 0 0% 9%;
+            --secondary: 0 0% 14.9%;
+            --secondary-foreground: 0 0% 98%;
+            --muted: 0 0% 14.9%;
+            --muted-foreground: 0 0% 63.9%;
+            --accent: 0 0% 14.9%;
+            --accent-foreground: 0 0% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 0 0% 98%;
+            --border: 0 0% 14.9%;
+            --input: 0 0% 14.9%;
+            --ring: 0 0% 83.1%;
+        }
+
+
+
+        /* Global Font */
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+   
+
+
+         /* Tabs  */
+         .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68D391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #68D391;
+        }
+
+
+   /* Dropdown  */
+        .dropdown-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .dropdown.active .dropdown-content {
+            max-height: 500px;
+        }
+        .dropdown-trigger::after {
+            content: "\ea4e";
+            font-family: remixicon;
+            position: absolute;
+            right: 1rem;
+            transition: transform 0.3s ease;
+        }
+        .dropdown.active .dropdown-trigger::after {
+            transform: rotate(180deg);
+        }
+
+           /* Message After save  */
+
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            max-width: 24rem;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+
+        /* Mobile menu styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                width: 100%;
+                max-width: 300px;
+                z-index: 50;
+                transition: left 0.3s ease-in-out;
+            }
+            .sidebar.active {
+                left: 0;
+            }
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+                display: none;
+            }
+            .overlay.active {
+                display: block;
+            }
+            .mobile-bottom-menu {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background-color: hsl(var(--background));
+                border-top: 1px solid hsl(var(--border));
+                display: flex;
+                justify-content: space-around;
+                padding: 0.5rem;
+                z-index: 40;
+            }
+            .mobile-bottom-menu a {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 0.5rem;
+                color: hsl(var(--muted-foreground));
+                transition: color 0.3s ease;
+            }
+            .mobile-bottom-menu a:hover,
+            .mobile-bottom-menu a.active {
+                color: hsl(var(--primary));
+            }
+            .mobile-bottom-menu i {
+                font-size: 1.5rem;
+                margin-bottom: 0.25rem;
+            }
+            .mobile-bottom-menu span {
+                font-size: 0.75rem;
+            }
+            main {
+                padding-bottom: 4rem;
+            }
+        }
+
+
+        .animated-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #3490dc, #6574cd, #9561e2);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        .auth-container {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+
+    <!-- List Edit And Delete Button -->
+<style>
+    .dropdown-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+
+    .dropdown.active .dropdown-content {
+        max-height: 10rem;
+    }
+
+
+    .dropdown-trigger::after {
+content: none; /* Removes the caret if it's a pseudo-element */
+}
+
+</style>
+<style>
+    .column-toggle {
+        position: relative;
+        display: inline-block;
+    }
+    .column-toggle-button {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        background-color: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        border: none;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .column-toggle-button:hover {
+        background-color: hsl(var(--primary) / 0.8);
+    }
+    .column-toggle-button i {
+        margin-right: 0.5rem;
+    }
+    .column-checkboxes {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 10;
+        background-color: hsl(var(--background));
+        border: 1px solid hsl(var(--border));
+        border-radius: 0.375rem;
+        padding: 0.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        display: none;
+    }
+    .column-checkboxes.active {
+        display: block;
+    }
+    .column-checkboxes label {
+        display: block;
+        padding: 0.25rem 0;
+        cursor: pointer;
+    }
+    .column-checkboxes input[type="checkbox"] {
+        margin-right: 0.5rem;
+    }
+</style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-background text-foreground">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-64 h-screen bg-background  border-r flex flex-col">
+            <!-- Top Header -->
+            <div class="h-20 border-b flex items-center px-4 space-x-4">
+                {% if user.is_authenticated and user.companyprofile %}
+                    <!-- Authenticated User with Company Profile -->
+                    <img src="{% if user.companyprofile.company.get_logo %}{{ user.companyprofile.company.get_logo }}{% else %}{% static 'images/demo/demo-company-logo.png' %}{% endif %}" 
+                         alt="Company Logo" class="w-10 h-10 rounded-lg object-cover">
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                        {{ user.companyprofile.company.name }}
+                    </h1>
+                {% else %}
+                    <!-- Guest or No Company Profile -->
+                    <img src="{% static 'images/demo/logo.png' %}" alt="Demo Logo" class="w-10 h-10 rounded-lg object-cover">
+                    <h1 class="text-xl font-bold" style="color: #b01116;">
+                        Uniworld ERP
+                     </h1>
+                {% endif %}
+            </div>
+            <!-- Navigation -->
+            <nav class="flex-1 overflow-y-auto p-2">
+                <!-- Dashboard -->
+                {% if show_dashboard_link %}
+                <!-- Dashboard -->
+                <a href="{% url 'permission:dashboard' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                    <i class="ri-dashboard-line text-lg"></i>
+                    <span>Dashboard</span>
+                </a>
+            {% else %}
+                <!-- Optionally, you can display a message if the dashboard is not available for the user -->
+                <span>Dashboard not available</span>
+            {% endif %}
+            
+            
+                {% if user.is_authenticated and show_permission_menu %}
+                <div class="dropdown">
+                    <!-- User Management Dropdown -->
+                    <button class="w-full flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted relative dropdown-trigger">
+                        <i class="ri-user-line text-lg"></i>
+                        <span>User Management</span>
+                    </button>
+                    <div class="dropdown-content pl-7">
+                        {% if perms.auth.view_user %}
+                            <a href="{% url 'permission:user_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                                <i class="ri-user-line text-lg"></i>
+                                <span>User List</span>
+                            </a>
+                        {% endif %}
+                        {% if perms.auth.view_group %}
+                            <a href="{% url 'permission:group_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                                <i class="ri-group-line text-lg"></i>
+                                <span>Roll List</span>
+                            </a>
+                        {% endif %}
+                        {% if perms.auth.view_permission %}
+                            <a href="{% url 'permission:permission_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                                <i class="ri-key-line text-lg"></i>
+                                <span>Permissions List</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+
+                {% if show_customer_menu %}
+                <!-- Customer Menu -->
+                <a href="{% url 'customer_vendor:customer_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                    <i class="ri-user-line text-lg"></i>
+                    <span>Customers</span>
+                </a>
+            {% endif %}
+            
+            {% if show_sales_employee_menu %}
+                <!-- Sales Employee Menu -->
+                <a href="{% url 'customer_vendor:sales_employee_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                    <i class="ri-user-follow-line text-lg"></i>
+                    <span>Sales Employees</span>
+                </a>
+            {% endif %}
+            
+            {% if show_product_menu %}
+                <!-- Product Menu -->
+                <a href="{% url 'customer_vendor:product_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                    <i class="ri-product-hunt-line text-lg"></i>
+                    <span>Products</span>
+                </a>
+            {% endif %}
+
+
+            {% if show_sales_order_menu %}
+            <!-- Sales Order Menu -->
+            <a href="{% url 'customer_vendor:sales_order_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                <i class="ri-file-list-line text-lg"></i>
+                <span>Sales Orders</span>
+            </a>
+        {% endif %}            
+                {% comment %} {% if user.is_authenticated and show_company_menu %}
+                <div class="dropdown">
+                    <!-- Company Management Dropdown -->
+                    <button class="w-full flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted relative dropdown-trigger">
+                        <i class="ri-briefcase-4-line text-lg"></i>
+                        <span>Company Management</span>
+                    </button>
+                    <div class="dropdown-content pl-7">
+                        {% if perms.company.view_company %}
+                        <a href="{% url 'company:company_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                            <i class="ri-building-2-line text-lg"></i>
+                            <span>Company List</span>
+                        </a>
+                        {% endif %}
+                        {% if perms.company.view_branch %}
+                        <a href="{% url 'company:branch_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                            <i class="ri-building-line text-lg"></i>
+                            <span>Branch List</span>
+                        </a>
+                        {% endif %}
+                        {% if perms.company.view_contactperson %}
+                        <a href="{% url 'company:contactperson_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                            <i class="ri-user-line text-lg"></i>
+                            <span>Contact Person List</span>
+                        </a>
+                        {% endif %}
+                        {% if perms.company.view_companypolicy %}
+                        <a href="{% url 'company:companypolicy_list' %}" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                            <i class="ri-file-text-line text-lg"></i>
+                            <span>Company Policy List</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %} {% endcomment %}
+
+
+
+
+
+        
+                <!-- Settings -->
+                <a href="#" class="flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted">
+                    <i class="ri-settings-3-line text-lg"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        
+            <!-- Bottom Icons -->
+            <div class="flex items-center justify-around h-16 border-t bg-muted/50">
+                {% if user.is_authenticated %}
+                <a href="{% url 'permission:logout' %}" class="flex flex-col items-center text-xs">
+                    <i class="ri-login-box-line text-lg"></i>
+                    <span>Logout</span>
+                </a>
+            {% else %}
+                <a href="{% url 'permission:login' %}" class="flex flex-col items-center text-xs">
+                    <i class="ri-login-box-line text-lg"></i>
+                    <span>Login</span>
+                </a>
+            {% endif %}
+            
+                <a href="#" class="flex flex-col items-center text-xs">
+                    <i class="ri-question-line text-lg"></i>
+                    <span>Help</span>
+                </a>
+                <a href="#" class="flex flex-col items-center text-xs">
+                    <i class="ri-settings-line text-lg"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Overlay for mobile menu -->
+        <div class="overlay"></div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="h-16 border-b bg-background/95 backdrop-blur flex items-center justify-between px-4">
+                <div class="flex items-center gap-4 flex-1">
+                    <!-- Mobile menu toggle -->
+                    <button class="lg:hidden p-2 hover:bg-muted rounded-md" id="mobileMenuToggle">
+                        <i class="ri-menu-line text-lg"></i>
+                    </button>
+                    <div class="relative w-full max-w-md">
+                        <i class="ri-search-line absolute left-3 top-2.5 text-muted-foreground"></i>
+                        <input type="text" placeholder="Search..." class="w-full pl-9 pr-4 py-2 rounded-md bg-muted/40 border focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    </div>
+
+                </div>
+                <div class="flex items-center gap-4 flex-1">
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" onchange="toggleTheme(this.checked)"/>
+                        <label for="toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Button for Notifications -->
+                    <button class="p-2 hover:bg-muted rounded-md">
+                        <i class="ri-notification-3-line text-lg"></i>
+                    </button>
+
+                    <!-- Profile Dropdown -->
+                    <div class="dropdown">
+                        <!-- Profile Dropdown -->
+                        <button class="w-full flex items-center space-x-3 rounded-lg px-3 py-2 text-sm hover:bg-muted relative dropdown-trigger">
+                            {% if user.is_authenticated %}
+                                <img src="{% if user.companyprofile.get_picture %}{{ user.companyprofile.get_picture }}{% else %}{% static 'images/demo/demo-profile.jpg' %}{% endif %}" 
+                                     alt="Profile" 
+                                     class="w-8 h-8 rounded-full object-cover border-2 border-blue-100">
+                                <span class="text-sm font-semibold hidden sm:inline">{{ user.get_full_name|default:user.username }}</span>
+                            {% else %}
+                                <img src="{% static 'images/demo/demo-profile.jpg' %}" 
+                                     alt="Guest Profile" 
+                                     class="w-8 h-8 rounded-full object-cover border-2 border-gray-300">
+                                <span class="text-sm font-semibold hidden sm:inline">Guest</span>
+                            {% endif %}
+                        </button>
+                    
+
+                    </div>
+                    
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <div class="space-y-6">
+                    {% block main_content %}
+                    <!-- Main content goes here -->
+                     
+                    {% endblock %}
+                </div>
+            </main>
+            <div class="footer-bg-animation text-black rounded-b-lg p-0.5">
+                <footer class=" text-black text-center py-4">
+                    <p class="text-sm font-medium">
+                        Built by
+                        <a href="https://kreatech.ca/" class="text-red hover:text-red font-bold">Kreatech</a>
+                    </p>
+                </footer>
+
+            </div>          
+            <!-- Mobile Bottom Menu (New) -->
+            <nav class="mobile-bottom-menu lg:hidden">
+                <a href="#" class="active">
+                    <i class="ri-home-4-line"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#">
+                    <i class="ri-file-list-3-line"></i>
+                    <span>Tasks</span>
+                </a>
+                <a href="#">
+                    <i class="ri-bar-chart-2-line"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="#">
+                    <i class="ri-user-3-line"></i>
+                    <span>Profile</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+    <script>
+
+            // Notification handling
+    function showToast(id) {
+        const toast = document.getElementById(`notificationToast_${id}`);
+        if (toast) {
+            toast.classList.remove('translate-x-full', 'opacity-0');
+            toast.classList.add('translate-x-0', 'opacity-100');
+            setTimeout(() => hideToast(id), 5000); // Auto hide after 5 seconds
+        }
+    }
+
+    function hideToast(id) {
+        const toast = document.getElementById(`notificationToast_${id}`);
+        if (toast) {
+            toast.classList.add('translate-x-full', 'opacity-0');
+            toast.classList.remove('translate-x-0', 'opacity-100');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }
+    }
+
+    // Show all toasts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const toasts = document.querySelectorAll('[id^="notificationToast_"]');
+        toasts.forEach((toast, index) => {
+            setTimeout(() => showToast(index + 1), index * 300);
+        });
+    });
+    </script>
+    <script>
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <script>
+        function toggleTheme(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Set initial toggle state
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('toggle');
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                toggle.checked = true;
+                document.documentElement.classList.add('dark');
+            }
+        });
+
+        // Dropdown functionality
+        document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                trigger.closest('.dropdown').classList.toggle('active');
+            });
+        });
+
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+
+        mobileMenuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+
+        // Close mobile menu when clicking outside
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown').forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            }
+        });
+
+        // Mobile bottom menu active state
+        const bottomMenuItems = document.querySelectorAll('.mobile-bottom-menu a');
+        bottomMenuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                bottomMenuItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+    </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabs = document.querySelectorAll('.tab-button');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
+
+            // Reset styles for all tabs
+            tabs.forEach((t) => {
+                t.classList.remove(
+                    'text-[hsl(var(--foreground))]',
+                    'bg-[hsl(var(--background))]',
+                    'ring-[hsl(var(--primary))]',
+                    'shadow'
+                );
+                t.classList.add(
+                    'text-[hsl(var(--muted-foreground))]',
+                    'hover:bg-[hsl(var(--secondary))]',
+                    'hover:text-[hsl(var(--primary))]'
+                );
+            });
+
+            // Apply active styles to the clicked tab
+            tab.classList.add(
+                'text-[hsl(var(--foreground))]', 
+                'bg-[hsl(var(--background))]',
+                'ring-[hsl(var(--primary))]',
+                'shadow'
+            );
+            tab.classList.remove(
+                'hover:bg-[hsl(var(--secondary))]',
+                'hover:text-[hsl(var(--primary))]'
+            );
+
+            // Toggle content visibility
+            contents.forEach((c) => c.classList.remove('active'));
+            document.getElementById(target).classList.add('active');
+        });
+    });
+});
+
+
+</script>
+
+<script>
+
+    // Table sorting functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const table = document.getElementById('companyTable');
+        const headers = table.querySelectorAll('th');
+        const tableBody = table.querySelector('tbody');
+        const rows = tableBody.querySelectorAll('tr');
+
+        const directions = Array.from(headers).map(() => '');
+
+        const sortColumn = (index) => {
+            const direction = directions[index] || 'asc';
+            const multiplier = (direction === 'asc') ? 1 : -1;
+            const newRows = Array.from(rows);
+
+            newRows.sort((rowA, rowB) => {
+                const cellA = rowA.querySelectorAll('td')[index].textContent.trim();
+                const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
+
+                switch (index) {
+                    case 1: // Company Name
+                    case 2: // Address
+                    case 4: // Email
+                        return cellA.localeCompare(cellB) * multiplier;
+                    case 3: // Phone
+                        return cellA.replace(/\D/g, '').localeCompare(cellB.replace(/\D/g, '')) * multiplier;
+                    default:
+                        return 0;
+                }
+            });
+
+            [].forEach.call(rows, (row) => {
+                tableBody.removeChild(row);
+            });
+
+            newRows.forEach(newRow => tableBody.appendChild(newRow));
+
+            directions[index] = direction === 'asc' ? 'desc' : 'asc';
+        };
+
+        [].forEach.call(headers, (header, index) => {
+            if (index > 0 && index < 5) {
+                header.addEventListener('click', () => {
+                    sortColumn(index);
+                });
+            }
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const table = document.getElementById('companyTable');
+        const thead = table.querySelector('thead');
+        const toggleContainer = document.createElement('div');
+        toggleContainer.classList.add('column-toggle');
+
+        // Create the toggle button
+        const toggleButton = document.createElement('button');
+        toggleButton.id = 'toggleColumns';
+        toggleButton.className = 'px-3 py-1 border border-[hsl(var(--border))] rounded-md hover:bg-[hsl(var(--muted))] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500';
+        toggleButton.innerHTML = '<i class="ri-eye-line mr-1"></i> Show | Hide';
+
+        // Create the container for checkboxes
+        const columnCheckboxes = document.createElement('div');
+        columnCheckboxes.id = 'columnCheckboxes';
+        columnCheckboxes.classList.add('column-checkboxes');
+
+        // Extract column names from thead and generate checkboxes
+        const headers = thead.querySelectorAll('th');
+        headers.forEach((th, index) => {
+            if (index > 0) { // Skip the first column (checkbox column)
+                const label = document.createElement('label');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.dataset.column = index;
+                checkbox.checked = true;
+
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(` ${th.textContent.trim()}`));
+                columnCheckboxes.appendChild(label);
+
+                // Add change event listener for the checkbox
+                checkbox.addEventListener('change', function () {
+                    const column = this.dataset.column;
+                    const cells = table.querySelectorAll(
+                        `td:nth-child(${parseInt(column) + 1}), th:nth-child(${parseInt(column) + 1})`
+                    );
+                    cells.forEach(cell => {
+                        cell.style.display = this.checked ? '' : 'none';
+                    });
+                });
+            }
+        });
+
+        // Append toggle button and checkboxes to the toggle container
+        toggleContainer.appendChild(toggleButton);
+        toggleContainer.appendChild(columnCheckboxes);
+
+        // Add the toggle container to the DOM (replace with appropriate parent container)
+        const parentContainer = document.querySelector('.flex.items-center.space-x-2');
+        parentContainer.appendChild(toggleContainer);
+
+        // Toggle column checkboxes visibility
+        toggleButton.addEventListener('click', function (event) {
+            columnCheckboxes.classList.toggle('active');
+            event.stopPropagation();
+        });
+
+        // Hide checkboxes when clicking outside
+        document.addEventListener('click', function (event) {
+            if (!columnCheckboxes.contains(event.target) && event.target !== toggleButton) {
+                columnCheckboxes.classList.remove('active');
+            }
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const exportButton = document.getElementById('exportCSV');
+        exportButton.addEventListener('click', exportToCSV);
+    
+        function exportToCSV() {
+            const table = document.getElementById('companyTable');
+            const rows = table.querySelectorAll('tr');
+            let csv = [];
+    
+            for (let i = 0; i < rows.length; i++) {
+                let row = [], cols = rows[i].querySelectorAll('td, th');
+                
+                for (let j = 1; j < cols.length - 1; j++) { // Skip first (checkbox) and last (actions) columns
+                    // Check if the column is hidden
+                    const isHidden = window.getComputedStyle(cols[j]).display === 'none';
+                    if (!isHidden) {
+                        let text = cols[j].innerText.replace(/"/g, '""'); // Escape double quotes
+                        row.push('"' + text + '"');
+                    }
+                }
+                if (row.length > 0) {
+                    csv.push(row.join(','));
+                }
+            }
+    
+            const csvContent = csv.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (navigator.msSaveBlob) { // IE 10+
+                navigator.msSaveBlob(blob, 'company_data.csv');
+            } else {
+                link.href = URL.createObjectURL(blob);
+                link.download = 'company_data.csv';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+    });
+    </script>
+    <!-- Refresh button  -->
+<script>
+        function refreshPage() {
+        location.reload();
+    }
+</script>
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>
