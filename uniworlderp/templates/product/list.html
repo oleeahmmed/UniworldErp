@@ -21,12 +21,20 @@
               <i class="ri-inbox-add-line mr-1"></i> Add Stock
             </a>
 			
-			                    <!-- Add Stock Button -->
+                    <!-- View Stock Transfer Button -->
             <a
               href="{% url urls.view_stock_transfer %}"
               class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#a31319] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-lg"
             >
               <i class="ri-inbox-add-line mr-1"></i> View Stock Transfer
+            </a>
+            
+            <!-- Stock Report Button -->
+            <a
+              href="{% url 'customer_vendor:stock_report' %}"
+              class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#2563eb] to-[#1e40af] text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-lg"
+            >
+              <i class="ri-file-chart-line mr-1"></i> Stock Report
             </a>
             </div>
 

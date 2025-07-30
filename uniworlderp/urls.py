@@ -79,5 +79,9 @@ urlpatterns = [
     path('materials-purchases/<int:pk>/print/', materials_purchase_views.MaterialsPurchasePrintView.as_view(), name='materials_purchase_print'),
     path('materials-purchases/report/', materials_purchase_views.MaterialsPurchaseReportView.as_view(), name='materials_purchase_report'),
     path('reports/', report_views.ReportView.as_view(), name='sales_report'),
+    
+    # Stock Report URLs
+    path('reports/stock/', report_views.StockReportView.as_view(), name='stock_report'),
+    path('reports/stock/print/', report_views.StockReportPrintView.as_view(), name='stock_report_print'),
 
 ]

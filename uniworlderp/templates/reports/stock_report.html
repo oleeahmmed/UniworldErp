@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block main_content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-4">Stock Report</h1>
+
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+        <form method="post" id="stock-report-form">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label for="id_product_id" class="block text-sm font-medium text-gray-700">{{ form.product_id.label }}</label>
+                    {{ form.product_id }}
+                </div>
+                <div>
+                    <label for="id_date_range" class="block text-sm font-medium text-gray-700">{{ form.date_range.label }}</label>
+                    {{ form.date_range }}
+                </div>
+                <div id="custom-range-fields">
+                    <div>
+                        <label for="id_start_date" class="block text-sm font-medium text-gray-700">{{ form.start_date.label }}</label>
+                        {{ form.start_date }}
+                    </div>
+                    <div>
+                        <label for="id_end_date" class="block text-sm font-medium text-gray-700">{{ form.end_date.label }}</label>
+                        {{ form.end_date }}
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center space-x-2">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Generate Report</button>
+                {% if report_data %}
+                <a href="{% url 'customer_vendor:stock_report_print' %}?{{ get_params }}" target="_blank" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 no-print">Print Report</a>
+                {% endif %}
+            </div>
+            {% if form.errors %}
+                <div class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                    <p class="font-bold">Please correct the following errors:</p>
+                    <ul class="list-disc list-inside">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if report_data %}
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <div class="flex justify-between items-start mb-4">
+            <div class="text-left">
+                <p class="text-sm text-gray-600">Prepared by: {{ user.username|default:"System" }}</p>
+            </div>
+            <div class="text-center">
+                <h2 class="text-xl font-bold">Stock Report</h2>
+                <p class="text-sm text-gray-600">Report Date: {{ report_date_display }}</p>
+                <p class="text-sm text-gray-500">Generated: {{ report_generated_at_formatted }} (BD Time)</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-gray-600">Report Period:</p>
+                <p class="text-xs text-gray-500">From: {{ report_start_time }}</p>
+                <p class="text-xs text-gray-500">To: {{ report_end_time }}</p>
+            </div>
+        </div>
+        <div class="text-center mb-4">
+            <p class="text-xs text-gray-500 italic">{{ closing_time_notice }}</p>
+        </div>
+
+        <table class="min-w-full bg-white border border-gray-200">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="py-2 px-4 border-b">SL</th>
+                    <th class="py-2 px-4 border-b">Product Name</th>
+                    <th class="py-2 px-4 border-b">Product Code</th>
+                    <th class="py-2 px-4 border-b">Unit</th>
+                    <th class="py-2 px-4 border-b">Opening Stock</th>
+                    <th class="py-2 px-4 border-b">Received Qty</th>
+                    <th class="py-2 px-4 border-b">Issued Qty</th>
+                    <th class="py-2 px-4 border-b">Closing Stock</th>
+                    <th class="py-2 px-4 border-b">Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in report_data %}
+                <tr>
+                    <td class="py-2 px-4 border-b text-center">{{ item.sl }}</td>
+                    <td class="py-2 px-4 border-b">{{ item.product_name }}</td>
+                    <td class="py-2 px-4 border-b">{{ item.product_code }}</td>
+                    <td class="py-2 px-4 border-b text-center">{{ item.unit }}</td>
+                    <td class="py-2 px-4 border-b text-right">{{ item.opening_stock }}</td>
+                    <td class="py-2 px-4 border-b text-right">{{ item.received_qty }}</td>
+                    <td class="py-2 px-4 border-b text-right">{{ item.issued_qty }}</td>
+                    <td class="py-2 px-4 border-b text-right">{{ item.closing_stock }}</td>
+                    <td class="py-2 px-4 border-b">{{ item.remarks }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-4">No data available for the selected criteria.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateRangeField = document.getElementById('id_date_range');
+        const customRangeFields = document.getElementById('custom-range-fields');
+
+        function toggleCustomRange() {
+            if (dateRangeField.value === 'custom') {
+                customRangeFields.style.display = 'block';
+            } else {
+                customRangeFields.style.display = 'none';
+            }
+        }
+
+        toggleCustomRange();
+        dateRangeField.addEventListener('change', toggleCustomRange);
+    });
+</script>
+
+{% endblock %}
+

@@ -469,3 +469,118 @@ def get_return_sales_item_formset(sales_order=None, **kwargs):
         min_num=0,
         validate_min=False
     )(**kwargs)
+
+
+# Stock Report Form
+class StockReportForm(forms.Form):
+    """Form for stock report filtering with strict date validation"""
+    
+    DATE_RANGE_CHOICES = [
+        ('today', 'Today'),
+        ('custom', 'Custom Range'),
+    ]
+    
+    product_id = forms.ModelChoiceField(
+        queryset=Product.objects.all(),
+        required=False,
+        empty_label="All Products",
+        widget=forms.Select(attrs={'class': BASE_FIELD_CLASSES}),
+        label="Product"
+    )
+    
+    date_range = forms.ChoiceField(
+        choices=DATE_RANGE_CHOICES,
+        initial='today',
+        widget=forms.Select(attrs={'class': BASE_FIELD_CLASSES}),
+        label="Date Range"
+    )
+    
+    start_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                'type': 'date',
+                'class': BASE_FIELD_CLASSES,
+                'min': '2025-07-27',  # HTML5 min attribute
+                'placeholder': 'dd/mm/yyyy'
+            }
+        ),
+        input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
+        label="Start Date"
+    )
+    
+    end_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                'type': 'date', 
+                'class': BASE_FIELD_CLASSES,
+                'min': '2025-07-27',  # HTML5 min attribute
+                'placeholder': 'dd/mm/yyyy'
+            }
+        ),
+        input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
+        label="End Date"
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set default end date to today
+        from django.utils import timezone
+        today = timezone.now().date()
+        self.fields['end_date'].initial = today
+        self.fields['end_date'].widget.attrs['max'] = today.strftime('%Y-%m-%d')  # HTML5 max attribute
+        
+        # Update product queryset to show name and SKU
+        self.fields['product_id'].label_from_instance = lambda obj: f"{obj.name} - {obj.sku}"
+        self.fields['product_id'].queryset = Product.objects.filter(is_active=True).order_by('name')
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        date_range = cleaned_data.get('date_range')
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        product_id = cleaned_data.get('product_id')
+        
+        # Absolute minimum date validation (July 27, 2025)
+        from datetime import date
+        from django.utils import timezone
+        
+        MIN_DATE = date(2025, 7, 27)
+        today = timezone.now().date()
+        
+        # Validate product exists if provided
+        if product_id:
+            try:
+                uuid.UUID(str(product_id.id))
+            except (ValueError, AttributeError):
+                raise ValidationError("Invalid product selection")
+        
+        # Custom range validation
+        if date_range == 'custom':
+            if not start_date:
+                raise ValidationError("Start date is required for custom range")
+            if not end_date:
+                raise ValidationError("End date is required for custom range")
+            
+            # Validate absolute minimum date
+            if start_date < MIN_DATE:
+                raise ValidationError(f"Start date cannot be earlier than {MIN_DATE.strftime('%B %d, %Y')}. No data is available before this date.")
+            
+            if end_date < MIN_DATE:
+                raise ValidationError(f"End date cannot be earlier than {MIN_DATE.strftime('%B %d, %Y')}. No data is available before this date.")
+            
+            # End date cannot be in future
+            if end_date > today:
+                raise ValidationError("End date cannot be in the future")
+            
+            # Start date cannot be after end date
+            if start_date > end_date:
+                raise ValidationError("Start date cannot be after end date")
+        
+        elif date_range == 'today':
+            # For today, validate current date against minimum date
+            if today < MIN_DATE:
+                raise ValidationError(f"Current date is before the minimum allowed date ({MIN_DATE.strftime('%B %d, %Y')}). No stock data is available.")
+        
+        return cleaned_data
