@@ -11,9 +11,9 @@ class CustomerVendorAttachmentInline(admin.TabularInline):
 
 @admin.register(CustomerVendor)
 class CustomerVendorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'phone_number', 'entity_type', 'created_at')
-    list_filter = ('entity_type', 'created_at')
-    search_fields = ('name', 'email', 'phone_number')
+    list_display = ('name', 'email', 'phone_number', 'whatsapp_number', 'business_type', 'entity_type', 'created_at')
+    list_filter = ('entity_type', 'business_type', 'created_at')
+    search_fields = ('name', 'email', 'phone_number', 'whatsapp_number')
     inlines = [CustomerVendorAttachmentInline]
 
 @admin.register(SalesEmployee)

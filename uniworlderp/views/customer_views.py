@@ -20,6 +20,7 @@ class CustomerVendorListView(ListView):
     def get_queryset(self):
         search_query = self.request.GET.get('search', '')
         entity_type = self.request.GET.get('entity_type', '')
+        business_type = self.request.GET.get('business_type', '')
         queryset = CustomerVendor.objects.all()
 
         # Search filtering
@@ -27,12 +28,17 @@ class CustomerVendorListView(ListView):
             queryset = queryset.filter(
                 Q(name__icontains=search_query) |
                 Q(email__icontains=search_query) |
-                Q(phone_number__icontains=search_query)
+                Q(phone_number__icontains=search_query) |
+                Q(address__icontains=search_query)
             )
 
         # Entity type filtering
         if entity_type:
             queryset = queryset.filter(entity_type=entity_type)
+            
+        # Business type filtering
+        if business_type:
+            queryset = queryset.filter(business_type=business_type)
 
         # Annotate with total sales and total invoices
         queryset = queryset.annotate(
@@ -46,6 +52,8 @@ class CustomerVendorListView(ListView):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
         context['entity_type'] = self.request.GET.get('entity_type', '')
+        context['business_type'] = self.request.GET.get('business_type', '')
+        context['business_type_choices'] = CustomerVendor.BUSINESS_TYPE_CHOICES
         return context
 class CustomerVendorCreateView(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = CustomerVendor

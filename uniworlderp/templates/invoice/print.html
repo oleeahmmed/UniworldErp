@@ -180,9 +180,11 @@
                     <tr class="bg-primary text-white text-lg">
                         <th class="px-3 py-2 text-left border border-gray-300">ITEM #</th>
                         <th class="px-3 py-2 text-left border border-gray-300">IMAGE</th>
-                        <th class="px-3 py-2 text-left border border-gray-300">DESCRIPTION</th>
+                        <th class="px-3 py-2 text-left border border-gray-300">PRODUCT NAME</th>
+                        <th class="px-3 py-2 text-left border border-gray-300">PRODUCT CODE</th>
+                        <th class="px-3 py-2 text-left border border-gray-300">UNIT</th>
                         <th class="px-3 py-2 text-left border border-gray-300">QTY</th>
-                        <th class="px-3 py-2 text-left border border-gray-300">UNIT PRICE</th>
+                        <th class="px-3 py-2 text-left border border-gray-300">SALES PRICE</th>
                         <th class="px-3 py-2 text-left border border-gray-300">TOTAL</th>
                     </tr>
                 </thead>
@@ -198,6 +200,8 @@
                             {% endif %}
                         </td>
                         <td class="px-3 py-2 border border-gray-300">{{ item.product.name }}</td>
+                        <td class="px-3 py-2 border border-gray-300">{{ item.product.sku }}</td>
+                        <td class="px-3 py-2 border border-gray-300">{{ item.product.unit }}</td>
                         <td class="px-3 py-2 border border-gray-300">{{ item.quantity }}</td>
                         <td class="px-3 py-2 border border-gray-300">{{ item.unit_price|floatformat:2 }}</td>
                         <td class="px-3 py-2 border border-gray-300">{{ item.total_amount|floatformat:2 }}</td>
@@ -207,6 +211,8 @@
                     <tr class="border-b-2 border-gray-300">
                         <td class="px-3 py-2 border border-gray-300">&nbsp;</td>
                         <td class="px-3 py-2 border border-gray-300">&nbsp;</td>
+                        <td class="px-3 py-2 border border-gray-300"></td>
+                        <td class="px-3 py-2 border border-gray-300"></td>
                         <td class="px-3 py-2 border border-gray-300"></td>
                         <td class="px-3 py-2 border border-gray-300"></td>
                         <td class="px-3 py-2 border border-gray-300"></td>

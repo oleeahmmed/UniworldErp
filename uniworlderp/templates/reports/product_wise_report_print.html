@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product-wise Sales Report - {{ product.name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.5in;
+        }
+        
+        @media print {
+            body { 
+                margin: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #333;
+            margin: 20px;
+            max-width: 210mm;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .header-left, .header-right {
+            width: 25%;
+            font-size: 9px;
+        }
+        
+        .header-center {
+            width: 50%;
+            text-align: center;
+        }
+        
+        .report-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .report-subtitle {
+            font-size: 12px;
+            margin: 2px 0;
+        }
+        
+        .product-header {
+            background-color: #f0f0f0;
+            border: 2px solid #333;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        
+        .product-details {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .product-detail-item {
+            white-space: nowrap;
+        }
+        
+        .product-detail-label {
+            font-weight: normal;
+            color: #666;
+            margin-right: 5px;
+        }
+        
+        .product-detail-value {
+            font-weight: bold;
+            color: #000;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        
+        th, td {
+            border: 1px solid #333;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: #e0e0e0;
+            font-weight: bold;
+            text-align: center;
+            font-size: 10px;
+        }
+        
+        td {
+            font-size: 10px;
+        }
+        
+        .col-customer { width: 25%; }
+        .col-invoice { width: 12%; text-align: center; }
+        .col-order { width: 12%; text-align: center; }
+        .col-date { width: 12%; text-align: center; }
+        .col-qty { width: 10%; text-align: center; }
+        .col-unit { width: 8%; text-align: center; }
+        .col-price { width: 10%; text-align: right; }
+        .col-total { width: 11%; text-align: right; }
+        
+        .text-right { text-align: right !important; }
+        .text-center { text-align: center !important; }
+        
+        .summary-section {
+            background-color: #f8f8f8;
+            border: 2px solid #333;
+            border-radius: 3px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .summary-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        .summary-content {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        
+        .prepared-by {
+            text-align: left;
+        }
+        
+        .signature-section {
+            text-align: right;
+        }
+        
+        .print-info {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #666;
+            font-size: 9px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            margin: 20px 0;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .print-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .print-button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    {% if error %}
+        <div class="error">
+            <strong>Error:</strong> {{ error }}
+        </div>
+    {% else %}
+        <div class="no-print">
+            <button class="print-button" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+        
+        <!-- Header matching stock report format -->
+        <div class="header">
+            <div class="header-left">
+                <p>Prepared by: {{ user.username|default:"System" }}</p>
+            </div>
+            <div class="header-center">
+                <h1 class="report-title">Product-wise Sales Report</h1>
+                <p class="report-subtitle">{{ start_date|date:"d/m/Y" }} to {{ end_date|date:"d/m/Y" }}</p>
+                <p style="font-size: 9px;">Generated on: {{ report_generated_at }} (BD Time)</p>
+            </div>
+            <div class="header-right">
+                <p><strong>Report Period:</strong></p>
+                <p>From: {{ start_date|date:"d/m/Y" }}</p>
+                <p>To: {{ end_date|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+        
+        <!-- Product Header in Bold -->
+        <div class="product-header">
+            <div class="product-details">
+                <div class="product-detail-item">
+                    <span class="product-detail-label">Product Name:</span>
+                    <span class="product-detail-value">{{ product.name }}</span>
+                </div>
+                <div class="product-detail-item">
+                    <span class="product-detail-label">Code:</span>
+                    <span class="product-detail-value">{{ product.sku }}</span>
+                </div>
+                <div class="product-detail-item">
+                    <span class="product-detail-label">Unit:</span>
+                    <span class="product-detail-value">{{ product.get_unit_display|default:"PC" }}</span>
+                </div>
+                <div class="product-detail-item">
+                    <span class="product-detail-label">Price:</span>
+                    <span class="product-detail-value">৳{{ product.price|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sales Data Table -->
+        {% if sales_data %}
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-customer">Customer Name</th>
+                        <th class="col-invoice">Invoice No</th>
+                        <th class="col-order">Sales Order No</th>
+                        <th class="col-date">Date</th>
+                        <th class="col-qty">Qty</th>
+                        <th class="col-unit">Unit</th>
+                        <th class="col-price">Price</th>
+                        <th class="col-total">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in sales_data %}
+                    <tr>
+                        <td>{{ item.sales_order.customer.name }}</td>
+                        <td class="text-center">
+                            {% if item.sales_order.invoice %}
+                                {{ item.sales_order.invoice.id }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td class="text-center">{{ item.sales_order.id }}</td>
+                        <td class="text-center">{{ item.sales_order.order_date|date:"d/m/Y" }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-center">{{ product.get_unit_display }}</td>
+                        <td class="text-right">৳{{ item.unit_price|floatformat:2 }}</td>
+                        <td class="text-right">৳{{ item.total|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-data">
+                No sales data found for this product in the selected date range.
+            </div>
+        {% endif %}
+        
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="summary-title">Sales Summary</div>
+            <div class="summary-content">
+                <span>Total Qty Sold: {{ total_qty }}</span>
+                <span>Total Amount: ৳{{ total_amount|floatformat:2 }}</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="prepared-by">
+                <p>Prepared by: _________________________</p>
+            </div>
+            <div class="signature-section">
+                <p>Authorized Signature: _________________________</p>
+            </div>
+        </div>
+        
+        <div class="print-info">
+            <p>Report generated on {{ "now"|date:"d/m/Y H:i" }} (BD Time)</p>
+            {% if start_date and end_date %}
+                <p>Data period: {{ start_date|date:"d/m/Y" }} to {{ end_date|date:"d/m/Y" }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <script>
+        // Auto-print when opened in print view
+        {% if print_view %}
+        window.onload = function() {
+            window.print();
+        }
+        {% endif %}
+    </script>
+</body>
+</html>

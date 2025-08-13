@@ -12,13 +12,13 @@ class ProductListView(ListView):
 
     def get_queryset(self):
         search_query = self.request.GET.get('search', '')
-        queryset = Product.objects.all()
+        queryset = Product.objects.all().order_by('name')  # Ensure alphabetical ordering
 
         if search_query:
             queryset = queryset.filter(
                 Q(name__icontains=search_query) |
                 Q(description__icontains=search_query)
-            )
+            ).order_by('name')  # Maintain alphabetical ordering after search
 
         # Annotate stock status
         queryset = queryset.annotate(
@@ -67,7 +67,7 @@ class ProductCreateView(PermissionRequiredMixin, SuccessMessageMixin, CreateView
         return context
 
     def get_common_context(self):
-        products = Product.objects.all().order_by('id')
+        products = Product.objects.all().order_by('name')  # Alphabetical ordering
         return {
             'model_name': self.model._meta.verbose_name.title(),
             'list_url': reverse_lazy('customer_vendor:product_list'),
@@ -108,7 +108,7 @@ class ProductUpdateView(PermissionRequiredMixin, SuccessMessageMixin, UpdateView
         return context
 
     def get_common_context(self):
-        products = Product.objects.all().order_by('id')
+        products = Product.objects.all().order_by('name')  # Alphabetical ordering
         current_product = self.object
         return {
             'model_name': self.model._meta.verbose_name.title(),
@@ -145,7 +145,7 @@ class ProductDetailView(PermissionRequiredMixin, DetailView):
         return context
 
     def get_common_context(self):
-        products = Product.objects.all().order_by('id')
+        products = Product.objects.all().order_by('name')  # Alphabetical ordering
         current_product = self.object
         return {
             'model_name': self.model._meta.verbose_name.title(),

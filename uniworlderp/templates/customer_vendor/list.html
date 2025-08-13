@@ -12,21 +12,40 @@
                 <a href="{% url 'customer_vendor:customer_create' %}" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#a31319] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-lg">
                     <i class="ri-add-line mr-1"></i> Add New Customer
                 </a>
+                <a href="{% url 'customer_vendor:customer_report' %}" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#0d834e] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-lg">
+                    <i class="ri-file-chart-line mr-1"></i> Customer Report
+                </a>
             </div>
         
-            <!-- Search Form -->
-            <form method="get" action="{% url 'customer_vendor:customer_list' %}" class="relative w-full sm:w-auto">
-                <input type="text" name="search" placeholder="Search customers..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-72 sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+            <!-- Filter Form -->
+            <form method="get" action="{% url 'customer_vendor:customer_list' %}" class="relative w-full sm:w-auto flex flex-wrap gap-2">
+                <input type="text" name="search" placeholder="Search..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-48 sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                <select name="entity_type" class="py-2 px-3 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-auto sm:text-sm bg-[hsl(var(--background))]">
+                    <option value="">All Types</option>
+                    <option value="customer" {% if request.GET.entity_type == 'customer' %}selected{% endif %}>Customer</option>
+                    <option value="vendor" {% if request.GET.entity_type == 'vendor' %}selected{% endif %}>Vendor</option>
+                </select>
+                <select name="business_type" class="py-2 px-3 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-auto sm:text-sm bg-[hsl(var(--background))]">
+                    <option value="">All Business Types</option>
+                    {% for choice_value, choice_label in business_type_choices %}
+                        <option value="{{ choice_value }}" {% if request.GET.business_type == choice_value %}selected{% endif %}>
+                            {{ choice_label }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="px-4 py-2 bg-gradient-to-br from-[#a31319] to-black text-white rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-sm">
+                    Filter
+                </button>
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
                 </div>
             </form>
         </div>
         
-        <div class="overflow-x-auto  table-container">
+        <div class="overflow-x-auto table-container">
             <div class="bg-gradient-to-br from-[#a31319] to-black rounded-lg shadow-lg overflow-hidden">
                 <div class="p-6">
-                    <h2 class="text-2xl font-bold text-white mb-4">Customer List</h2>
+                    <h2 class="text-2xl font-bold text-white mb-4">Customer/Vendor List</h2>
                     <div class="overflow-x-auto">
                         <table id="customerTable" class="w-full text-sm text-left text-gray-200">
                             <thead class="text-xs uppercase bg-[#480d0f] text-gray-100">
@@ -35,8 +54,9 @@
                                         <input type="checkbox" class="rounded border-gray-600 text-[#a31319] shadow-sm focus:border-[#a31319] focus:ring focus:ring-[#a31319] focus:ring-opacity-50">
                                     </th>
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Name</th>
-                                    <th scope="col" class="px-6 py-3 cursor-pointer">Address</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Email</th>
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Phone Number</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Business Type</th>
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Total Sales</th>
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Total Invoices</th>
                                     <th scope="col" class="px-6 py-3">Actions</th>
@@ -48,9 +68,10 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <input type="checkbox" class="rounded border-gray-600 text-[#a31319] shadow-sm focus:border-[#a31319] focus:ring focus:ring-[#a31319] focus:ring-opacity-50">
                                     </td>
-                                    <td class="px-6 py-4 font-medium whitespace-nowrap">{{ customer.name }}</td>
-                                    <td class="px-6 py-4">{{ customer.address }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">{{ customer.name }}</td>
+                                    <td class="px-6 py-4">{{ customer.email|default:"N/A" }}</td>
                                     <td class="px-6 py-4">{{ customer.phone_number }}</td>
+                                    <td class="px-6 py-4">{{ customer.get_business_type_display }}</td>
                                     <td class="px-6 py-4">{{ customer.total_sales|floatformat:2 }}</td>
                                     <td class="px-6 py-4">{{ customer.total_invoices|floatformat:2 }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -173,6 +194,7 @@
                 switch (index) {
                     case 1: // Name
                     case 2: // Email
+                    case 4: // Business Type
                         return cellA.localeCompare(cellB) * multiplier;
                     case 3: // Phone Number
                         return cellA.replace(/\D/g, '').localeCompare(cellB.replace(/\D/g, '')) * multiplier;
@@ -191,7 +213,7 @@
         };
 
         [].forEach.call(headers, (header, index) => {
-            if (index > 0 && index < 4) {
+            if (index > 0 && index < 5) {
                 header.addEventListener('click', () => {
                     sortColumn(index);
                 });

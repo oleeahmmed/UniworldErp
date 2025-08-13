@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sales Order Report - Print View</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 12px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .header p {
+            margin: 5px 0;
+        }
+        
+        .report-info {
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .print-button {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .print-button button {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .print-button button:hover {
+            background-color: #45a049;
+        }
+        
+        @media print {
+            .print-button {
+                display: none;
+            }
+        }
+        
+        .summary {
+            margin-top: 20px;
+            text-align: right;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Sales Order Report</h1>
+        <p>
+            {% if customer_info %}
+                Customer: {{ customer_info.name }}<br>
+                Mobile: {{ customer_info.phone_number }}<br>
+                Address: {{ customer_info.address|default:"N/A" }}<br>
+            {% endif %}
+            {% if start_date and end_date %}
+                Date Range: {{ start_date|date:"d/m/Y" }} to {{ end_date|date:"d/m/Y" }}<br>
+            {% elif start_date %}
+                From: {{ start_date|date:"d/m/Y" }}<br>
+            {% elif end_date %}
+                To: {{ end_date|date:"d/m/Y" }}<br>
+            {% endif %}
+            Generated on: {% now "d/m/Y H:i" %}
+        </p>
+    </div>
+    
+    <div class="print-button">
+        <button onclick="window.print()">Print Report</button>
+    </div>
+    
+    <div class="summary">
+        <p>Total Orders: {{ total_orders }} | Total Amount: {{ total_amount|floatformat:2 }}</p>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>SL</th>
+                <th>Order Date</th>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Product Details</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Sub Total</th>
+                <th>Discount</th>
+                <th>Net Amount</th>
+                <th>Sales Employee</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in sales_orders %}
+                {% for item in order.order_items.all %}
+                <tr>
+                    {% if forloop.first %}
+                    <td rowspan="{{ order.order_items.count }}">{{ forloop.parentloop.counter }}</td>
+                    <td rowspan="{{ order.order_items.count }}">{{ order.order_date|date:"d/m/Y" }}</td>
+                    <td rowspan="{{ order.order_items.count }}">{{ order.id }}</td>
+                    <td rowspan="{{ order.order_items.count }}">{{ order.customer.name }}</td>
+                    {% endif %}
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td class="text-right">{{ item.unit_price|floatformat:2 }}</td>
+                    <td class="text-right">{{ item.total|floatformat:2 }}</td>
+                    <td class="text-right">{{ item.discount_amount|floatformat:2 }}</td>
+                    {% if forloop.first %}
+                    <td class="text-right" rowspan="{{ order.order_items.count }}">{{ order.total_amount|floatformat:2 }}</td>
+                    <td rowspan="{{ order.order_items.count }}">{{ order.sales_employee.full_name|default:"N/A" }}</td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="11" class="text-center">No sales orders found.</td>
+                </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="summary">
+        <p>Total Orders: {{ total_orders }} | Total Amount: {{ total_amount|floatformat:2 }}</p>
+    </div>
+</body>
+</html>

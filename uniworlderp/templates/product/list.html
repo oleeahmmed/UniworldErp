@@ -58,9 +58,11 @@
                                     <th scope="col" class="px-6 py-3">
                                         <input type="checkbox" class="rounded border-gray-600 text-[#a31319] shadow-sm focus:border-[#a31319] focus:ring focus:ring-[#a31319] focus:ring-opacity-50">
                                     </th>
-                                    <th scope="col" class="px-6 py-3 cursor-pointer">Name</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Product Name</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Product Code</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Unit</th>
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Stock Quantity</th>
-                                    <th scope="col" class="px-6 py-3 cursor-pointer">Price</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Sales Price</th>
                                     <th scope="col" class="px-6 py-3">Actions</th>
                                 </tr>
                             </thead>
@@ -72,6 +74,12 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="font-medium">{{ product.name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-gray-300">{{ product.sku }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-gray-300">{{ product.get_unit_display }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
@@ -114,7 +122,7 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">No products available.</td>
+                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-400">No products available.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -151,10 +159,12 @@
                 const cellB = rowB.querySelectorAll('td')[index].textContent.trim();
 
                 switch (index) {
-                    case 1: // Name
+                    case 1: // Product Name
+                    case 2: // Product Code
+                    case 3: // Unit
                         return cellA.localeCompare(cellB) * multiplier;
-                    case 2: // Stock Quantity
-                    case 3: // Price
+                    case 4: // Stock Quantity
+                    case 5: // Sales Price
                         return (parseFloat(cellA) - parseFloat(cellB)) * multiplier;
                     default:
                         return 0;
@@ -171,7 +181,7 @@
         };
 
         [].forEach.call(headers, (header, index) => {
-            if (index > 0 && index < 4) {
+            if (index > 0 && index < 6) { // Allow sorting on columns 1-5 (Product Name through Sales Price)
                 header.addEventListener('click', () => {
                     sortColumn(index);
                 });

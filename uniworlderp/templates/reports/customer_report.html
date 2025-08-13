@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Report{% endblock %}
+
+{% block main_content %}
+<div class="container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Customer Report</h1>
+    
+    <!-- Report Header & Actions -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-semibold">All Customers</h2>
+                <p class="text-gray-600 text-sm">Generated on: <span class="font-medium">{{ report_generated_at_formatted }}</span></p>
+            </div>
+            <div class="flex items-center">
+                <a href="{% url 'customer_vendor:customer_report' %}"
+                   class="btn btn-secondary bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-2"
+                   title="Refresh">
+                    Refresh
+                </a>
+                <a href="{% url 'customer_vendor:customer_report_print' %}"
+                   target="_blank"
+                   class="btn btn-print bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
+                   title="Print Customer Report">
+                    <i class="fas fa-print"></i> Print
+                </a>
+                <a href="{% url 'customer_vendor:customer_report_excel' %}"
+                   class="btn btn-excel bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+                   title="Export to Excel">
+                    <i class="fas fa-file-excel"></i> Export
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Summary -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-semibold">Report Summary</h2>
+            <p class="text-gray-600">Total Customers: <span class="font-bold">{{ total_customers }}</span></p>
+        </div>
+    </div>
+    
+    <!-- Customer Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SL</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business Type</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">WhatsApp Number</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for customer in customers %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ forloop.counter }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ customer.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ customer.phone_number }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ customer.email|default:"N/A" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ customer.get_business_type_display }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">{{ customer.address|default:"N/A" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ customer.whatsapp_number|default:"N/A" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                        No customers found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Add any JavaScript functionality if needed
+    document.addEventListener('DOMContentLoaded', function() {
+        // Reserved for future enhancements
+    });
+    </script>
+{% endblock %}

@@ -13,12 +13,26 @@ class CustomerVendor(models.Model):
         ('customer', 'Customer'),
         ('vendor', 'Vendor'),
     ]
+    
+    BUSINESS_TYPE_CHOICES = [
+        ('retailer', 'Retailer'),
+        ('wholesaler', 'Wholesaler'),
+        ('manufacturer', 'Manufacturer'),
+        ('others', 'Others'),
+    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, db_index=True)
     email = models.EmailField(blank=True, null=True, db_index=True)
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    phone_number = models.CharField(max_length=15, verbose_name='Phone Number')
+    whatsapp_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    business_type = models.CharField(
+        max_length=20, 
+        choices=BUSINESS_TYPE_CHOICES, 
+        default='others',
+        verbose_name='Business Type'
+    )
 
     entity_type = models.CharField(max_length=10, choices=ENTITY_TYPE_CHOICES, default='customer')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -105,10 +119,18 @@ class Product(models.Model):
         ('Chemical', 'Chemical'),
         ('RawMaterials', 'Raw Materials'),
         ('Others', 'Others'),
-    ]    
+    ]
+    
+    UNIT_CHOICES = [
+        ('PC', 'PC'),
+        ('CTN', 'CTN'),
+        ('TIN', 'TIN'),
+        ('Others', 'Others'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, db_index=True)
-    description = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=255, db_index=True, verbose_name="Product Name")
+    description = models.TextField(blank=True, null=True, verbose_name="Description (Pack Size)")
     category = models.CharField(
         max_length=50,
         choices=CATEGORY_CHOICES,
@@ -116,11 +138,17 @@ class Product(models.Model):
         help_text="Select a category for the product."
     )   
     stock_quantity = models.PositiveIntegerField(default=0)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Sales Price")
+    unit = models.CharField(
+        max_length=10,
+        choices=UNIT_CHOICES,
+        default='PC',
+        verbose_name="Unit"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='products')
-    sku = models.CharField(max_length=50, unique=True, db_index=True)
+    sku = models.CharField(max_length=50, unique=True, db_index=True, verbose_name="Product Code")
     is_active = models.BooleanField(default=True, help_text="Whether the product is active and available.")
     barcode = models.CharField(max_length=128, unique=True, null=True, blank=True)
     reorder_level = models.PositiveIntegerField(default=10, help_text="Stock level at which reorder is required.")  
@@ -141,6 +169,7 @@ class Product(models.Model):
     class Meta:
         verbose_name = 'Product'
         verbose_name_plural = 'Products'
+        ordering = ['name']  # Alphabetical ordering by name
         indexes = [
             models.Index(fields=['name', 'price']),
         ]
@@ -231,6 +260,13 @@ class SalesOrder(models.Model):
             else:
                 raise ValidationError("Owner must be set explicitly or passed via 'request'.")
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Delete each item individually to trigger their custom delete methods
+        for item in self.order_items.all():
+            item.delete()
+        # Then delete the sales order itself
+        super().delete(*args, **kwargs)
     def clean(self):
         super().clean()
         # if self.sales_employee and self.sales_employee.is_active is False:
@@ -292,14 +328,40 @@ class SalesOrderItem(models.Model):
         if not self.product_id:
             raise ValidationError(_("Product must be selected."))
         
-        if self.product.stock_quantity < self.quantity:
-            raise ValidationError({
-                'quantity': _("Insufficient stock for %(product)s. Available: %(available)d, requested: %(requested)d") % {
-                    'product': self.product.name,
-                    'available': self.product.stock_quantity,
-                    'requested': self.quantity
-                }
-            })
+        # Only validate stock availability for new items or when increasing quantity
+        is_new = self.pk is None
+        if is_new:
+            # For new items, check if there's enough stock
+            if self.product.stock_quantity < self.quantity:
+                raise ValidationError({
+                    'quantity': _("Insufficient stock for %(product)s. Available: %(available)d, requested: %(requested)d") % {
+                        'product': self.product.name,
+                        'available': self.product.stock_quantity,
+                        'requested': self.quantity
+                    }
+                })
+        elif not is_new:
+            # For existing items, only validate if quantity is being increased
+            try:
+                old_item = SalesOrderItem.objects.get(pk=self.pk)
+                if old_item.quantity < self.quantity and self.product.stock_quantity < (self.quantity - old_item.quantity):
+                    raise ValidationError({
+                        'quantity': _("Insufficient stock for %(product)s. Available: %(available)d, requested: %(requested)d") % {
+                            'product': self.product.name,
+                            'available': self.product.stock_quantity,
+                            'requested': self.quantity - old_item.quantity
+                        }
+                    })
+            except SalesOrderItem.DoesNotExist:
+                # If the item doesn't exist, treat it as a new item
+                if self.product.stock_quantity < self.quantity:
+                    raise ValidationError({
+                        'quantity': _("Insufficient stock for %(product)s. Available: %(available)d, requested: %(requested)d") % {
+                            'product': self.product.name,
+                            'available': self.product.stock_quantity,
+                            'requested': self.quantity
+                        }
+                    })
 
         if self.quantity is not None and self.unit_price is not None:
             self.Unit_discount = self.product.discount_amount
@@ -328,13 +390,21 @@ class SalesOrderItem(models.Model):
 
                 # Only create stock transaction if quantity has changed
                 if quantity_changed and quantity_diff != 0:
+                    # Determine transaction type based on quantity change and context
+                    if quantity_diff > 0:
+                        # Quantity increased - stock goes out
+                        transaction_type = 'OUT'
+                    else:
+                        # Quantity decreased - return excess stock using 'RET' type per Requirement 5.4
+                        transaction_type = 'RET' if not is_new else 'IN'
+                
                     StockTransaction.objects.create(
                         product=self.product,
-                        transaction_type='OUT' if quantity_diff > 0 else 'IN',
+                        transaction_type=transaction_type,
                         quantity=abs(quantity_diff),
                         reference=f"SO-{self.sales_order.id}{'-Update' if not is_new else ''}",
                         owner=self.sales_order.owner
-                    )
+                    )   
 
                 self.sales_order.update_total_amount()
 
@@ -351,7 +421,7 @@ class SalesOrderItem(models.Model):
             with transaction.atomic():
                 StockTransaction.objects.create(
                     product=self.product,
-                    transaction_type='IN',
+                    transaction_type='RET',
                     quantity=self.quantity,
                     reference=f"SO-{self.sales_order.id}-DeletedItem",
                     owner=self.sales_order.owner
@@ -424,7 +494,7 @@ class PurchaseOrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         if self.pk:
-            old_quantity = SalesOrderItem.objects.get(pk=self.pk).quantity
+            old_quantity = PurchaseOrderItem.objects.get(pk=self.pk).quantity
             quantity_diff = self.quantity - old_quantity
             self.product.stock_quantity = F('stock_quantity') - quantity_diff
         else:

@@ -1,0 +1,90 @@
+{% if error %}
+<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+    {{ error }}
+</div>
+{% else %}
+<div class="bg-white shadow-md rounded-lg p-6">
+    <div class="flex justify-between items-center mb-4">
+        <h4 class="text-lg font-semibold">Product-wise Sales Report Results</h4>
+        <div class="space-x-2">
+            <button onclick="printProductReport('{{ selected_product.id }}', '{{ start_date }}', '{{ end_date }}')" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                Print
+            </button>
+            <button onclick="exportProductReport('{{ selected_product.id }}', '{{ start_date }}', '{{ end_date }}')" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                Export to Excel
+            </button>
+        </div>
+    </div>
+    
+    <!-- Product Information -->
+    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+        <h5 class="text-md font-semibold mb-3">Product Information</h5>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+            <div>
+                <label class="font-medium text-gray-700">Product Name:</label>
+                <p>{{ selected_product.name }}</p>
+            </div>
+            <div>
+                <label class="font-medium text-gray-700">Product Code:</label>
+                <p>{{ selected_product.sku }}</p>
+            </div>
+            <div>
+                <label class="font-medium text-gray-700">Unit:</label>
+                <p>{{ selected_product.get_unit_display }}</p>
+            </div>
+            <div>
+                <label class="font-medium text-gray-700">Price:</label>
+                <p>৳{{ selected_product.price }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Data Table -->
+    <div class="overflow-x-auto mb-6">
+        <table class="w-full text-sm text-left text-gray-800 border-collapse">
+            <thead class="text-xs uppercase bg-gradient-to-r from-[#480d0f] to-[#000000] text-white">
+                <tr>
+                    <th class="px-6 py-3 border-b">Customer Name</th>
+                    <th class="px-6 py-3 border-b">Invoice No</th>
+                    <th class="px-6 py-3 border-b">Sales Order No</th>
+                    <th class="px-6 py-3 border-b">Date</th>
+                    <th class="px-6 py-3 border-b">Qty</th>
+                    <th class="px-6 py-3 border-b">Unit</th>
+                    <th class="px-6 py-3 border-b">Price</th>
+                    <th class="px-6 py-3 border-b">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in sales_data %}
+                <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.customer.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if item.sales_order.invoice %}
+                            {{ item.sales_order.invoice.id }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.order_date|date:"d/m/Y" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ item.quantity }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ selected_product.get_unit_display }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳{{ item.unit_price|floatformat:2 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">৳{{ item.total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="bg-gray-100 font-bold">
+                    <td class="px-6 py-4" colspan="4">TOTALS:</td>
+                    <td class="px-6 py-4">{{ total_qty }}</td>
+                    <td class="px-6 py-4"></td>
+                    <td class="px-6 py-4"></td>
+                    <td class="px-6 py-4">৳{{ total_amount|floatformat:2 }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+{% endif %}

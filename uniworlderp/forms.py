@@ -63,7 +63,72 @@ class BaseOrderItemForm(BaseStyleForm):
 class CustomerVendorForm(BaseStyleForm):
     class Meta:
         model = CustomerVendor
-        fields = ['name', 'email', 'phone_number', 'entity_type', 'address']
+        fields = ['name', 'email', 'phone_number', 'whatsapp_number', 'business_type', 'entity_type', 'address']
+        help_texts = {
+            'business_type': 'Select the type of business relationship (Retailer, Wholesaler, Manufacturer, or Others)',
+            'phone_number': 'Phone number is required for all customers and vendors',
+            'whatsapp_number': 'WhatsApp number is optional but recommended for better communication',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make phone_number field required with custom validation message
+        self.fields['phone_number'].required = True
+        self.fields['phone_number'].error_messages = {
+            'required': 'Phone number is required for all customers and vendors.'
+        }
+        
+        # Set field labels for better user experience
+        self.fields['phone_number'].label = 'Phone Number *'
+        self.fields['whatsapp_number'].label = 'WhatsApp Number'
+        self.fields['business_type'].label = 'Business Type *'
+        
+        # Make business_type required
+        self.fields['business_type'].required = True
+        self.fields['business_type'].error_messages = {
+            'required': 'Please select a business type.'
+        }
+
+    def clean_phone_number(self):
+        """Validate phone_number field to ensure it's provided"""
+        phone_number = self.cleaned_data.get('phone_number')
+        if not phone_number or phone_number.strip() == '':
+            raise ValidationError('Phone number is required for all customers and vendors.')
+        
+        # Basic phone number format validation
+        phone_number = phone_number.strip()
+        if len(phone_number) < 10:
+            raise ValidationError('Phone number must be at least 10 digits long.')
+        
+        return phone_number
+
+    def clean_business_type(self):
+        """Validate business_type field selection"""
+        business_type = self.cleaned_data.get('business_type')
+        if not business_type:
+            raise ValidationError('Please select a business type.')
+        
+        # Validate against allowed choices
+        valid_choices = [choice[0] for choice in CustomerVendor.BUSINESS_TYPE_CHOICES]
+        if business_type not in valid_choices:
+            raise ValidationError('Please select a valid business type option.')
+        
+        return business_type
+
+    def clean(self):
+        """Additional form-level validation"""
+        cleaned_data = super().clean()
+        phone_number = cleaned_data.get('phone_number')
+        business_type = cleaned_data.get('business_type')
+        
+        # Ensure both required fields are provided
+        if not phone_number:
+            self.add_error('phone_number', 'Phone number is required for all customers and vendors.')
+        
+        if not business_type:
+            self.add_error('business_type', 'Business type selection is required.')
+        
+        return cleaned_data
 
 class SalesEmployeeForm(BaseStyleForm):
     class Meta:
@@ -83,29 +148,45 @@ class SalesEmployeeForm(BaseStyleForm):
 class ProductForm(BaseStyleForm):
     class Meta:
         model = Product
-        fields = ['sku', 'name', 'description', 'category', 'stock_quantity', 'price', 'discount_amount', 'reorder_level', 'image']
+        fields = ['sku', 'name', 'description', 'category', 'unit', 'stock_quantity', 'price', 'discount_amount', 'reorder_level', 'image']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter product description...'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter product description (pack size)...'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_field_placeholders()
+        self.set_field_labels()
         if not self.instance.pk:
             self.fields['sku'].initial = self.generate_unique_sku()
 
     def set_field_placeholders(self):
         placeholders = {
-            'sku': 'Enter SKU',
+            'sku': 'Enter product code',
             'name': 'Enter product name',
             'stock_quantity': 'Enter stock quantity',
-            'price': 'Enter product price',
+            'price': 'Enter sales price',
             'reorder_level': 'Enter reorder level',
             'discount_amount': 'Enter discount amount',
         }
         for field_name, placeholder in placeholders.items():
             if field_name in self.fields:
                 self.fields[field_name].widget.attrs['placeholder'] = placeholder
+
+    def set_field_labels(self):
+        """Set field labels to use the verbose names from the model"""
+        # The labels will automatically use the verbose_name from the model
+        # but we can override them here if needed for consistency
+        field_labels = {
+            'sku': 'Product Code',
+            'name': 'Product Name', 
+            'description': 'Description (Pack Size)',
+            'price': 'Sales Price',
+            'unit': 'Unit',
+        }
+        for field_name, label in field_labels.items():
+            if field_name in self.fields:
+                self.fields[field_name].label = label
 
     @staticmethod
     def generate_unique_sku():
@@ -114,10 +195,29 @@ class ProductForm(BaseStyleForm):
             if not Product.objects.filter(sku=unique_sku).exists():
                 return unique_sku
 
+    def clean_unit(self):
+        """Validate unit field selection"""
+        unit = self.cleaned_data.get('unit')
+        if not unit:
+            raise ValidationError("Unit selection is required.")
+        
+        # Validate against allowed choices
+        valid_choices = [choice[0] for choice in Product.UNIT_CHOICES]
+        if unit not in valid_choices:
+            raise ValidationError("Please select a valid unit option.")
+        
+        return unit
+
     def clean(self):
         cleaned_data = super().clean()
         stock_quantity = cleaned_data.get('stock_quantity')
         reorder_level = cleaned_data.get('reorder_level')
+        unit = cleaned_data.get('unit')
+        
+        # Additional validation for unit field requirements
+        if not unit:
+            self.add_error('unit', 'Unit selection is required for all products.')
+        
         return cleaned_data
 
 class SalesOrderForm(forms.ModelForm):

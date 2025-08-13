@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Product Stock Report - {{ product.name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.5in;
+        }
+        
+        @media print {
+            body { 
+                margin: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #333;
+            margin: 20px;
+            max-width: 210mm;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .date-range {
+            margin: 5px 0;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .product-header {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        
+        .product-details {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .product-detail-item {
+            white-space: nowrap;
+        }
+        
+        .product-detail-label {
+            font-weight: normal;
+            color: #666;
+            margin-right: 5px;
+        }
+        
+        .product-detail-value {
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .transactions-section {
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #000;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .transaction-table th,
+        .transaction-table td {
+            border: 1px solid #333;
+            padding: 5px 8px;
+            text-align: left;
+        }
+        
+        .transaction-table th {
+            background-color: #e0e0e0;
+            color: #000;
+            font-weight: bold;
+            font-size: 10px;
+            text-align: center;
+        }
+        
+        .transaction-table td {
+            font-size: 10px;
+        }
+        
+        .transaction-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .text-right {
+            text-align: right !important;
+        }
+        
+        .text-center {
+            text-align: center !important;
+        }
+        
+        .stock-in {
+            color: #008000;
+            font-weight: bold;
+        }
+        
+        .stock-out {
+            color: #cc0000;
+            font-weight: bold;
+        }
+        
+        .stock-return {
+            color: #0066cc;
+            font-weight: bold;
+        }
+        
+        .summary-section {
+            background-color: #f0f0f0;
+            border: 2px solid #333;
+            border-radius: 3px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .summary-table td {
+            padding: 8px;
+            border: 1px solid #999;
+        }
+        
+        .summary-table .label {
+            background-color: #e0e0e0;
+            font-weight: bold;
+            width: 30%;
+        }
+        
+        .summary-table .value {
+            text-align: right;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .total-row {
+            background-color: #d0d0d0;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        
+        .prepared-by {
+            text-align: left;
+        }
+        
+        .signature-section {
+            text-align: right;
+        }
+        
+        .print-info {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #666;
+            font-size: 9px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            margin: 20px 0;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .print-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .print-button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    {% if error %}
+        <div class="error">
+            <strong>Error:</strong> {{ error }}
+        </div>
+    {% else %}
+        <div class="no-print">
+            <button class="print-button" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+        
+        <div class="header">
+            <h1>STOCK TRANSACTION REPORT</h1>
+            <div class="date-range">
+                {% if start_date and end_date %}
+                    Report Period: {{ start_date|date:"d/m/Y" }} to {{ end_date|date:"d/m/Y" }}
+                {% else %}
+                    Report Period: All Transactions
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="product-header">
+            <div class="product-details">
+                <div class="product-detail-item">
+                    <span class="product-detail-label">Product Name:</span>
+                    <span class="product-detail-value">{{ product.name }}</span>
+                </div>
+                <div class="product-detail-item">
+                    <span class="product-detail-label">Code:</span>
+                    <span class="product-detail-value">{{ product.sku }}</span>
+                </div>
+                <div class="product-detail-item">
+                    <span class="product-detail-label">Unit:</span>
+                    <span class="product-detail-value">{{ product.get_unit_display|default:"PC" }}</span>
+                </div>
+                <div class="product-detail-item">
+                    <span class="product-detail-label">Price:</span>
+                    <span class="product-detail-value">৳{{ product.price|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="transactions-section">
+            <h3 class="section-title">Transaction Details</h3>
+            {% if transactions %}
+                <table class="transaction-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Date/Time</th>
+                            <th style="width: 12%;">Transaction Type</th>
+                            <th style="width: 10%;">Source</th>
+                            <th style="width: 15%;">Reference</th>
+                            <th style="width: 10%;" class="text-center">Stock In</th>
+                            <th style="width: 10%;" class="text-center">Stock Out</th>
+                            <th style="width: 10%;" class="text-center">Return</th>
+                            <th style="width: 9%;" class="text-center">Previous Stock</th>
+                            <th style="width: 9%;" class="text-center">Current Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.datetime|date:"d/m/Y H:i" }}</td>
+                            <td>
+                                {% if transaction.type == 'IN' %}
+                                    <span class="stock-in">Stock In</span>
+                                {% elif transaction.type == 'OUT' %}
+                                    <span class="stock-out">Stock Out</span>
+                                {% elif transaction.type == 'RET' %}
+                                    <span class="stock-return">Return</span>
+                                {% else %}
+                                    {{ transaction.type_label|default:transaction.type }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if transaction.type == 'OUT' %}
+                                    Sales Order
+                                {% elif transaction.type == 'IN' %}
+                                    Stock In
+                                {% elif transaction.type == 'RET' %}
+                                    Return
+                                {% else %}
+                                    {{ transaction.source|default:"Manual" }}
+                                {% endif %}
+                            </td>
+                            <td>{{ transaction.reference|default:"-" }}</td>
+                            <td class="text-right">
+                                {% if transaction.type == 'IN' %}
+                                    {{ transaction.quantity|default:0 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-right">
+                                {% if transaction.type == 'OUT' %}
+                                    {{ transaction.out_qty|default:0 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-right">
+                                {% if transaction.type == 'RET' %}
+                                    {{ transaction.quantity|default:0 }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-right">{{ transaction.previous_stock|default:0 }}</td>
+                            <td class="text-right">{{ transaction.current_stock|default:0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="no-data">
+                    No transactions found for this product in the selected date range.
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="summary-section">
+            <h3 class="section-title">Stock Summary</h3>
+            <table class="summary-table">
+                <tr>
+                    <td class="label">Opening Stock</td>
+                    <td class="value">{{ summary.opening_stock|default:0 }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Total Stock In</td>
+                    <td class="value stock-in">+ {{ summary.total_in|default:0 }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Total Stock Out</td>
+                    <td class="value stock-out">- {{ summary.total_issued|default:0 }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Total Returns</td>
+                    <td class="value stock-return">+ {{ summary.total_returned|default:0 }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td class="label">Closing Stock</td>
+                    <td class="value" style="font-size: 16px;">{{ summary.closing_stock|default:0 }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <div class="prepared-by">
+                <p>Prepared by: _________________________</p>
+            </div>
+            <div class="signature-section">
+                <p>Authorized Signature: _________________________</p>
+            </div>
+        </div>
+        
+        <div class="print-info">
+            <p>Report generated on {{ "now"|date:"d/m/Y H:i" }} (BD Time)</p>
+            {% if start_date and end_date %}
+                <p>Data period: {{ start_date|date:"d/m/Y" }} to {{ end_date|date:"d/m/Y" }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <script>
+        // Auto-print when opened in print view
+        {% if print_view %}
+        window.onload = function() {
+            window.print();
+        }
+        {% endif %}
+    </script>
+</body>
+</html>

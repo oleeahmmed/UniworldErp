@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer-wise Sales Report - {{ customer.name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.5in;
+        }
+        
+        @media print {
+            body { 
+                margin: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print { display: none !important; }
+            .page-break { page-break-before: always; }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #333;
+            margin: 20px;
+            max-width: 210mm;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .header-left, .header-right {
+            width: 25%;
+            font-size: 9px;
+        }
+        
+        .header-center {
+            width: 50%;
+            text-align: center;
+        }
+        
+        .report-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .report-subtitle {
+            font-size: 12px;
+            margin: 2px 0;
+        }
+        
+        .customer-header {
+            background-color: #f0f0f0;
+            border: 2px solid #333;
+            padding: 10px;
+            margin: 15px 0;
+            border-radius: 3px;
+        }
+        
+        .customer-details {
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        .customer-details strong {
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        
+        th, td {
+            border: 1px solid #333;
+            padding: 4px 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: #e0e0e0;
+            font-weight: bold;
+            text-align: center;
+            font-size: 9px;
+        }
+        
+        td {
+            font-size: 9px;
+        }
+        
+        .col-date { width: 8%; text-align: center; }
+        .col-order { width: 8%; text-align: center; }
+        .col-customer { width: 12%; }
+        .col-products { width: 25%; }
+        .col-qty { width: 6%; text-align: center; }
+        .col-unit { width: 6%; text-align: center; }
+        .col-price { width: 8%; text-align: right; }
+        .col-subtotal { width: 8%; text-align: right; }
+        .col-discount { width: 8%; text-align: right; }
+        .col-net { width: 8%; text-align: right; }
+        .col-employee { width: 10%; text-align: center; }
+        
+        .text-right { text-align: right !important; }
+        .text-center { text-align: center !important; }
+        
+        .summary-section {
+            background-color: #f8f8f8;
+            border: 2px solid #333;
+            border-radius: 3px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .summary-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        .summary-content {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        
+        .prepared-by {
+            text-align: left;
+        }
+        
+        .signature-section {
+            text-align: right;
+        }
+        
+        .print-info {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #666;
+            font-size: 9px;
+            color: #666;
+            text-align: center;
+        }
+        
+        .no-data {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            margin: 20px 0;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .print-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .print-button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    {% if error %}
+        <div class="error">
+            <strong>Error:</strong> {{ error }}
+        </div>
+    {% else %}
+        <div class="no-print">
+            <button class="print-button" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+        
+        <!-- Header matching stock report format -->
+        <div class="header">
+            <div class="header-left">
+                <p>Prepared by: {{ user.username|default:"System" }}</p>
+            </div>
+            <div class="header-center">
+                <h1 class="report-title">Customer-wise Sales Report</h1>
+                <p class="report-subtitle">{{ start_date|date:"d/m/Y" }} to {{ end_date|date:"d/m/Y" }}</p>
+                <p style="font-size: 9px;">Generated on: {{ report_generated_at }} (BD Time)</p>
+            </div>
+            <div class="header-right">
+                <p><strong>Report Period:</strong></p>
+                <p>From: {{ start_date|date:"d/m/Y" }}</p>
+                <p>To: {{ end_date|date:"d/m/Y" }}</p>
+            </div>
+        </div>
+        
+        <!-- Customer Header -->
+        <div class="customer-header">
+            <div class="customer-details">
+                <div><strong>Customer Name:</strong> {{ customer.name }}</div>
+                <div><strong>Address:</strong> {{ customer.address|default:"N/A" }}</div>
+                <div><strong>Mobile:</strong> {{ customer.phone_number }}</div>
+                <div><strong>Start Date:</strong> {{ start_date|date:"d/m/Y" }} <strong>& End Date:</strong> {{ end_date|date:"d/m/Y" }}</div>
+            </div>
+        </div>
+        
+        <!-- Sales Orders Table -->
+        {% if sales_orders %}
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-date">Order Date</th>
+                        <th class="col-order">Order ID</th>
+                        <th class="col-customer">Customer</th>
+                        <th class="col-products">Product Details</th>
+                        <th class="col-qty">Qty</th>
+                        <th class="col-unit">Unit</th>
+                        <th class="col-price">Price</th>
+                        <th class="col-subtotal">Sub Total</th>
+                        <th class="col-discount">Discount</th>
+                        <th class="col-net">Net Amount</th>
+                        <th class="col-employee">Sales Employee</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in sales_orders %}
+                    <tr>
+                        <td class="text-center">{{ order.order_date|date:"d/m/Y" }}</td>
+                        <td class="text-center">{{ order.id }}</td>
+                        <td>{{ customer.name }}</td>
+                        <td>
+                            {% for item in order.order_items.all %}
+                                {{ item.product.name }} ({{ item.quantity }}){% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">
+                            {% with total_qty=0 %}
+                                {% for item in order.order_items.all %}
+                                    {% if forloop.first %}{{ item.quantity }}{% else %}+{{ item.quantity }}{% endif %}
+                                {% endfor %}
+                            {% endwith %}
+                        </td>
+                        <td class="text-center">
+                            {% if order.order_items.count > 1 %}
+                                Mixed
+                            {% else %}
+                                {{ order.order_items.first.product.get_unit_display|default:"PC" }}
+                            {% endif %}
+                        </td>
+                        <td class="text-right">
+                            ৳{% for item in order.order_items.all %}{{ item.unit_price|floatformat:2 }}{% if not forloop.last %}+{% endif %}{% endfor %}
+                        </td>
+                        <td class="text-right">৳{{ order.total_amount|add:order.discount|floatformat:2 }}</td>
+                        <td class="text-right">৳{{ order.discount|floatformat:2 }}</td>
+                        <td class="text-right">৳{{ order.total_amount|floatformat:2 }}</td>
+                        <td class="text-center">{{ order.sales_employee.full_name|default:"N/A" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-data">
+                No sales orders found for this customer in the selected date range.
+            </div>
+        {% endif %}
+        
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="summary-title">Sales Summary</div>
+            <div class="summary-content">
+                <span>Total Purchase: ৳{{ total_purchase|floatformat:2 }}</span>
+                <span>Total Discount: ৳{{ total_discount|floatformat:2 }}</span>
+                <span>Net Amount: ৳{{ net_amount|floatformat:2 }}</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="prepared-by">
+                <p>Prepared by: _________________________</p>
+            </div>
+            <div class="signature-section">
+                <p>Authorized Signature: _________________________</p>
+            </div>
+        </div>
+        
+        <div class="print-info">
+            <p>Report generated on {{ "now"|date:"d/m/Y H:i" }} (BD Time)</p>
+            {% if start_date and end_date %}
+                <p>Data period: {{ start_date|date:"d/m/Y" }} to {{ end_date|date:"d/m/Y" }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <script>
+        // Auto-print when opened in print view
+        {% if print_view %}
+        window.onload = function() {
+            window.print();
+        }
+        {% endif %}
+        
+        // Calculate total quantities and prices for each row
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(function(row) {
+                // Calculate total quantity
+                const qtyCell = row.cells[4];
+                const productDetails = row.cells[3].textContent;
+                const qtyMatches = productDetails.match(/\((\d+)\)/g);
+                if (qtyMatches) {
+                    let totalQty = 0;
+                    qtyMatches.forEach(match => {
+                        const qty = parseInt(match.replace(/[()]/g, ''));
+                        totalQty += qty;
+                    });
+                    qtyCell.textContent = totalQty;
+                }
+                
+                // Calculate total price
+                const priceCell = row.cells[6];
+                if (priceCell && priceCell.textContent.includes('+')) {
+                    const prices = priceCell.textContent.replace('৳', '').split('+');
+                    let totalPrice = 0;
+                    prices.forEach(price => {
+                        totalPrice += parseFloat(price.trim()) || 0;
+                    });
+                    priceCell.innerHTML = '৳' + totalPrice.toFixed(2);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

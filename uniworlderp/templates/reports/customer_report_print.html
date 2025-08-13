@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Report - Print View</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 12px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .header p {
+            margin: 5px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .print-button {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .print-button button {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .print-button button:hover {
+            background-color: #45a049;
+        }
+        
+        @media print {
+            .print-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Customer Report</h1>
+        <p>
+            Report Date: {{ report_date_display }}<br>
+            Generated At: {{ report_generated_at_formatted }}<br>
+            Total Customers: {{ total_customers }}
+        </p>
+    </div>
+    
+    <div class="print-button">
+        <button onclick="window.print()">Print Report</button>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>SL</th>
+                <th>Company Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Business Type</th>
+                <th>Address</th>
+                <th>WhatsApp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ customer.name }}</td>
+                <td>{{ customer.phone_number }}</td>
+                <td>{{ customer.email|default:"N/A" }}</td>
+                <td>{{ customer.get_business_type_display }}</td>
+                <td>{{ customer.address|default:"N/A" }}</td>
+                <td>{{ customer.whatsapp_number|default:"N/A" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center;">No customers found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <p>Total Customers: {{ total_customers }}</p>
+</body>
+</html>

@@ -173,10 +173,23 @@ class SalesOrderUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVi
     def form_valid(self, form):
         context = self.get_context_data()
         formset = context['formset']
+        
         if formset.is_valid():
+            # Save the sales order first
             self.object = form.save()
             formset.instance = self.object
-            formset.save()
+            
+            # Process the formset - this will handle new items and modifications
+            # For new items, the SalesOrderItem.save method will create appropriate stock transactions
+            # For modified items, the SalesOrderItem.save method will detect quantity changes and create transactions
+            items = formset.save()
+            
+            # Handle deletions separately since we need to ensure stock is returned
+            for item in formset.deleted_objects:
+                if item.pk:  # Only process items that exist in the database
+                    # The SalesOrderItem.delete method will create the appropriate stock transaction
+                    item.delete()
+            
             return super().form_valid(form)
         else:
             return self.form_invalid(form)
@@ -262,17 +275,9 @@ class SalesOrderDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteVi
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
         
-        # Revert stock quantities
+        # Delete each item to trigger their individual delete methods which create stock transactions
         for item in self.object.order_items.all():
-            StockTransaction.objects.create(
-                product=item.product,
-                transaction_type='IN',
-                quantity=item.quantity,
-                reference=f"SO-{self.object.id}-Deleted",
-                owner=self.request.user
-            )
-            # Directly update the product's stock quantity
-            Product.objects.filter(id=item.product.id).update(stock_quantity=F('stock_quantity') + item.quantity)
+            item.delete()
 
         # messages.success(self.request, self.success_message)
         return super(SalesOrderDeleteView, self).delete(request, *args, **kwargs)

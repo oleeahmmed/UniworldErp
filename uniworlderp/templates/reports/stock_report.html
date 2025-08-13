@@ -104,6 +104,139 @@
             </tbody>
         </table>
     </div>
+    
+    {% if single_product %}
+    <!-- Single Product Report Section -->
+    <div class="bg-white p-6 rounded-lg shadow-md mt-6">
+        <!-- Header matching all products report -->
+        <div class="flex justify-between items-start mb-4">
+            <div class="text-left">
+                <p class="text-sm text-gray-600">Prepared by: {{ user.username|default:"System" }}</p>
+            </div>
+            <div class="text-center">
+                <h2 class="text-xl font-bold">Stock Report - Single Product</h2>
+                <p class="text-sm text-gray-600">Report Date: {{ report_date_display }}</p>
+                <p class="text-sm text-gray-500">Generated: {{ report_generated_at_formatted }} (BD Time)</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-gray-600">Report Period:</p>
+                <p class="text-xs text-gray-500">From: {{ report_start_time }}</p>
+                <p class="text-xs text-gray-500">To: {{ report_end_time }}</p>
+            </div>
+        </div>
+        
+        <!-- Product Header in Bold -->
+        <div class="bg-gray-50 p-4 rounded-lg mb-4">
+            <div class="text-lg font-bold text-gray-800 flex justify-between items-center flex-wrap gap-4">
+                <span><strong>Product Name:</strong> {{ single_product.name }}</span>
+                <span><strong>Code:</strong> {{ single_product.sku }}</span>
+                <span><strong>Unit:</strong> {{ single_product.get_unit_display }}</span>
+                <span><strong>Price:</strong> ৳{{ single_product.price|floatformat:2 }}</span>
+            </div>
+        </div>
+        
+        <!-- Print Button -->
+        <div class="flex justify-end mb-4">
+            <a href="{% url 'customer_vendor:single_product_stock_report_print' %}?product_id={{ single_product.id }}&start_date={{ single_product_start_date|date:'Y-m-d' }}&end_date={{ single_product_end_date|date:'Y-m-d' }}" target="_blank" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">🖨️ Print Report</a>
+        </div>
+
+        <!-- Transaction Table -->
+        {% if single_product_transactions %}
+        <div class="overflow-x-auto mb-4">
+            <table class="min-w-full bg-white border border-gray-200">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="py-2 px-3 border-b text-left">Date/Time</th>
+                        <th class="py-2 px-3 border-b text-left">Transaction Source</th>
+                        <th class="py-2 px-3 border-b text-left">Reference No.</th>
+                        <th class="py-2 px-3 border-b text-center">Stock In</th>
+                        <th class="py-2 px-3 border-b text-center">Stock Out</th>
+                        <th class="py-2 px-3 border-b text-center">Return</th>
+                        <th class="py-2 px-3 border-b text-center">Previous Stock</th>
+                        <th class="py-2 px-3 border-b text-center">Current Stock</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in single_product_transactions %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="py-2 px-3 border-b text-sm">{{ t.datetime|date:'d/m/Y H:i' }}</td>
+                        <td class="py-2 px-3 border-b text-sm">
+                            {% if t.type == 'OUT' %}
+                                <span class="text-red-600 font-medium">Sales Order</span>
+                            {% elif t.type == 'IN' %}
+                                <span class="text-green-600 font-medium">Stock In</span>
+                            {% elif t.type == 'RET' %}
+                                <span class="text-blue-600 font-medium">Return</span>
+                            {% else %}
+                                <span class="text-gray-600">{{ t.type_label|default:t.type }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 px-3 border-b text-sm">{{ t.reference|default:"-" }}</td>
+                        <td class="py-2 px-3 border-b text-center text-sm">
+                            {% if t.type == 'IN' %}
+                                <span class="text-green-600 font-medium">{{ t.quantity|default:0 }}</span>
+                            {% else %}
+                                <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 px-3 border-b text-center text-sm">
+                            {% if t.type == 'OUT' %}
+                                <span class="text-red-600 font-medium">{{ t.out_qty|default:0 }}</span>
+                            {% else %}
+                                <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 px-3 border-b text-center text-sm">
+                            {% if t.type == 'RET' %}
+                                <span class="text-blue-600 font-medium">{{ t.quantity|default:0 }}</span>
+                            {% else %}
+                                <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 px-3 border-b text-center text-sm font-medium">{{ t.previous_stock|default:0 }}</td>
+                        <td class="py-2 px-3 border-b text-center text-sm font-medium">{{ t.current_stock|default:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Stock Summary Table -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <h4 class="text-lg font-semibold mb-3 text-gray-800">Stock Calculation Summary</h4>
+            <table class="w-full border border-gray-300">
+                <tbody>
+                    <tr class="bg-white">
+                        <td class="py-2 px-4 border-b font-medium text-gray-700 w-1/3">Opening Stock</td>
+                        <td class="py-2 px-4 border-b text-right font-bold">{{ single_product_summary.opening_stock|default:0 }}</td>
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <td class="py-2 px-4 border-b font-medium text-green-700">Total Stock In</td>
+                        <td class="py-2 px-4 border-b text-right font-bold text-green-700">+ {{ single_product_summary.total_in|default:0 }}</td>
+                    </tr>
+                    <tr class="bg-white">
+                        <td class="py-2 px-4 border-b font-medium text-red-700">Total Stock Out</td>
+                        <td class="py-2 px-4 border-b text-right font-bold text-red-700">- {{ single_product_summary.total_issued|default:0 }}</td>
+                    </tr>
+                    <tr class="bg-gray-50">
+                        <td class="py-2 px-4 border-b font-medium text-blue-700">Total Returns</td>
+                        <td class="py-2 px-4 border-b text-right font-bold text-blue-700">+ {{ single_product_summary.total_returned|default:0 }}</td>
+                    </tr>
+                    <tr class="bg-blue-100 border-t-2 border-blue-300">
+                        <td class="py-3 px-4 font-bold text-blue-900 text-lg">Closing Stock</td>
+                        <td class="py-3 px-4 text-right font-bold text-blue-900 text-xl">{{ single_product_summary.closing_stock|default:0 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <div class="text-center text-gray-600 italic py-8 bg-gray-50 rounded-lg">
+                <p class="text-lg">No transactions found for this product in the selected period.</p>
+                <p class="text-sm mt-2">Try adjusting the date range or check if there are any stock movements for this product.</p>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
     {% endif %}
 </div>
 
