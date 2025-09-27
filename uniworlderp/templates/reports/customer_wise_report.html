@@ -138,7 +138,7 @@
                             {% if order.order_items.count > 1 %}
                                 Mixed
                             {% else %}
-                                {{ order.order_items.first.product.get_unit_display|default:"PC" }}
+                                {{ order.order_items.first.product.get_unit_display }}
                             {% endif %}
                         </td>
                         <td class="py-2 px-4 border-b text-right">

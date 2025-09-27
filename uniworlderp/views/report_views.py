@@ -319,7 +319,7 @@ class StockReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
                     'sl': i,
                     'product_name': product.name,
                     'product_code': product.sku,
-                    'unit': 'pcs',
+                    'unit': product.get_unit_display(),
                     'opening_stock': opening_stock,
                     'received_qty': received_qty,
                     'issued_qty': issued_qty,

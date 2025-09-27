@@ -201,7 +201,7 @@
                         </td>
                         <td class="px-3 py-2 border border-gray-300">{{ item.product.name }}</td>
                         <td class="px-3 py-2 border border-gray-300">{{ item.product.sku }}</td>
-                        <td class="px-3 py-2 border border-gray-300">{{ item.product.unit }}</td>
+                        <td class="px-3 py-2 border border-gray-300">{{ item.product.get_unit_display }}</td>
                         <td class="px-3 py-2 border border-gray-300">{{ item.quantity }}</td>
                         <td class="px-3 py-2 border border-gray-300">{{ item.unit_price|floatformat:2 }}</td>
                         <td class="px-3 py-2 border border-gray-300">{{ item.total_amount|floatformat:2 }}</td>
