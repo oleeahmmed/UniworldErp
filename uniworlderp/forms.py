@@ -407,6 +407,8 @@ class AddStockForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['product'].empty_label = "Select Product"
+        # Minimal fix: ensure product queryset is properly initialized
+        self.fields['product'].queryset = Product.objects.filter(is_active=True).order_by('name')
 
 AddStockFormSet = forms.modelformset_factory(
     StockTransaction,

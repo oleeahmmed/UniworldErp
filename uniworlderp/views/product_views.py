@@ -240,6 +240,9 @@ def product_search(request):
                 'id', 'name', 'description', 'price', 'stock_quantity', 'reorder_level', 'discount_amount'
             ).first()
             if product:
+                # Minimal fix: handle None discount_amount
+                if product['discount_amount'] is None:
+                    product['discount_amount'] = 0.0
                 return JsonResponse([product], safe=False)
         except ValueError:
             # If it's not a UUID, perform a search as before
@@ -248,7 +251,12 @@ def product_search(request):
             ).values(
                 'id', 'name', 'description', 'price', 'stock_quantity', 'reorder_level', 'discount_amount'
             )[:10]  # Limit to 10 results for performance
-            return JsonResponse(list(products), safe=False)
+            # Minimal fix: handle None discount_amount in list
+            products_list = list(products)
+            for product in products_list:
+                if product['discount_amount'] is None:
+                    product['discount_amount'] = 0.0
+            return JsonResponse(products_list, safe=False)
     
     return JsonResponse([], safe=False)
 
@@ -276,7 +284,7 @@ def get_product_info(request):
             'price': float(product.price),
             'stock_quantity': product.stock_quantity,
             'reorder_level': product.reorder_level,
-            'discount_amount': float(product.discount_amount),
+            'discount_amount': float(product.discount_amount) if product.discount_amount is not None else 0.0,
 
         }
         print(f"Product data: {product_data}")  # Debugging line
