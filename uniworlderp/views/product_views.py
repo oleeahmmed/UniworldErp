@@ -327,6 +327,11 @@ class AddStockView(PermissionRequiredMixin, SuccessMessageMixin,FormView):
     def form_valid(self, formset):
         if formset.is_valid():
             instances = formset.save(commit=False)
+            # Handle deleted objects (though for new stock entries, this shouldn't happen)
+            for obj in formset.deleted_objects:
+                obj.delete()
+            
+            # Save valid instances
             for instance in instances:
                 if instance.quantity and instance.quantity > 0:
                     instance.transaction_type = 'IN'
