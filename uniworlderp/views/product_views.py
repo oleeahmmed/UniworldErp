@@ -16,8 +16,8 @@ class ProductListView(ListView):
 
         if search_query:
             queryset = queryset.filter(
-                Q(name__icontains=search_query) |
-                Q(description__icontains=search_query)
+                Q(name__istartswith=search_query) |
+                Q(description__istartswith=search_query)
             ).order_by('name')  # Maintain alphabetical ordering after search
 
         # Annotate stock status
@@ -206,20 +206,14 @@ class StockTransactionListView(ListView):
     context_object_name = 'stock_transactions'
 
     def get_queryset(self):
-        queryset = StockTransaction.objects.prefetch_related(
-            'product__salesorderitem_set__sales_order',  # Ensure reverse lookup is correct
-            'product__salesorderitem_set__sales_order__customer',  # Correct reverse lookup
-            'product__salesorderitem_set__sales_order__sales_employee',  # Correct reverse lookup
-        ).all()
+        queryset = StockTransaction.objects.select_related('product').all()
 
         # Search functionality
         search_query = self.request.GET.get('search', '')
         if search_query:
             queryset = queryset.filter(
-                Q(product__name__icontains=search_query) |
-                Q(reference__icontains=search_query) |
-                Q(product__salesorderitem_set__sales_order__customer__name__icontains=search_query) |
-                Q(product__salesorderitem_set__sales_order__sales_employee__full_name__icontains=search_query)
+                Q(product__name__istartswith=search_query) |
+                Q(reference__istartswith=search_query)
             )
 
         return queryset.order_by('-transaction_date')  # Sorting by transaction date in descending order
@@ -227,7 +221,6 @@ class StockTransactionListView(ListView):
 
 from django.http import JsonResponse
 from django.db.models import Q
-import uuid
 
 def product_search(request):
     query = request.GET.get('q', '')
@@ -247,7 +240,7 @@ def product_search(request):
         except ValueError:
             # If it's not a UUID, perform a search as before
             products = Product.objects.filter(
-                Q(name__icontains=query) | Q(sku__icontains=query)
+                Q(name__istartswith=query) | Q(sku__istartswith=query)
             ).values(
                 'id', 'name', 'description', 'price', 'stock_quantity', 'reorder_level', 'discount_amount'
             )[:10]  # Limit to 10 results for performance
