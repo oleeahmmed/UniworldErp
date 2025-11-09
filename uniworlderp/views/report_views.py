@@ -28,11 +28,21 @@ class ReportView(LoginRequiredMixin, View):
         products = Product.objects.all()
         sales_employees = SalesEmployee.objects.all()
 
+        # Initialize empty summaries for tabs
+        customer_summary = []
+        product_summary = []
+        sales_employee_summary = []
+        date_summary = []
+
         # Render the template with context
         return render(request, self.template_name, {
             'customers': customers,
             'products': products,
             'sales_employees': sales_employees,
+            'customer_summary': customer_summary,
+            'product_summary': product_summary,
+            'sales_employee_summary': sales_employee_summary,
+            'date_summary': date_summary,
         })
 
     def post(self, request):
