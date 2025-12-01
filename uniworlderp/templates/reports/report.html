@@ -83,176 +83,57 @@
             <button type="submit" class="btn-primary mt-4">Generate Report</button>
         </form>
 
-        {% if single_product_report %}
-            <!-- Single Product Transaction Report -->
-            <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold">Single Product Transaction Report</h2>
-                    <div class="flex gap-2">
-                        <button onclick="window.print()" class="btn-secondary">Quick Print</button>
-                        <a href="{% url 'customer_vendor:single_product_report_print' %}?product_id={{ selected_product_id }}&start_date={{ start_date }}&end_date={{ end_date }}" 
-                           target="_blank" class="btn-primary">Print Report</a>
-                    </div>
-                </div>
-
-                <!-- Product Information Header -->
-                <div class="bg-gray-50 p-4 rounded-lg mb-6">
-                    <h3 class="text-md font-semibold mb-3">Product Information</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Product Name</label>
-                            <p class="text-sm text-gray-900">{{ product.name }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Product Code</label>
-                            <p class="text-sm text-gray-900">{{ product.sku }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Unit</label>
-                            <p class="text-sm text-gray-900">{{ product.get_unit_display }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Current Stock</label>
-                            <p class="text-sm text-gray-900">{{ product.stock_quantity }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Sales Price</label>
-                            <p class="text-sm text-gray-900">{{ product.price }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Category</label>
-                            <p class="text-sm text-gray-900">{{ product.get_category_display }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Description (Pack Size)</label>
-                            <p class="text-sm text-gray-900">{{ product.description|default:"N/A" }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Status</label>
-                            <p class="text-sm text-gray-900">
-                                {% if product.is_active %}
-                                    <span class="text-green-600">Active</span>
-                                {% else %}
-                                    <span class="text-red-600">Inactive</span>
-                                {% endif %}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Transaction History Table -->
-                <div class="mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-md font-semibold">Transaction History</h3>
-                        <button type="button" class="export-button btn-secondary" data-table-id="singleProductTransactionTable">Export as CSV</button>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table id="singleProductTransactionTable" class="w-full text-sm text-left text-gray-800 border-collapse">
-                            <thead class="text-xs uppercase bg-gradient-to-r from-[#480d0f] to-[#000000] text-white">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 border-b">Date</th>
-                                    <th scope="col" class="px-6 py-3 border-b">Order ID</th>
-                                    <th scope="col" class="px-6 py-3 border-b">Customer Name</th>
-                                    <th scope="col" class="px-6 py-3 border-b">Quantity</th>
-                                    <th scope="col" class="px-6 py-3 border-b">Unit Price</th>
-                                    <th scope="col" class="px-6 py-3 border-b">Total</th>
-                                    <th scope="col" class="px-6 py-3 border-b">Sales Employee</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for transaction in transactions %}
-                                <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ transaction.date|date:"M d, Y" }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ transaction.order_id }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ transaction.customer_name }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ transaction.quantity }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ transaction.unit_price|floatformat:2 }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ transaction.total|floatformat:2 }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">{{ transaction.sales_employee }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">No transactions found for this product in the selected date range.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Summary Totals -->
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="text-md font-semibold mb-4">Summary Totals</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="bg-blue-50 p-4 rounded-lg">
-                            <label class="block text-sm font-medium text-blue-700">Total Quantity Sold</label>
-                            <p class="text-2xl font-bold text-blue-900">{{ summary.total_quantity }}</p>
-                        </div>
-                        <div class="bg-green-50 p-4 rounded-lg">
-                            <label class="block text-sm font-medium text-green-700">Total Purchase Amount</label>
-                            <p class="text-2xl font-bold text-green-900">{{ summary.total_purchase|floatformat:2 }}</p>
-                        </div>
-                        <div class="bg-yellow-50 p-4 rounded-lg">
-                            <label class="block text-sm font-medium text-yellow-700">Total Discount</label>
-                            <p class="text-2xl font-bold text-yellow-900">{{ summary.total_discount|floatformat:2 }}</p>
-                        </div>
-                        <div class="bg-purple-50 p-4 rounded-lg">
-                            <label class="block text-sm font-medium text-purple-700">Net Amount</label>
-                            <p class="text-2xl font-bold text-purple-900">{{ summary.net_amount|floatformat:2 }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% else %}
-        <!-- Regular Sales Report Table -->
+        <!-- Unified Sales Report Table - Item Level Display -->
         <div class="overflow-x-auto bg-white shadow-md rounded-lg mt-6 p-4">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold">Sales Report Table</h2>
-                <button type="button" class="export-button btn-secondary" data-table-id="salesReportTable">Export as CSV</button>
+                <div class="flex gap-2">
+                    <button type="button" onclick="printReport()" class="btn-secondary">Print Report</button>
+                    <button type="button" class="export-button btn-secondary" data-table-id="salesReportTable">Export as CSV</button>
+                </div>
             </div>
             <table id="salesReportTable" class="w-full text-sm text-left text-gray-800 border-collapse">
                 <thead class="text-xs uppercase bg-gradient-to-r from-[#480d0f] to-[#000000] text-white">
                     <tr>
-                        <th scope="col" class="px-6 py-3 border-b">Order Date</th>
-                        
-                        <th scope="col" class="px-6 py-3 border-b">Order ID</th>
-                        <th scope="col" class="px-6 py-3 border-b">Customer</th>
-                        <th scope="col" class="px-6 py-3 border-b">Product</th>
+                        <th scope="col" class="px-6 py-3 border-b">Date</th>
+                        <th scope="col" class="px-6 py-3 border-b">Sales Order No</th>
+                        <th scope="col" class="px-6 py-3 border-b">Customer Name</th>
+                        <th scope="col" class="px-6 py-3 border-b">Product Name</th>
+                        <th scope="col" class="px-6 py-3 border-b">Quantity</th>
+                        <th scope="col" class="px-6 py-3 border-b">Unit</th>
+                        <th scope="col" class="px-6 py-3 border-b">Price</th>
+                        <th scope="col" class="px-6 py-3 border-b">Total</th>
                         <th scope="col" class="px-6 py-3 border-b">Sales Employee</th>
-                        <th scope="col" class="px-6 py-3 border-b">Total Amount</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for order in sales_orders %}
+                    {% for item in report_items %}
                     <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">{{ order.order_date }}</td>
-
-                        <td class="px-6 py-4 whitespace-nowrap">{{ order.id }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ order.customer.name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            {% for item in order.order_items.all %}
-                                {{ item.product.name }}<br>
-                            {% endfor %}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ order.sales_employee.full_name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ order.total_amount }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.order_date|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.id }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.customer.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.product.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.product.get_unit_display }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.unit_price|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.total|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.sales_employee.full_name }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No sales orders found for the selected criteria.</td>
+                        <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">No sales data found for the selected criteria.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="5" class="px-6 py-4 text-right font-bold">Total:</td>
+                        <td colspan="7" class="px-6 py-4 text-right font-bold">Total:</td>
                         <td class="px-6 py-4 font-bold" id="salesReportTotal"></td>
+                        <td></td>
                     </tr>
                 </tfoot>
             </table>
         </div>
-        {% endif %}
     </div>
 
     <div class="tab-content hidden" id="customer-summary">
@@ -271,8 +152,8 @@
                 <tbody>
                     {% for summary in customer_summary %}
                     <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.customer__name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.sales_order__customer__name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -306,8 +187,8 @@
                 <tbody>
                     {% for summary in product_summary %}
                     <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.product_name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.product__name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -341,8 +222,8 @@
                 <tbody>
                     {% for summary in sales_employee_summary %}
                     <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.sales_employee__full_name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.sales_order__sales_employee__full_name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -376,8 +257,8 @@
                 <tbody>
                     {% for summary in date_summary %}
                     <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.order_date|date:"M d, Y" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.sales_order__order_date|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -469,6 +350,74 @@
 </div>
 
 <script>
+// Print Report function for main sales report
+function printReport() {
+    // Get filter values for header
+    const customerSelect = document.getElementById('customer');
+    const productSelect = document.getElementById('product');
+    const employeeSelect = document.getElementById('sales_employee');
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    const customerName = customerSelect && customerSelect.selectedIndex > 0 ? customerSelect.options[customerSelect.selectedIndex].text : 'All Customers';
+    const productName = productSelect && productSelect.selectedIndex > 0 ? productSelect.options[productSelect.selectedIndex].text : 'All Products';
+    const employeeName = employeeSelect && employeeSelect.selectedIndex > 0 ? employeeSelect.options[employeeSelect.selectedIndex].text : 'All Employees';
+    const startDate = startDateInput ? startDateInput.value || 'All' : 'All';
+    const endDate = endDateInput ? endDateInput.value || 'All' : 'All';
+    
+    // Get the report table
+    const reportTable = document.getElementById('salesReportTable');
+    if (!reportTable) {
+        alert('Report table not found.');
+        return;
+    }
+    
+    // Create print window with full context
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Sales Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                .header { text-align: center; margin-bottom: 20px; }
+                .header h1 { margin: 0 0 10px 0; color: #333; }
+                .filter-info { margin-bottom: 15px; font-size: 12px; background: #f5f5f5; padding: 10px; border-radius: 5px; }
+                .filter-info p { margin: 3px 0; }
+                table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                th { background: #333; color: white; padding: 8px; text-align: left; }
+                td { border: 1px solid #ddd; padding: 6px; }
+                tbody tr:nth-child(even) { background-color: #f9f9f9; }
+                tfoot td { font-weight: bold; background: #f5f5f5; }
+                .footer { margin-top: 20px; font-size: 10px; text-align: right; border-top: 1px solid #ddd; padding-top: 10px; color: #666; }
+                @media print {
+                    body { padding: 0; }
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Sales Report</h1>
+            </div>
+            <div class="filter-info">
+                <p><strong>Customer:</strong> ${customerName}</p>
+                <p><strong>Product:</strong> ${productName}</p>
+                <p><strong>Sales Employee:</strong> ${employeeName}</p>
+                <p><strong>Date Range:</strong> ${startDate} to ${endDate}</p>
+            </div>
+            ${reportTable.outerHTML}
+            <div class="footer">
+                <p>Report Generated: ${new Date().toLocaleString()}</p>
+                <p>Generated By: {{ user.username }}</p>
+            </div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+
 // Tab functionality
 document.addEventListener('DOMContentLoaded', function() {
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -689,20 +638,43 @@ window.exportCustomerReport = function(customerId, startDate, endDate) {
         button.addEventListener('click', function() {
             const tableId = this.getAttribute('data-table-id');
             const table = document.getElementById(tableId);
-            const rows = table.querySelectorAll('tr');
             let csvContent = '';
-
-            rows.forEach(row => {
-                const cols = row.querySelectorAll('th, td');
-                const rowData = Array.from(cols).map(col => col.textContent.trim()).join(',');
-                csvContent += rowData + '\n';
+            
+            // Helper function to escape CSV values (handle commas, quotes, newlines)
+            const escapeCSV = (value) => {
+                if (value === null || value === undefined) return '';
+                const stringValue = String(value).trim();
+                // If value contains comma, quote, or newline, wrap in quotes and escape existing quotes
+                if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+                    return '"' + stringValue.replace(/"/g, '""') + '"';
+                }
+                return stringValue;
+            };
+            
+            // Export headers from thead
+            const headerRow = table.querySelector('thead tr');
+            if (headerRow) {
+                const headers = headerRow.querySelectorAll('th');
+                const headerData = Array.from(headers).map(th => escapeCSV(th.textContent));
+                csvContent += headerData.join(',') + '\n';
+            }
+            
+            // Export data rows from tbody (excluding empty rows and footer)
+            const bodyRows = table.querySelectorAll('tbody tr');
+            bodyRows.forEach(row => {
+                const cols = row.querySelectorAll('td');
+                // Skip rows with colspan (like "No data" messages)
+                if (cols.length > 1 || (cols.length === 1 && !cols[0].hasAttribute('colspan'))) {
+                    const rowData = Array.from(cols).map(col => escapeCSV(col.textContent));
+                    csvContent += rowData.join(',') + '\n';
+                }
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
-            link.setAttribute('download', `{tableId}.csv`);
+            link.setAttribute('download', `${tableId}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
@@ -711,13 +683,24 @@ window.exportCustomerReport = function(customerId, startDate, endDate) {
     });
 
     // Function to calculate and display the total amount for each table
-    const calculateTotal = (tableId, totalId) => {
+    // For salesReportTable, Total is at column index 7 (0-indexed)
+    // For summary tables, Total is at the last column
+    const calculateTotal = (tableId, totalId, columnIndex = null) => {
         const table = document.getElementById(tableId);
+        if (!table) return;
+        
         const rows = table.querySelectorAll('tbody tr');
         let total = 0;
 
         rows.forEach(row => {
-            const amountCell = row.querySelector('td:last-child');
+            let amountCell;
+            if (columnIndex !== null) {
+                // Use specific column index for salesReportTable (Total column at index 7)
+                amountCell = row.querySelectorAll('td')[columnIndex];
+            } else {
+                // Use last column for summary tables
+                amountCell = row.querySelector('td:last-child');
+            }
             if (amountCell) {
                 const amount = parseFloat(amountCell.textContent.trim().replace(/[^0-9.-]+/g, ""));
                 if (!isNaN(amount)) {
@@ -726,11 +709,15 @@ window.exportCustomerReport = function(customerId, startDate, endDate) {
             }
         });
 
-        document.getElementById(totalId).textContent = total.toFixed(2);
+        const totalElement = document.getElementById(totalId);
+        if (totalElement) {
+            totalElement.textContent = total.toFixed(2);
+        }
     };
 
     // Calculate totals for each table
-    calculateTotal('salesReportTable', 'salesReportTotal');
+    // For salesReportTable, Total column is at index 7 (Date=0, Order No=1, Customer=2, Product=3, Qty=4, Unit=5, Price=6, Total=7, Employee=8)
+    calculateTotal('salesReportTable', 'salesReportTotal', 7);
     calculateTotal('customerSummaryTable', 'customerSummaryTotal');
     calculateTotal('productSummaryTable', 'productSummaryTotal');
     calculateTotal('salesEmployeeSummaryTable', 'salesEmployeeSummaryTotal');

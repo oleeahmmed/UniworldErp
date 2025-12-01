@@ -58,40 +58,50 @@ class ReportView(LoginRequiredMixin, View):
         start_date = request.POST.get('start_date', first_day_of_month)
         end_date = request.POST.get('end_date', today)
 
-        # Check if this is a single product transaction report request
-        if product_id and not customer_id and not sales_employee_id:
-            return self.handle_single_product_report(request, product_id, start_date, end_date)
-
-        # Filter sales orders based on the selected criteria
-        sales_orders = SalesOrder.objects.all()
-        if customer_id:
-            sales_orders = sales_orders.filter(customer_id=customer_id)
-        if product_id:
-            sales_orders = sales_orders.filter(order_items__product_id=product_id)
-        if sales_employee_id:
-            sales_orders = sales_orders.filter(sales_employee_id=sales_employee_id)
-        if start_date and end_date:
-            sales_orders = sales_orders.filter(order_date__range=[start_date, end_date])
-
-        # Calculate summary amounts
-        customer_summary = sales_orders.values('customer__name').annotate(total_amount=Sum('total_amount'))
+        # Query SalesOrderItem directly for unified item-level report format
+        # This provides consistent display across all filter combinations
+        items = SalesOrderItem.objects.select_related(
+            'sales_order__customer',
+            'sales_order__sales_employee',
+            'product'
+        )
         
-        # Calculate product summary within the date range
-        product_summary = SalesOrderItem.objects.filter(
-            sales_order__in=sales_orders
-        ).values(
-            product_name=F('product__name')
-        ).annotate(
+        # Apply filters on item-level
+        if customer_id:
+            items = items.filter(sales_order__customer_id=customer_id)
+        if product_id:
+            items = items.filter(product_id=product_id)
+        if sales_employee_id:
+            items = items.filter(sales_order__sales_employee_id=sales_employee_id)
+        if start_date and end_date:
+            items = items.filter(sales_order__order_date__range=[start_date, end_date])
+        
+        # Order results by date (descending) and sales order id
+        items = items.order_by('-sales_order__order_date', 'sales_order__id')
+
+        # Calculate summary amounts from filtered items
+        customer_summary = items.values('sales_order__customer__name').annotate(
             total_amount=Sum('total')
-        ).order_by('product_name')
-        sales_employee_summary = sales_orders.values('sales_employee__full_name').annotate(total_amount=Sum('total_amount'))
+        ).order_by('sales_order__customer__name')
+        
+        # Calculate product summary from filtered items
+        product_summary = items.values('product__name').annotate(
+            total_amount=Sum('total')
+        ).order_by('product__name')
+        
+        # Calculate sales employee summary from filtered items
+        sales_employee_summary = items.values('sales_order__sales_employee__full_name').annotate(
+            total_amount=Sum('total')
+        ).order_by('sales_order__sales_employee__full_name')
 
-        # Calculate date-wise summary
-        date_summary = sales_orders.values('order_date').annotate(total_amount=Sum('total_amount')).order_by('order_date')
+        # Calculate date-wise summary from filtered items
+        date_summary = items.values('sales_order__order_date').annotate(
+            total_amount=Sum('total')
+        ).order_by('sales_order__order_date')
 
-        # Render the template with filtered data and summaries
+        # Render the template with filtered item-level data and summaries
         return render(request, self.template_name, {
-            'sales_orders': sales_orders,
+            'report_items': items,
             'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
             'products': Product.objects.all().order_by('name'),
             'sales_employees': SalesEmployee.objects.all().order_by('full_name'),
@@ -102,88 +112,6 @@ class ReportView(LoginRequiredMixin, View):
             'start_date': start_date,
             'end_date': end_date,
         })
-
-    def handle_single_product_report(self, request, product_id, start_date, end_date):
-        """Handle single product transaction report."""
-        try:
-            product = Product.objects.get(id=product_id, is_active=True)
-            transactions = self.get_product_sales_transactions(product, start_date, end_date)
-            summary = self.calculate_sales_summary(transactions)
-            
-            context = {
-                'single_product_report': True,
-                'product': product,
-                'transactions': transactions,
-                'summary': summary,
-                'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
-                'products': Product.objects.all().order_by('name'),
-                'sales_employees': SalesEmployee.objects.all().order_by('full_name'),
-                'selected_product_id': product_id,
-                'start_date': start_date,
-                'end_date': end_date,
-            }
-            return render(request, self.template_name, context)
-        except Product.DoesNotExist:
-            # If product not found, return to regular report with error
-            context = {
-                'error': 'Product not found or inactive.',
-                'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
-                'products': Product.objects.all().order_by('name'),
-                'sales_employees': SalesEmployee.objects.all().order_by('full_name'),
-                'customer_summary': [],
-                'product_summary': [],
-                'sales_employee_summary': [],
-                'date_summary': [],
-            }
-            return render(request, self.template_name, context)
-
-    def get_product_sales_transactions(self, product, start_date=None, end_date=None):
-        """Get sales transactions for a product within an optional date range."""
-        # Get all sales order items for this product
-        items_qs = SalesOrderItem.objects.filter(product=product).select_related(
-            'sales_order__customer',
-            'sales_order__sales_employee'
-        )
-        
-        # Filter by date range if provided
-        if start_date and end_date:
-            items_qs = items_qs.filter(sales_order__order_date__range=[start_date, end_date])
-        
-        items_qs = items_qs.order_by('sales_order__order_date')
-        
-        transactions = []
-        for item in items_qs:
-            transactions.append({
-                'date': item.sales_order.order_date,
-                'order_id': item.sales_order.id,
-                'customer_name': item.sales_order.customer.name if item.sales_order.customer else 'N/A',
-                'quantity': item.quantity,
-                'unit_price': item.unit_price,
-                'total': item.total,
-                'sales_employee': item.sales_order.sales_employee.full_name if item.sales_order.sales_employee else 'N/A',
-            })
-        
-        return transactions
-    
-    def calculate_sales_summary(self, transactions):
-        """Calculate summary for sales transactions."""
-        if not transactions:
-            return {
-                'total_quantity': 0,
-                'total_purchase': 0,
-                'total_discount': 0,
-                'net_amount': 0,
-            }
-        
-        total_quantity = sum(t['quantity'] for t in transactions)
-        total_purchase = sum(t['total'] for t in transactions)
-        
-        return {
-            'total_quantity': total_quantity,
-            'total_purchase': total_purchase,
-            'total_discount': 0,  # Can be calculated if discount data is available
-            'net_amount': total_purchase,
-        }
 
     def get_product_transactions(self, product, start_date=None, end_date=None):
         """Get stock transactions (IN/OUT/RET/ADJ) for a product within an optional date range."""
