@@ -24,9 +24,9 @@ class ReportView(LoginRequiredMixin, View):
 
     def get(self, request):
         # Fetch data for filters
-        customers = CustomerVendor.objects.filter(entity_type='customer')
-        products = Product.objects.all()
-        sales_employees = SalesEmployee.objects.all()
+        customers = CustomerVendor.objects.filter(entity_type='customer').order_by('name')
+        products = Product.objects.all().order_by('name')
+        sales_employees = SalesEmployee.objects.all().order_by('full_name')
 
         # Initialize empty summaries for tabs
         customer_summary = []
@@ -92,9 +92,9 @@ class ReportView(LoginRequiredMixin, View):
         # Render the template with filtered data and summaries
         return render(request, self.template_name, {
             'sales_orders': sales_orders,
-            'customers': CustomerVendor.objects.filter(entity_type='customer', owner=request.user),
-            'products': Product.objects.filter(owner=request.user),
-            'sales_employees': SalesEmployee.objects.filter(owner=request.user),
+            'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
+            'products': Product.objects.all().order_by('name'),
+            'sales_employees': SalesEmployee.objects.all().order_by('full_name'),
             'customer_summary': customer_summary,
             'product_summary': product_summary,
             'sales_employee_summary': sales_employee_summary,
@@ -106,7 +106,7 @@ class ReportView(LoginRequiredMixin, View):
     def handle_single_product_report(self, request, product_id, start_date, end_date):
         """Handle single product transaction report."""
         try:
-            product = Product.objects.get(id=product_id, is_active=True, owner=request.user)
+            product = Product.objects.get(id=product_id, is_active=True)
             transactions = self.get_product_sales_transactions(product, start_date, end_date)
             summary = self.calculate_sales_summary(transactions)
             
@@ -115,9 +115,9 @@ class ReportView(LoginRequiredMixin, View):
                 'product': product,
                 'transactions': transactions,
                 'summary': summary,
-                'customers': CustomerVendor.objects.filter(entity_type='customer', owner=request.user),
-                'products': Product.objects.filter(owner=request.user),
-                'sales_employees': SalesEmployee.objects.filter(owner=request.user),
+                'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
+                'products': Product.objects.all().order_by('name'),
+                'sales_employees': SalesEmployee.objects.all().order_by('full_name'),
                 'selected_product_id': product_id,
                 'start_date': start_date,
                 'end_date': end_date,
@@ -127,9 +127,9 @@ class ReportView(LoginRequiredMixin, View):
             # If product not found, return to regular report with error
             context = {
                 'error': 'Product not found or inactive.',
-                'customers': CustomerVendor.objects.filter(entity_type='customer', owner=request.user),
-                'products': Product.objects.filter(owner=request.user),
-                'sales_employees': SalesEmployee.objects.filter(owner=request.user),
+                'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
+                'products': Product.objects.all().order_by('name'),
+                'sales_employees': SalesEmployee.objects.all().order_by('full_name'),
                 'customer_summary': [],
                 'product_summary': [],
                 'sales_employee_summary': [],
@@ -656,7 +656,7 @@ class ProductWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         # Fetch data for filters
-        products = Product.objects.all()
+        products = Product.objects.all().order_by('name')
         
         # Render the template with context
         return render(request, self.template_name, {
@@ -676,7 +676,7 @@ class ProductWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         if not product_id:
             error_message = "Please select a product for the report."
             context = {
-                'products': Product.objects.all(),
+                'products': Product.objects.all().order_by('name'),
                 'error': error_message
             }
             if is_ajax:
@@ -686,7 +686,7 @@ class ProductWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         if not start_date or not end_date:
             error_message = "Please select both start and end dates."
             context = {
-                'products': Product.objects.all(),
+                'products': Product.objects.all().order_by('name'),
                 'error': error_message
             }
             if is_ajax:
@@ -698,7 +698,7 @@ class ProductWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         except Product.DoesNotExist:
             error_message = "Product not found."
             context = {
-                'products': Product.objects.all(),
+                'products': Product.objects.all().order_by('name'),
                 'error': error_message
             }
             if is_ajax:
@@ -718,7 +718,7 @@ class ProductWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         if not sales_data.exists():
             error_message = f"No sales data found for '{product.name}' between {start_date} and {end_date}."
             context = {
-                'products': Product.objects.all(),
+                'products': Product.objects.all().order_by('name'),
                 'error': error_message,
                 'selected_product': product,
                 'start_date': start_date,
@@ -738,7 +738,7 @@ class ProductWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         now_bdt = now.astimezone(bdt)
         
         context = {
-            'products': Product.objects.all(),
+            'products': Product.objects.all().order_by('name'),
             'selected_product': product,
             'start_date': start_date,
             'end_date': end_date,
@@ -932,7 +932,7 @@ class CustomerWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
     def get(self, request, *args, **kwargs):
         # Fetch data for filters
-        customers = CustomerVendor.objects.filter(entity_type='customer')
+        customers = CustomerVendor.objects.filter(entity_type='customer').order_by('name')
         
         # Render the template with context
         return render(request, self.template_name, {
@@ -952,7 +952,7 @@ class CustomerWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         if not customer_id:
             error_message = "Please select a customer for the report."
             context = {
-                'customers': CustomerVendor.objects.filter(entity_type='customer'),
+                'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
                 'error': error_message
             }
             if is_ajax:
@@ -962,7 +962,7 @@ class CustomerWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         if not start_date or not end_date:
             error_message = "Please select both start and end dates."
             context = {
-                'customers': CustomerVendor.objects.filter(entity_type='customer'),
+                'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
                 'error': error_message
             }
             if is_ajax:
@@ -974,7 +974,7 @@ class CustomerWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         except CustomerVendor.DoesNotExist:
             error_message = "Customer not found."
             context = {
-                'customers': CustomerVendor.objects.filter(entity_type='customer'),
+                'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
                 'error': error_message
             }
             if is_ajax:
@@ -993,7 +993,7 @@ class CustomerWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         if not sales_orders.exists():
             error_message = f"No sales data found for '{customer.name}' between {start_date} and {end_date}."
             context = {
-                'customers': CustomerVendor.objects.filter(entity_type='customer'),
+                'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
                 'error': error_message,
                 'selected_customer': customer,
                 'start_date': start_date,
@@ -1014,7 +1014,7 @@ class CustomerWiseReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
         now_bdt = now.astimezone(bdt)
         
         context = {
-            'customers': CustomerVendor.objects.filter(entity_type='customer'),
+            'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
             'selected_customer': customer,
             'start_date': start_date,
             'end_date': end_date,
