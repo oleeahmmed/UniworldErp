@@ -116,7 +116,7 @@
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.quantity }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.product.get_unit_display }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.unit_price|floatformat:2 }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ item.total|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.discounted_total|default:item.total|floatformat:2 }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.sales_employee.full_name }}</td>
                     </tr>
                     {% empty %}

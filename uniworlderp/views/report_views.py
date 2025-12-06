@@ -14,6 +14,7 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 import io
+from decimal import Decimal
 
 
 # Minimum allowed date for any stock report queries
@@ -79,29 +80,81 @@ class ReportView(LoginRequiredMixin, View):
         # Order results by date (descending) and sales order id
         items = items.order_by('-sales_order__order_date', 'sales_order__id')
 
-        # Calculate summary amounts from filtered items
-        customer_summary = items.values('sales_order__customer__name').annotate(
-            total_amount=Sum('total')
-        ).order_by('sales_order__customer__name')
+        # Annotate items with discounted total (proportionally distribute order discount)
+        # Formula: discounted_total = item.total - (item.total / order_subtotal * order_discount)
+        # We'll calculate this in Python since it requires order-level aggregation
         
-        # Calculate product summary from filtered items
-        product_summary = items.values('product__name').annotate(
-            total_amount=Sum('total')
-        ).order_by('product__name')
+        # Get unique sales orders from filtered items to calculate discount proportions
+        order_ids = items.values_list('sales_order_id', flat=True).distinct()
+        orders_with_discount = SalesOrder.objects.filter(id__in=order_ids).values('id', 'discount')
+        order_discounts = {o['id']: o['discount'] for o in orders_with_discount}
         
-        # Calculate sales employee summary from filtered items
-        sales_employee_summary = items.values('sales_order__sales_employee__full_name').annotate(
-            total_amount=Sum('total')
-        ).order_by('sales_order__sales_employee__full_name')
+        # Calculate order subtotals (sum of item totals per order)
+        order_subtotals = {}
+        for item in items:
+            order_id = item.sales_order_id
+            if order_id not in order_subtotals:
+                order_subtotals[order_id] = Decimal('0.00')
+            order_subtotals[order_id] += item.total
+        
+        # Calculate discounted totals for each item
+        items_with_discounted_total = []
+        for item in items:
+            order_id = item.sales_order_id
+            order_discount = order_discounts.get(order_id, Decimal('0.00'))
+            order_subtotal = order_subtotals.get(order_id, Decimal('0.00'))
+            
+            if order_subtotal > 0 and order_discount > 0:
+                # Proportionally distribute discount: item_discount = (item.total / order_subtotal) * order_discount
+                item_discount_share = (item.total / order_subtotal) * order_discount
+                discounted_total = item.total - item_discount_share
+            else:
+                discounted_total = item.total
+            
+            # Attach discounted_total as an attribute for template use
+            item.discounted_total = discounted_total
+            items_with_discounted_total.append(item)
+        
+        # Calculate summary amounts using discounted totals
+        # Group by customer
+        customer_totals = {}
+        for item in items_with_discounted_total:
+            customer_name = item.sales_order.customer.name
+            if customer_name not in customer_totals:
+                customer_totals[customer_name] = Decimal('0.00')
+            customer_totals[customer_name] += item.discounted_total
+        customer_summary = [{'sales_order__customer__name': k, 'total_amount': v} for k, v in sorted(customer_totals.items())]
+        
+        # Group by product
+        product_totals = {}
+        for item in items_with_discounted_total:
+            product_name = item.product.name
+            if product_name not in product_totals:
+                product_totals[product_name] = Decimal('0.00')
+            product_totals[product_name] += item.discounted_total
+        product_summary = [{'product__name': k, 'total_amount': v} for k, v in sorted(product_totals.items())]
+        
+        # Group by sales employee
+        employee_totals = {}
+        for item in items_with_discounted_total:
+            employee_name = item.sales_order.sales_employee.full_name if item.sales_order.sales_employee else 'Unassigned'
+            if employee_name not in employee_totals:
+                employee_totals[employee_name] = Decimal('0.00')
+            employee_totals[employee_name] += item.discounted_total
+        sales_employee_summary = [{'sales_order__sales_employee__full_name': k, 'total_amount': v} for k, v in sorted(employee_totals.items())]
 
-        # Calculate date-wise summary from filtered items
-        date_summary = items.values('sales_order__order_date').annotate(
-            total_amount=Sum('total')
-        ).order_by('sales_order__order_date')
+        # Group by date
+        date_totals = {}
+        for item in items_with_discounted_total:
+            order_date = item.sales_order.order_date
+            if order_date not in date_totals:
+                date_totals[order_date] = Decimal('0.00')
+            date_totals[order_date] += item.discounted_total
+        date_summary = [{'sales_order__order_date': k, 'total_amount': v} for k, v in sorted(date_totals.items())]
 
         # Render the template with filtered item-level data and summaries
         return render(request, self.template_name, {
-            'report_items': items,
+            'report_items': items_with_discounted_total,
             'customers': CustomerVendor.objects.filter(entity_type='customer').order_by('name'),
             'products': Product.objects.all().order_by('name'),
             'sales_employees': SalesEmployee.objects.all().order_by('full_name'),
