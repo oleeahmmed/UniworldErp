@@ -281,10 +281,30 @@
         }
 
         // Add form submission event listener to remove empty rows
-        document.querySelector('form').addEventListener('submit', function (e) {
+        const form = document.querySelector('form');
+        let isSubmitting = false;
+        
+        form.addEventListener('submit', function (e) {
+            // Prevent double submission
+            if (isSubmitting) {
+                e.preventDefault();
+                return false;
+            }
+            
             e.preventDefault();
+            isSubmitting = true;
+            
+            // Disable submit button to prevent double clicks
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="relative flex items-center">Processing...</span>';
+            }
+            
             removeEmptyRows();
-            this.submit();
+            
+            // Submit the form
+            form.submit();
         });
     });
 </script>

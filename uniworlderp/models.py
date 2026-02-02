@@ -197,25 +197,33 @@ class StockTransaction(models.Model):
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
-            # Capture previous stock before the transaction
-            self.previous_stock = self.product.stock_quantity
+            # Check if this is a new transaction (not an update)
+            is_new = self.pk is None
             
-            # Calculate the new stock quantity after the transaction
-            if self.transaction_type == 'IN':
-                self.current_stock = self.product.stock_quantity + self.quantity
-            elif self.transaction_type == 'OUT':
-                self.current_stock = self.product.stock_quantity - self.quantity
-            elif self.transaction_type == 'ADJ':
-                self.current_stock = self.quantity
-            elif self.transaction_type == 'RET':
-                self.current_stock = self.product.stock_quantity + self.quantity
-            
-            # Save the transaction record with previous and current stock
-            super().save(*args, **kwargs)
-            
-            # Update the product's stock quantity
-            self.product.stock_quantity = self.current_stock
-            self.product.save()
+            if is_new:
+                # Only update stock for new transactions
+                # Capture previous stock before the transaction
+                self.previous_stock = self.product.stock_quantity
+                
+                # Calculate the new stock quantity after the transaction
+                if self.transaction_type == 'IN':
+                    self.current_stock = self.product.stock_quantity + self.quantity
+                elif self.transaction_type == 'OUT':
+                    self.current_stock = self.product.stock_quantity - self.quantity
+                elif self.transaction_type == 'ADJ':
+                    self.current_stock = self.quantity
+                elif self.transaction_type == 'RET':
+                    self.current_stock = self.product.stock_quantity + self.quantity
+                
+                # Save the transaction record with previous and current stock
+                super().save(*args, **kwargs)
+                
+                # Update the product's stock quantity
+                self.product.stock_quantity = self.current_stock
+                self.product.save()
+            else:
+                # For updates, just save the transaction record without modifying stock
+                super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Stock Transaction'

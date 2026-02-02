@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from uniworlderp.models import SalesOrder, CustomerVendor, Product, SalesEmployee, SalesOrderItem, StockTransaction
+from uniworlderp.models import SalesOrder, CustomerVendor, Product, SalesEmployee, SalesOrderItem, StockTransaction, ReturnSalesItem
 from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Q, Value, IntegerField
 from django.db.models.functions import Coalesce
 from datetime import datetime, timedelta, time
@@ -141,6 +141,37 @@ class ReportView(LoginRequiredMixin, View):
             if employee_name not in employee_totals:
                 employee_totals[employee_name] = Decimal('0.00')
             employee_totals[employee_name] += item.discounted_total
+        
+        # Subtract returned items from employee totals
+        # Get all returns for the filtered sales orders
+        returned_items = ReturnSalesItem.objects.filter(
+            sales_order_item__sales_order__in=order_ids
+        ).select_related('sales_order_item__sales_order__sales_employee', 'return_sales')
+        
+        # Apply date filter to returns if specified
+        if start_date and end_date:
+            returned_items = returned_items.filter(return_sales__return_date__range=[start_date, end_date])
+        
+        # Subtract returned amounts from the original sales employee's totals
+        for returned_item in returned_items:
+            original_employee = returned_item.sales_order_item.sales_order.sales_employee
+            employee_name = original_employee.full_name if original_employee else 'Unassigned'
+            
+            # Calculate the proportional discount for the returned item
+            order_id = returned_item.sales_order_item.sales_order_id
+            order_discount = order_discounts.get(order_id, Decimal('0.00'))
+            order_subtotal = order_subtotals.get(order_id, Decimal('0.00'))
+            
+            # Calculate the returned amount with proportional discount
+            returned_total = returned_item.total
+            if order_subtotal > 0 and order_discount > 0:
+                item_discount_share = (returned_total / order_subtotal) * order_discount
+                returned_total = returned_total - item_discount_share
+            
+            # Subtract from employee total
+            if employee_name in employee_totals:
+                employee_totals[employee_name] -= returned_total
+        
         sales_employee_summary = [{'sales_order__sales_employee__full_name': k, 'total_amount': v} for k, v in sorted(employee_totals.items())]
 
         # Group by date
