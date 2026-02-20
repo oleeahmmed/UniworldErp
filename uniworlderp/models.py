@@ -711,12 +711,14 @@ class ReturnSalesItem(models.Model):
                 
                 if quantity_diff != 0:
                     # Create stock transaction for the return
+                    # Get owner from the sales order since ReturnSales doesn't have owner field
+                    owner = self.sales_order_item.sales_order.owner
                     StockTransaction.objects.create(
                         product=self.sales_order_item.product,
                         transaction_type='RET',
                         quantity=abs(quantity_diff),
                         reference=f"RET-{self.return_sales.id}{'-Update' if not is_new else ''}",
-                        owner=self.return_sales.owner
+                        owner=owner
                     )
                 
                 self.return_sales.update_total_amount()

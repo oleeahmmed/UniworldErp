@@ -288,8 +288,24 @@
 
     // Calculate total on input change
     orderItemsFormset.addEventListener('input', function(e) {
-        updateTotal(e);
-        updateOrderTotals();
+        if (e.target.name.includes('quantity') || e.target.name.includes('unit_price')) {
+            const row = e.target.closest('tr');
+            
+            // If quantity changed, recalculate total discount based on unit discount
+            if (e.target.name.includes('quantity')) {
+                const quantity = parseFloat(e.target.value) || 0;
+                const discountField = row.querySelector('input[name$="total_discount"]');
+                
+                // Get unit discount from the product (stored when product was selected)
+                const unitDiscount = parseFloat(row.dataset.unitDiscount) || 0;
+                if (discountField) {
+                    discountField.value = (quantity * unitDiscount).toFixed(2);
+                }
+            }
+            
+            updateTotal(e);
+            updateOrderTotals();
+        }
     });
 
     // Product selection change event
@@ -555,6 +571,9 @@
         }
         
         updateFormsetIndexes();
+        
+        // Update order totals after deleting a row
+        updateOrderTotals();
     }
 
     function updateFormsetIndexes() {
@@ -594,13 +613,12 @@
             const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
             const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
             
-            // Get discount amount (per unit)
+            // Get total discount (already calculated as quantity * unit_discount from API)
             const discountField = row.querySelector('input[name$="total_discount"]');
-            const discountAmount = discountField ? (parseFloat(discountField.value) || 0) : 0;
+            const totalDiscount = discountField ? (parseFloat(discountField.value) || 0) : 0;
             
-            // Calculate total with discount applied to each unit
+            // Calculate total: (quantity * unitPrice) - totalDiscount
             const totalBeforeDiscount = quantity * unitPrice;
-            const totalDiscount = quantity * discountAmount;
             const totalAfterDiscount = totalBeforeDiscount - totalDiscount;
             
             const totalInput = row.querySelector('input[name$="display_total"]');
@@ -649,7 +667,7 @@
             // Dynamically generate the URL using Django's reverse function in the template
             const fetchUrl = `{% url 'customer_vendor:get_product_info' %}?sku=${sku}`;
     
-            fetch(fetchUrl)
+            return fetch(fetchUrl)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -657,20 +675,33 @@
                     return response.json();
                 })
                 .then(data => {
+                    // Store unit discount in row dataset for later calculations
+                    row.dataset.unitDiscount = data.discount_amount || 0;
+                    
                     // Update fields with the fetched product data
                     row.querySelector('input[name$="stock_quantity"]').value = data.stock_quantity;
                     row.querySelector('input[name$="unit_price"]').value = data.price.toFixed(2);
                     
-                    // Handle discount if present in API response
+                    // Handle quantity - set to 1 if empty (FIX ISSUE 8)
+                    const quantityInput = row.querySelector('input[name$="quantity"]');
+                    let quantity = parseFloat(quantityInput.value) || 0;
+                    if (quantity === 0) {
+                        quantity = 1;
+                        quantityInput.value = 1;
+                    }
+                    
                     if ('discount_amount' in data) {
                         const discountField = row.querySelector('input[name$="total_discount"]');
                         if (discountField) {
-                            discountField.value = data.discount_amount.toFixed(2);
+                            // Calculate total discount = quantity * unit discount
+                            const totalDiscount = quantity * data.discount_amount;
+                            discountField.value = totalDiscount.toFixed(2);
                         }
                     }
     
                     // Call the function to update the total
-                    updateTotal({ target: row.querySelector('input[name$="quantity"]') });
+                    updateTotal({ target: quantityInput });
+                    updateOrderTotals();
                 })
                 .catch(error => {
                     console.error('Error fetching product info:', error);
@@ -681,15 +712,20 @@
             row.querySelector('input[name$="unit_price"]').value = '';
             row.querySelector('input[name$="display_total"]').value = '';
             
-            // Also reset discount
+            // Also reset discount and dataset
             const discountField = row.querySelector('input[name$="total_discount"]');
             if (discountField) {
                 discountField.value = '';
             }
+            row.dataset.unitDiscount = '0';
+            
+            return Promise.resolve();
         }
     }
     
-    // Initialize totals for existing rows
+    // Initialize totals for existing rows (FIX ISSUE 7 - Race Condition)
+    const initPromises = [];
+    
     document.querySelectorAll('.formset-row').forEach(row => {
         // Skip initialization for deleted rows
         const rowId = row.querySelector('input[type="hidden"][name$="-id"]')?.value;
@@ -697,21 +733,37 @@
             return;
         }
         
-        const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
-        const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
-        const total = quantity * unitPrice;
-        const totalInput = row.querySelector('input[name$="display_total"]');
-        if (totalInput) {
-            totalInput.value = total.toFixed(2);
-        }
         const productSelect = row.querySelector('select[name$="product"]');
         if (productSelect && productSelect.value) {
-            updateProductDetails(productSelect);
+            // For existing rows with products, fetch product details to ensure all fields are populated
+            // Store the promise so we can wait for all to complete
+            const promise = updateProductDetails(productSelect);
+            if (promise) {
+                initPromises.push(promise);
+            }
+        } else {
+            // For new/empty rows, just calculate based on existing values
+            const quantity = parseFloat(row.querySelector('input[name$="quantity"]').value) || 0;
+            const unitPrice = parseFloat(row.querySelector('input[name$="unit_price"]').value) || 0;
+            const totalDiscount = parseFloat(row.querySelector('input[name$="total_discount"]')?.value) || 0;
+            const total = (quantity * unitPrice) - totalDiscount;
+            const totalInput = row.querySelector('input[name$="display_total"]');
+            if (totalInput) {
+                totalInput.value = total.toFixed(2);
+            }
         }
     });
 
-    // Initialize order totals on page load
-    updateOrderTotals();
+    // Wait for all AJAX calls to complete before calculating order totals
+    Promise.all(initPromises)
+        .then(() => {
+            updateOrderTotals();
+        })
+        .catch(error => {
+            console.error('Error initializing product details:', error);
+            // Still update totals even if some requests failed
+            updateOrderTotals();
+        });
 
     function isRowEmpty(row) {
         const product = row.querySelector('select[name$="product"]').value;
@@ -785,12 +837,26 @@
 
     function removeEmptyRows() {
         const rows = orderItemsFormset.querySelectorAll('.formset-row');
+        let rowsDeleted = false;
+        
         rows.forEach(row => {
             if (isRowEmpty(row)) {
-                deleteRow(row);
+                // Delete row without updating totals yet (to avoid multiple updates)
+                const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+                if (deleteCheckbox) {
+                    deleteCheckbox.checked = true;
+                    row.style.display = 'none';
+                } else {
+                    row.remove();
+                }
+                rowsDeleted = true;
             }
         });
-        updateFormsetIndexes();
+        
+        if (rowsDeleted) {
+            updateFormsetIndexes();
+            updateOrderTotals(); // Update totals once after all deletions
+        }
     }
 });
 
