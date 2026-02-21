@@ -116,14 +116,16 @@
             font-size: 10px;
         }
         
-        .col-customer { width: 25%; }
-        .col-invoice { width: 12%; text-align: center; }
-        .col-order { width: 12%; text-align: center; }
-        .col-date { width: 12%; text-align: center; }
-        .col-qty { width: 10%; text-align: center; }
+        .col-customer { width: 20%; }
+        .col-invoice { width: 10%; text-align: center; }
+        .col-order { width: 10%; text-align: center; }
+        .col-date { width: 10%; text-align: center; }
+        .col-gross-sold { width: 8%; text-align: center; }
+        .col-qty-returned { width: 8%; text-align: center; }
+        .col-net-qty { width: 8%; text-align: center; }
         .col-unit { width: 8%; text-align: center; }
-        .col-price { width: 10%; text-align: right; }
-        .col-total { width: 11%; text-align: right; }
+        .col-price { width: 9%; text-align: right; }
+        .col-net-amount { width: 9%; text-align: right; }
         
         .text-right { text-align: right !important; }
         .text-center { text-align: center !important; }
@@ -270,10 +272,12 @@
                         <th class="col-invoice">Invoice No</th>
                         <th class="col-order">Sales Order No</th>
                         <th class="col-date">Date</th>
-                        <th class="col-qty">Qty</th>
+                        <th class="col-gross-sold">Gross Sold</th>
+                        <th class="col-qty-returned">Qty Returned</th>
+                        <th class="col-net-qty">Net Qty</th>
                         <th class="col-unit">Unit</th>
                         <th class="col-price">Price</th>
-                        <th class="col-total">Total</th>
+                        <th class="col-net-amount">Net Amount</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -290,9 +294,11 @@
                         <td class="text-center">{{ item.sales_order.id }}</td>
                         <td class="text-center">{{ item.sales_order.order_date|date:"d/m/Y" }}</td>
                         <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-center">{{ item.returned_qty|default:0 }}</td>
+                        <td class="text-center">{{ item.net_qty }}</td>
                         <td class="text-center">{{ product.get_unit_display }}</td>
                         <td class="text-right">৳{{ item.unit_price|floatformat:2 }}</td>
-                        <td class="text-right">৳{{ item.total|floatformat:2 }}</td>
+                        <td class="text-right">৳{{ item.net_amount|floatformat:2 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -307,8 +313,24 @@
         <div class="summary-section">
             <div class="summary-title">Sales Summary</div>
             <div class="summary-content">
-                <span>Total Qty Sold: {{ total_qty }}</span>
-                <span>Total Amount: ৳{{ total_amount|floatformat:2 }}</span>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 10px; color: #666;">Gross Sold</div>
+                        <div style="font-weight: bold;">{{ gross_qty }}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 10px; color: #666;">Qty Returned</div>
+                        <div style="font-weight: bold;">{{ returned_qty|default:0 }}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 10px; color: #666;">Net Qty</div>
+                        <div style="font-weight: bold;">{{ net_qty }}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 10px; color: #666;">Net Amount</div>
+                        <div style="font-weight: bold;">৳{{ net_amount|floatformat:2 }}</div>
+                    </div>
+                </div>
             </div>
         </div>
         

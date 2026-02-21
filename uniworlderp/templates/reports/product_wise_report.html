@@ -91,10 +91,15 @@
                         <th class="py-2 px-4 border-b text-center">Invoice No</th>
                         <th class="py-2 px-4 border-b text-center">Sales Order No</th>
                         <th class="py-2 px-4 border-b text-center">Date</th>
-                        <th class="py-2 px-4 border-b text-center">Qty</th>
+                        <th class="py-2 px-4 border-b text-center">Gross Sold</th>
+                        <th class="py-2 px-4 border-b text-center">Qty Returned</th>
+                        <th class="py-2 px-4 border-b text-center">Net Qty</th>
                         <th class="py-2 px-4 border-b text-center">Unit</th>
                         <th class="py-2 px-4 border-b text-right">Price</th>
-                        <th class="py-2 px-4 border-b text-right">Total</th>
+                        <th class="py-2 px-4 border-b text-right">Gross Amount</th>
+                        <th class="py-2 px-4 border-b text-right">Discount Amount</th>
+                        <th class="py-2 px-4 border-b text-right">Return Amount</th>
+                        <th class="py-2 px-4 border-b text-right">Net Amount</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -111,13 +116,18 @@
                         <td class="py-2 px-4 border-b text-center">{{ item.sales_order.id }}</td>
                         <td class="py-2 px-4 border-b text-center">{{ item.sales_order.order_date|date:"d/m/Y" }}</td>
                         <td class="py-2 px-4 border-b text-center">{{ item.quantity }}</td>
+                        <td class="py-2 px-4 border-b text-center">{{ item.returned_qty|default:0 }}</td>
+                        <td class="py-2 px-4 border-b text-center">{{ item.net_qty|default:item.quantity }}</td>
                         <td class="py-2 px-4 border-b text-center">{{ selected_product.get_unit_display }}</td>
                         <td class="py-2 px-4 border-b text-right">৳{{ item.unit_price|floatformat:2 }}</td>
-                        <td class="py-2 px-4 border-b text-right">৳{{ item.total|floatformat:2 }}</td>
+                        <td class="py-2 px-4 border-b text-right">৳{{ item.gross_amount|floatformat:2 }}</td>
+                        <td class="py-2 px-4 border-b text-right">৳{{ item.total_discount|default:0|floatformat:2 }}</td>
+                        <td class="py-2 px-4 border-b text-right">৳{{ item.returned_amount|default:0|floatformat:2 }}</td>
+                        <td class="py-2 px-4 border-b text-right">৳{{ item.net_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-4">No sales data found.</td>
+                        <td colspan="13" class="text-center py-4">No sales data found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -126,12 +136,30 @@
 
         <!-- Summary -->
         <div class="mt-6 bg-blue-50 p-4 rounded-lg border-2 border-blue-300">
-            <div class="flex justify-between items-center">
-                <div class="text-lg font-bold text-blue-900">
-                    Total Qty Sold: {{ total_qty }}
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div class="text-center">
+                    <div class="text-sm text-blue-700">Gross Sold</div>
+                    <div class="text-lg font-bold text-blue-900">{{ gross_qty }}</div>
                 </div>
-                <div class="text-lg font-bold text-blue-900">
-                    Total Amount: ৳{{ total_amount|floatformat:2 }}
+                <div class="text-center">
+                    <div class="text-sm text-blue-700">Qty Returned</div>
+                    <div class="text-lg font-bold text-blue-900">{{ returned_qty|default:0 }}</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-sm text-blue-700">Net Qty</div>
+                    <div class="text-lg font-bold text-blue-900">{{ net_qty }}</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-sm text-blue-700">Gross Amount</div>
+                    <div class="text-lg font-bold text-blue-900">৳{{ gross_amount|floatformat:2 }}</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-sm text-blue-700">Return Amount</div>
+                    <div class="text-lg font-bold text-blue-900">৳{{ returned_amount|default:0|floatformat:2 }}</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-sm text-blue-700">Net Amount</div>
+                    <div class="text-lg font-bold text-blue-900">৳{{ net_amount|floatformat:2 }}</div>
                 </div>
             </div>
         </div>
@@ -257,8 +285,10 @@ function exportToCSV() {
     // Add summary
     csv.push(['']); // Empty row
     csv.push(['Summary']);
-    csv.push(['Total Qty Sold', '{{ total_qty }}']);
-    csv.push(['Total Amount', '৳{{ total_amount|floatformat:2 }}']);
+    csv.push(['Gross Sold', '{{ gross_qty }}']);
+    csv.push(['Qty Returned', '{{ returned_qty|default:0 }}']);
+    csv.push(['Net Qty', '{{ net_qty }}']);
+    csv.push(['Net Amount', '৳{{ net_amount|floatformat:2 }}']);
     
     // Convert to CSV format
     const csvContent = csv.map(row => 

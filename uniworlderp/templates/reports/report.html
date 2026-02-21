@@ -30,12 +30,14 @@
         <button type="button" class="tab-button w-full border-b-2 border-transparent py-4 px-1 text-sm font-medium text-white bg-transparent rounded-lg hover:bg-[#480d0f] transition-all" data-tab="date-summary">
           Total Amount by Date
         </button>
+        <!-- DISABLED: Product-wise and Customer-wise tabs - functionality available in main Generate Report
         <button type="button" class="tab-button w-full border-b-2 border-transparent py-4 px-1 text-sm font-medium text-white bg-transparent rounded-lg hover:bg-[#480d0f] transition-all" data-tab="product-wise-report">
           Product-wise Report
         </button>
         <button type="button" class="tab-button w-full border-b-2 border-transparent py-4 px-1 text-sm font-medium text-white bg-transparent rounded-lg hover:bg-[#480d0f] transition-all" data-tab="customer-wise-report">
           Customer-wise Report
         </button>
+        -->
       </nav>
     </div>
 
@@ -88,7 +90,8 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold">Sales Report Table</h2>
                 <div class="flex gap-2">
-                    <button type="button" onclick="printReport()" class="btn-secondary">Print Report</button>
+                    <button type="button" onclick="printGeneralReport()" class="btn-secondary">Print Report</button>
+                    <button type="button" onclick="exportGeneralReportExcel()" class="btn-secondary">Export to Excel</button>
                     <button type="button" class="export-button btn-secondary" data-table-id="salesReportTable">Export as CSV</button>
                 </div>
             </div>
@@ -99,10 +102,15 @@
                         <th scope="col" class="px-6 py-3 border-b">Sales Order No</th>
                         <th scope="col" class="px-6 py-3 border-b">Customer Name</th>
                         <th scope="col" class="px-6 py-3 border-b">Product Name</th>
-                        <th scope="col" class="px-6 py-3 border-b">Quantity</th>
+                        <th scope="col" class="px-6 py-3 border-b">Gross Sold</th>
+                        <th scope="col" class="px-6 py-3 border-b">Qty Returned</th>
+                        <th scope="col" class="px-6 py-3 border-b">Net Qty</th>
                         <th scope="col" class="px-6 py-3 border-b">Unit</th>
                         <th scope="col" class="px-6 py-3 border-b">Price</th>
-                        <th scope="col" class="px-6 py-3 border-b">Total</th>
+                        <th scope="col" class="px-6 py-3 border-b">Gross Amount</th>
+                        <th scope="col" class="px-6 py-3 border-b">Discount Amount</th>
+                        <th scope="col" class="px-6 py-3 border-b">Return Amount</th>
+                        <th scope="col" class="px-6 py-3 border-b">Net Amount</th>
                         <th scope="col" class="px-6 py-3 border-b">Sales Employee</th>
                     </tr>
                 </thead>
@@ -114,21 +122,32 @@
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.customer.name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.product.name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.quantity }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.returned_qty|default:0 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.net_qty|default:item.quantity }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.product.get_unit_display }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.unit_price|floatformat:2 }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ item.discounted_total|default:item.total|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.gross_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.total_discount|default:0|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.returned_amount|default:0|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ item.net_amount|floatformat:2 }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ item.sales_order.sales_employee.full_name }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">No sales data found for the selected criteria.</td>
+                        <td colspan="14" class="px-6 py-4 text-center text-sm text-gray-500">No sales data found for the selected criteria.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="7" class="px-6 py-4 text-right font-bold">Total:</td>
-                        <td class="px-6 py-4 font-bold" id="salesReportTotal"></td>
+                        <td colspan="4" class="px-6 py-4 text-right font-bold">Total:</td>
+                        <td class="px-6 py-4 font-bold">{{ gross_qty|default:0 }}</td>
+                        <td class="px-6 py-4 font-bold">{{ returned_qty|default:0 }}</td>
+                        <td class="px-6 py-4 font-bold">{{ net_qty|default:0 }}</td>
+                        <td colspan="2"></td>
+                        <td class="px-6 py-4 font-bold">{{ gross_amount|default:0|floatformat:2 }}</td>
+                        <td class="px-6 py-4 font-bold">{{ returned_amount|default:0|floatformat:2 }}</td>
+                        <td class="px-6 py-4 font-bold">{{ net_amount|default:0|floatformat:2 }}</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -146,25 +165,34 @@
                 <thead class="text-xs uppercase bg-gradient-to-r from-[#480d0f] to-[#000000] text-white">
                     <tr>
                         <th class="px-6 py-3 border-b">Customer</th>
-                        <th class="px-6 py-3 border-b">Total Amount</th>
+                        <th class="px-6 py-3 border-b">Gross Amount</th>
+                        <th class="px-6 py-3 border-b">Discount Amount</th>
+                        <th class="px-6 py-3 border-b">Return Amount</th>
+                        <th class="px-6 py-3 border-b">Net Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for summary in customer_summary %}
                     <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap">{{ summary.sales_order__customer__name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.gross_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.discount_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.return_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.net_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="2" class="px-6 py-4 text-center text-sm text-gray-500">No data available.</td>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No data available.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
                         <td class="px-6 py-4 text-right font-bold">Total:</td>
-                        <td class="px-6 py-4 font-bold" id="customerSummaryTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="customerSummaryGrossTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="customerSummaryDiscountTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="customerSummaryReturnTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="customerSummaryNetTotal"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -181,25 +209,34 @@
                 <thead class="text-xs uppercase bg-gradient-to-r from-[#480d0f] to-[#000000] text-white">
                     <tr>
                         <th class="px-6 py-3 border-b">Product</th>
-                        <th class="px-6 py-3 border-b">Total Amount</th>
+                        <th class="px-6 py-3 border-b">Gross Amount</th>
+                        <th class="px-6 py-3 border-b">Discount Amount</th>
+                        <th class="px-6 py-3 border-b">Return Amount</th>
+                        <th class="px-6 py-3 border-b">Net Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for summary in product_summary %}
                     <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap">{{ summary.product__name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.gross_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.discount_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.return_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.net_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="2" class="px-6 py-4 text-center text-sm text-gray-500">No data available.</td>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No data available.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
                         <td class="px-6 py-4 text-right font-bold">Total:</td>
-                        <td class="px-6 py-4 font-bold" id="productSummaryTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="productSummaryGrossTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="productSummaryDiscountTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="productSummaryReturnTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="productSummaryNetTotal"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -216,25 +253,34 @@
                 <thead class="text-xs uppercase bg-gradient-to-r from-[#480d0f] to-[#000000] text-white">
                     <tr>
                         <th class="px-6 py-3 border-b">Sales Employee</th>
-                        <th class="px-6 py-3 border-b">Total Amount</th>
+                        <th class="px-6 py-3 border-b">Gross Amount</th>
+                        <th class="px-6 py-3 border-b">Discount Amount</th>
+                        <th class="px-6 py-3 border-b">Return Amount</th>
+                        <th class="px-6 py-3 border-b">Net Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for summary in sales_employee_summary %}
                     <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap">{{ summary.sales_order__sales_employee__full_name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.gross_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.discount_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.return_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.net_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="2" class="px-6 py-4 text-center text-sm text-gray-500">No data available.</td>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No data available.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
                         <td class="px-6 py-4 text-right font-bold">Total:</td>
-                        <td class="px-6 py-4 font-bold" id="salesEmployeeSummaryTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="salesEmployeeSummaryGrossTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="salesEmployeeSummaryDiscountTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="salesEmployeeSummaryReturnTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="salesEmployeeSummaryNetTotal"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -251,32 +297,41 @@
                 <thead class="text-xs uppercase bg-gradient-to-r from-[#480d0f] to-[#000000] text-white">
                     <tr>
                         <th class="px-6 py-3 border-b">Date</th>
-                        <th class="px-6 py-3 border-b">Total Amount</th>
+                        <th class="px-6 py-3 border-b">Gross Amount</th>
+                        <th class="px-6 py-3 border-b">Discount Amount</th>
+                        <th class="px-6 py-3 border-b">Return Amount</th>
+                        <th class="px-6 py-3 border-b">Net Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for summary in date_summary %}
                     <tr class="border-b border-gray-300 hover:bg-gray-100 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap">{{ summary.sales_order__order_date|date:"M d, Y" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.total_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.gross_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.discount_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.return_amount|floatformat:2 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ summary.net_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="2" class="px-6 py-4 text-center text-sm text-gray-500">No data available.</td>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">No data available.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
                         <td class="px-6 py-4 text-right font-bold">Total:</td>
-                        <td class="px-6 py-4 font-bold" id="dateSummaryTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="dateSummaryGrossTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="dateSummaryDiscountTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="dateSummaryReturnTotal"></td>
+                        <td class="px-6 py-4 font-bold" id="dateSummaryNetTotal"></td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
     
-    <!-- Product-wise Report Tab -->
+    <!-- DISABLED: Product-wise Report Tab - Use main Generate Report with Product filter instead
     <div class="tab-content hidden" id="product-wise-report">
         <div class="bg-white p-6 rounded-lg shadow-md mb-6">
             <h3 class="text-lg font-semibold mb-4">Product-wise Sales Report</h3>
@@ -312,7 +367,7 @@
         </div>
     </div>
     
-    <!-- Customer-wise Report Tab -->
+    <!-- DISABLED: Customer-wise Report Tab - Use main Generate Report with Customer filter instead
     <div class="tab-content hidden" id="customer-wise-report">
         <div class="bg-white p-6 rounded-lg shadow-md mb-6">
             <h3 class="text-lg font-semibold mb-4">Customer-wise Sales Report</h3>
@@ -347,6 +402,7 @@
             <!-- Results will be loaded here -->
         </div>
     </div>
+    -->
 </div>
 
 <script>
@@ -467,6 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+/* DISABLED: Product-wise and Customer-wise report generation functions
 // Product-wise report generation
 function generateProductWiseReport() {
     const form = document.getElementById('product-wise-form');
@@ -580,6 +637,140 @@ window.exportCustomerReport = function(customerId, startDate, endDate) {
                 '&end_date=' + endDate;
     window.open(url, '_blank');
 };
+*/
+
+
+// Functions for general report Excel and Print
+function printGeneralReport() {
+    // Create a form to submit the filter data
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "customer_vendor:sales_report_print" %}';
+    form.target = '_blank';
+    
+    // Add CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    form.appendChild(csrfInput);
+    
+    // Add filter values
+    const customerSelect = document.getElementById('customer');
+    if (customerSelect && customerSelect.value) {
+        const customerInput = document.createElement('input');
+        customerInput.type = 'hidden';
+        customerInput.name = 'customer';
+        customerInput.value = customerSelect.value;
+        form.appendChild(customerInput);
+    }
+    
+    const productSelect = document.getElementById('product');
+    if (productSelect && productSelect.value) {
+        const productInput = document.createElement('input');
+        productInput.type = 'hidden';
+        productInput.name = 'product';
+        productInput.value = productSelect.value;
+        form.appendChild(productInput);
+    }
+    
+    const employeeSelect = document.getElementById('sales_employee');
+    if (employeeSelect && employeeSelect.value) {
+        const employeeInput = document.createElement('input');
+        employeeInput.type = 'hidden';
+        employeeInput.name = 'sales_employee';
+        employeeInput.value = employeeSelect.value;
+        form.appendChild(employeeInput);
+    }
+    
+    const startDateInput = document.getElementById('start_date');
+    if (startDateInput && startDateInput.value) {
+        const startInput = document.createElement('input');
+        startInput.type = 'hidden';
+        startInput.name = 'start_date';
+        startInput.value = startDateInput.value;
+        form.appendChild(startInput);
+    }
+    
+    const endDateInput = document.getElementById('end_date');
+    if (endDateInput && endDateInput.value) {
+        const endInput = document.createElement('input');
+        endInput.type = 'hidden';
+        endInput.name = 'end_date';
+        endInput.value = endDateInput.value;
+        form.appendChild(endInput);
+    }
+    
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+function exportGeneralReportExcel() {
+    // Create a form to submit the filter data
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "customer_vendor:sales_report_excel" %}';
+    
+    // Add CSRF token
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    form.appendChild(csrfInput);
+    
+    // Add filter values
+    const customerSelect = document.getElementById('customer');
+    if (customerSelect && customerSelect.value) {
+        const customerInput = document.createElement('input');
+        customerInput.type = 'hidden';
+        customerInput.name = 'customer';
+        customerInput.value = customerSelect.value;
+        form.appendChild(customerInput);
+    }
+    
+    const productSelect = document.getElementById('product');
+    if (productSelect && productSelect.value) {
+        const productInput = document.createElement('input');
+        productInput.type = 'hidden';
+        productInput.name = 'product';
+        productInput.value = productSelect.value;
+        form.appendChild(productInput);
+    }
+    
+    const employeeSelect = document.getElementById('sales_employee');
+    if (employeeSelect && employeeSelect.value) {
+        const employeeInput = document.createElement('input');
+        employeeInput.type = 'hidden';
+        employeeInput.name = 'sales_employee';
+        employeeInput.value = employeeSelect.value;
+        form.appendChild(employeeInput);
+    }
+    
+    const startDateInput = document.getElementById('start_date');
+    if (startDateInput && startDateInput.value) {
+        const startInput = document.createElement('input');
+        startInput.type = 'hidden';
+        startInput.name = 'start_date';
+        startInput.value = startDateInput.value;
+        form.appendChild(startInput);
+    }
+    
+    const endDateInput = document.getElementById('end_date');
+    if (endDateInput && endDateInput.value) {
+        const endInput = document.createElement('input');
+        endInput.type = 'hidden';
+        endInput.name = 'end_date';
+        endInput.value = endDateInput.value;
+        form.appendChild(endInput);
+    }
+    
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
 
 </script>
 
@@ -682,46 +873,48 @@ window.exportCustomerReport = function(customerId, startDate, endDate) {
         });
     });
 
-    // Function to calculate and display the total amount for each table
-    // For salesReportTable, Total is at column index 7 (0-indexed)
-    // For summary tables, Total is at the last column
-    const calculateTotal = (tableId, totalId, columnIndex = null) => {
+    // Function to calculate and display the total amount for each table with breakdown columns
+    const calculateTotalBreakdown = (tableId, grossTotalId, discountTotalId, returnTotalId, netTotalId) => {
         const table = document.getElementById(tableId);
         if (!table) return;
         
         const rows = table.querySelectorAll('tbody tr');
-        let total = 0;
+        let grossTotal = 0;
+        let discountTotal = 0;
+        let returnTotal = 0;
+        let netTotal = 0;
 
         rows.forEach(row => {
-            let amountCell;
-            if (columnIndex !== null) {
-                // Use specific column index for salesReportTable (Total column at index 7)
-                amountCell = row.querySelectorAll('td')[columnIndex];
-            } else {
-                // Use last column for summary tables
-                amountCell = row.querySelector('td:last-child');
-            }
-            if (amountCell) {
-                const amount = parseFloat(amountCell.textContent.trim().replace(/[^0-9.-]+/g, ""));
-                if (!isNaN(amount)) {
-                    total += amount;
-                }
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 5) {  // Ensure row has all columns
+                const gross = parseFloat(cells[1].textContent.trim().replace(/[^0-9.-]+/g, ""));
+                const discount = parseFloat(cells[2].textContent.trim().replace(/[^0-9.-]+/g, ""));
+                const returnAmt = parseFloat(cells[3].textContent.trim().replace(/[^0-9.-]+/g, ""));
+                const net = parseFloat(cells[4].textContent.trim().replace(/[^0-9.-]+/g, ""));
+                
+                if (!isNaN(gross)) grossTotal += gross;
+                if (!isNaN(discount)) discountTotal += discount;
+                if (!isNaN(returnAmt)) returnTotal += returnAmt;
+                if (!isNaN(net)) netTotal += net;
             }
         });
 
-        const totalElement = document.getElementById(totalId);
-        if (totalElement) {
-            totalElement.textContent = total.toFixed(2);
-        }
+        const grossElement = document.getElementById(grossTotalId);
+        const discountElement = document.getElementById(discountTotalId);
+        const returnElement = document.getElementById(returnTotalId);
+        const netElement = document.getElementById(netTotalId);
+        
+        if (grossElement) grossElement.textContent = grossTotal.toFixed(2);
+        if (discountElement) discountElement.textContent = discountTotal.toFixed(2);
+        if (returnElement) returnElement.textContent = returnTotal.toFixed(2);
+        if (netElement) netElement.textContent = netTotal.toFixed(2);
     };
 
-    // Calculate totals for each table
-    // For salesReportTable, Total column is at index 7 (Date=0, Order No=1, Customer=2, Product=3, Qty=4, Unit=5, Price=6, Total=7, Employee=8)
-    calculateTotal('salesReportTable', 'salesReportTotal', 7);
-    calculateTotal('customerSummaryTable', 'customerSummaryTotal');
-    calculateTotal('productSummaryTable', 'productSummaryTotal');
-    calculateTotal('salesEmployeeSummaryTable', 'salesEmployeeSummaryTotal');
-    calculateTotal('dateSummaryTable', 'dateSummaryTotal');
+    // Calculate totals for each summary table with breakdown
+    calculateTotalBreakdown('customerSummaryTable', 'customerSummaryGrossTotal', 'customerSummaryDiscountTotal', 'customerSummaryReturnTotal', 'customerSummaryNetTotal');
+    calculateTotalBreakdown('productSummaryTable', 'productSummaryGrossTotal', 'productSummaryDiscountTotal', 'productSummaryReturnTotal', 'productSummaryNetTotal');
+    calculateTotalBreakdown('salesEmployeeSummaryTable', 'salesEmployeeSummaryGrossTotal', 'salesEmployeeSummaryDiscountTotal', 'salesEmployeeSummaryReturnTotal', 'salesEmployeeSummaryNetTotal');
+    calculateTotalBreakdown('dateSummaryTable', 'dateSummaryGrossTotal', 'dateSummaryDiscountTotal', 'dateSummaryReturnTotal', 'dateSummaryNetTotal');
     
     // Add sorting functionality for single product transaction table if it exists
     const singleProductTable = document.getElementById('singleProductTransactionTable');

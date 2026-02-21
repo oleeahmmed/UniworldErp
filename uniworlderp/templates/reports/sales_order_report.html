@@ -54,6 +54,12 @@
                    title="Export to Excel">
                     <i class="fas fa-file-excel"></i> Excel
                 </a>
+                <button type="button" 
+                        onclick="exportTableToCSV('sales_order_report.csv')"
+                        class="btn btn-csv bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded ml-2"
+                        title="Export to CSV">
+                    <i class="fas fa-file-csv"></i> CSV
+                </button>
             </div>
         </form>
     </div>
@@ -80,9 +86,14 @@
     <div class="bg-white rounded-lg shadow-md p-4 mb-6">
         <div class="flex justify-between items-center">
             <h2 class="text-xl font-semibold">Report Summary</h2>
-            <div class="text-gray-600">
-                <span class="mr-4">Total Orders: <span class="font-bold">{{ total_orders }}</span></span>
-                <span>Total Amount: <span class="font-bold">{{ total_amount|floatformat:2 }}</span></span>
+            <div class="text-gray-600 grid grid-cols-2 md:grid-cols-3 gap-4">
+                <span>Total Orders: <span class="font-bold">{{ total_orders }}</span></span>
+                <span>Gross Sold: <span class="font-bold">{{ total_gross_qty|default:0 }}</span></span>
+                <span>Qty Returned: <span class="font-bold">{{ total_returned_qty|default:0 }}</span></span>
+                <span>Net Qty: <span class="font-bold">{{ total_net_qty|default:0 }}</span></span>
+                <span>Gross Amount: <span class="font-bold">{{ total_gross_amount|floatformat:2|default:0 }}</span></span>
+                <span>Return Amount: <span class="font-bold">{{ total_returned_amount|floatformat:2|default:0 }}</span></span>
+                <span>Net Amount: <span class="font-bold">{{ total_net_amount|floatformat:2|default:0 }}</span></span>
             </div>
         </div>
     </div>
@@ -95,41 +106,35 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Date</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Details</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sub Total</th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Discount</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gross Sold</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty Returned</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Qty</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gross Amount</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Amount</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Amount</th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sales Employee</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 {% for order in sales_orders %}
-                    {% for item in order.order_items.all %}
-                    <tr>
-                        {% if forloop.first %}
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="{{ order.order_items.count }}">{{ order.order_date|date:"Y-m-d" }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" rowspan="{{ order.order_items.count }}">{{ order.id }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="{{ order.order_items.count }}">{{ order.customer.name }}</td>
-                        {% endif %}
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.product.name }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.quantity }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.unit_price|floatformat:2 }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.total|floatformat:2 }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.discount_amount|floatformat:2 }}</td>
-                        {% if forloop.first %}
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" rowspan="{{ order.order_items.count }}">{{ order.total_amount|floatformat:2 }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowspan="{{ order.order_items.count }}">{{ order.sales_employee.full_name|default:"N/A" }}</td>
-                        {% endif %}
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="10" class="px-6 py-4 text-center text-sm text-gray-500">
-                            No sales orders found.
-                        </td>
-                    </tr>
-                    {% endfor %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.order_date|date:"Y-m-d" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ order.id }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.customer.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.gross_qty|default:0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.returned_qty|default:0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.net_qty|default:0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.gross_amount|floatformat:2|default:0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.returned_amount|floatformat:2|default:0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ order.net_amount|floatformat:2|default:0 }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.sales_employee.full_name|default:"N/A" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="px-6 py-4 text-center text-sm text-gray-500">
+                        No sales orders found.
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -153,5 +158,40 @@
             endDateInput.valueAsDate = today;
         }
     });
+    
+    // CSV Export Function
+    function exportTableToCSV(filename) {
+        const csv = [];
+        const rows = document.querySelectorAll("table tr");
+        
+        // Add header row
+        csv.push(['Order Date', 'Order ID', 'Customer', 'Gross Sold', 'Qty Returned', 'Net Qty', 'Gross Amount', 'Return Amount', 'Net Amount', 'Sales Employee'].join(','));
+        
+        // Add data rows
+        {% for order in sales_orders %}
+        csv.push([
+            '{{ order.order_date|date:"Y-m-d" }}',
+            '{{ order.id }}',
+            '{{ order.customer.name }}',
+            '{{ order.gross_qty|default:0 }}',
+            '{{ order.returned_qty|default:0 }}',
+            '{{ order.net_qty|default:0 }}',
+            '{{ order.gross_amount|floatformat:2|default:0 }}',
+            '{{ order.returned_amount|floatformat:2|default:0 }}',
+            '{{ order.net_amount|floatformat:2|default:0 }}',
+            '{{ order.sales_employee.full_name|default:"N/A" }}'
+        ].join(','));
+        {% endfor %}
+        
+        // Download CSV file
+        const csvFile = new Blob([csv.join('\n')], { type: 'text/csv' });
+        const downloadLink = document.createElement('a');
+        downloadLink.download = filename;
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = 'none';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
 </script>
 {% endblock %}

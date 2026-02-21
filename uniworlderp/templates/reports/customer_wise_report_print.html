@@ -100,17 +100,11 @@
             font-size: 9px;
         }
         
-        .col-date { width: 8%; text-align: center; }
-        .col-order { width: 8%; text-align: center; }
-        .col-customer { width: 12%; }
-        .col-products { width: 25%; }
-        .col-qty { width: 6%; text-align: center; }
-        .col-unit { width: 6%; text-align: center; }
-        .col-price { width: 8%; text-align: right; }
-        .col-subtotal { width: 8%; text-align: right; }
-        .col-discount { width: 8%; text-align: right; }
-        .col-net { width: 8%; text-align: right; }
-        .col-employee { width: 10%; text-align: center; }
+        .col-date { width: 12%; text-align: center; }
+        .col-order { width: 10%; text-align: center; }
+        .col-qty { width: 12%; text-align: center; }
+        .col-price { width: 16%; text-align: right; }
+        .col-net { width: 16%; text-align: right; }
         
         .text-right { text-align: right !important; }
         .text-center { text-align: center !important; }
@@ -245,15 +239,12 @@
                     <tr>
                         <th class="col-date">Order Date</th>
                         <th class="col-order">Order ID</th>
-                        <th class="col-customer">Customer</th>
-                        <th class="col-products">Product Details</th>
-                        <th class="col-qty">Qty</th>
-                        <th class="col-unit">Unit</th>
-                        <th class="col-price">Price</th>
-                        <th class="col-subtotal">Sub Total</th>
-                        <th class="col-discount">Discount</th>
+                        <th class="col-qty">Gross Sold</th>
+                        <th class="col-qty">Qty Returned</th>
+                        <th class="col-qty">Net Qty</th>
+                        <th class="col-price">Gross Amount</th>
+                        <th class="col-price">Return Amount</th>
                         <th class="col-net">Net Amount</th>
-                        <th class="col-employee">Sales Employee</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -261,33 +252,12 @@
                     <tr>
                         <td class="text-center">{{ order.order_date|date:"d/m/Y" }}</td>
                         <td class="text-center">{{ order.id }}</td>
-                        <td>{{ customer.name }}</td>
-                        <td>
-                            {% for item in order.order_items.all %}
-                                {{ item.product.name }} ({{ item.quantity }}){% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                        </td>
-                        <td class="text-center">
-                            {% with total_qty=0 %}
-                                {% for item in order.order_items.all %}
-                                    {% if forloop.first %}{{ item.quantity }}{% else %}+{{ item.quantity }}{% endif %}
-                                {% endfor %}
-                            {% endwith %}
-                        </td>
-                        <td class="text-center">
-                            {% if order.order_items.count > 1 %}
-                                Mixed
-                            {% else %}
-                                {{ order.order_items.first.product.get_unit_display }}
-                            {% endif %}
-                        </td>
-                        <td class="text-right">
-                            ৳{% for item in order.order_items.all %}{{ item.unit_price|floatformat:2 }}{% if not forloop.last %}+{% endif %}{% endfor %}
-                        </td>
-                        <td class="text-right">৳{{ order.total_amount|add:order.discount|floatformat:2 }}</td>
-                        <td class="text-right">৳{{ order.discount|floatformat:2 }}</td>
-                        <td class="text-right">৳{{ order.total_amount|floatformat:2 }}</td>
-                        <td class="text-center">{{ order.sales_employee.full_name|default:"N/A" }}</td>
+                        <td class="text-center">{{ order.gross_qty }}</td>
+                        <td class="text-center">{{ order.returned_qty|default:0 }}</td>
+                        <td class="text-center">{{ order.net_qty }}</td>
+                        <td class="text-right">৳{{ order.gross_amount|floatformat:2 }}</td>
+                        <td class="text-right">৳{{ order.returned_amount|default:0|floatformat:2 }}</td>
+                        <td class="text-right">৳{{ order.net_amount|floatformat:2 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -302,8 +272,13 @@
         <div class="summary-section">
             <div class="summary-title">Sales Summary</div>
             <div class="summary-content">
-                <span>Total Purchase: ৳{{ total_purchase|floatformat:2 }}</span>
-                <span>Total Discount: ৳{{ total_discount|floatformat:2 }}</span>
+                <span>Gross Sold: {{ gross_qty }}</span>
+                <span>Qty Returned: {{ returned_qty|default:0 }}</span>
+                <span>Net Qty: {{ net_qty }}</span>
+            </div>
+            <div class="summary-content" style="margin-top: 10px;">
+                <span>Gross Amount: ৳{{ gross_amount|floatformat:2 }}</span>
+                <span>Return Amount: ৳{{ returned_amount|default:0|floatformat:2 }}</span>
                 <span>Net Amount: ৳{{ net_amount|floatformat:2 }}</span>
             </div>
         </div>
@@ -332,36 +307,6 @@
             window.print();
         }
         {% endif %}
-        
-        // Calculate total quantities and prices for each row
-        document.addEventListener('DOMContentLoaded', function() {
-            const rows = document.querySelectorAll('tbody tr');
-            rows.forEach(function(row) {
-                // Calculate total quantity
-                const qtyCell = row.cells[4];
-                const productDetails = row.cells[3].textContent;
-                const qtyMatches = productDetails.match(/\((\d+)\)/g);
-                if (qtyMatches) {
-                    let totalQty = 0;
-                    qtyMatches.forEach(match => {
-                        const qty = parseInt(match.replace(/[()]/g, ''));
-                        totalQty += qty;
-                    });
-                    qtyCell.textContent = totalQty;
-                }
-                
-                // Calculate total price
-                const priceCell = row.cells[6];
-                if (priceCell && priceCell.textContent.includes('+')) {
-                    const prices = priceCell.textContent.replace('৳', '').split('+');
-                    let totalPrice = 0;
-                    prices.forEach(price => {
-                        totalPrice += parseFloat(price.trim()) || 0;
-                    });
-                    priceCell.innerHTML = '৳' + totalPrice.toFixed(2);
-                }
-            });
-        });
     </script>
 </body>
 </html>

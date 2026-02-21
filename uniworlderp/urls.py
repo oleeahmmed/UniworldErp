@@ -80,6 +80,8 @@ urlpatterns = [
     path('materials-purchases/<int:pk>/print/', materials_purchase_views.MaterialsPurchasePrintView.as_view(), name='materials_purchase_print'),
     path('materials-purchases/report/', materials_purchase_views.MaterialsPurchaseReportView.as_view(), name='materials_purchase_report'),
     path('reports/', report_views.ReportView.as_view(), name='sales_report'),
+    path('reports/print/', report_views.ReportPrintView.as_view(), name='sales_report_print'),
+    path('reports/excel/', report_views.ReportExcelView.as_view(), name='sales_report_excel'),
     
     # Stock Report URLs
     path('reports/stock/', report_views.StockReportView.as_view(), name='stock_report'),

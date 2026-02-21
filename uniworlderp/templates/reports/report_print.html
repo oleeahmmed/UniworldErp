@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sales Order Report - Print View</title>
+    <title>General Sales Report - Print View</title>
     <meta charset="utf-8">
     <style>
         body {
@@ -90,12 +90,16 @@
 </head>
 <body>
     <div class="header">
-        <h1>Sales Order Report</h1>
+        <h1>General Sales Report</h1>
         <p>
-            {% if customer_info %}
-                Customer: {{ customer_info.name }}<br>
-                Mobile: {{ customer_info.phone_number }}<br>
-                Address: {{ customer_info.address|default:"N/A" }}<br>
+            {% if customer_name %}
+                Customer: {{ customer_name }}<br>
+            {% endif %}
+            {% if product_name %}
+                Product: {{ product_name }}<br>
+            {% endif %}
+            {% if employee_name %}
+                Sales Employee: {{ employee_name }}<br>
             {% endif %}
             {% if start_date and end_date %}
                 Date Range: {{ start_date|date:"d/m/Y" }} to {{ end_date|date:"d/m/Y" }}<br>
@@ -104,7 +108,7 @@
             {% elif end_date %}
                 To: {{ end_date|date:"d/m/Y" }}<br>
             {% endif %}
-            Generated on: {% now "d/m/Y H:i" %}
+            Generated on: {{ report_generated_at }}
         </p>
     </div>
     
@@ -113,16 +117,17 @@
     </div>
     
     <div class="summary">
-        <p>Total Orders: {{ total_orders }} | Gross Sold: {{ total_gross_qty|default:0 }} | Qty Returned: {{ total_returned_qty|default:0 }} | Net Qty: {{ total_net_qty|default:0 }} | Gross Amount: {{ total_gross_amount|floatformat:2|default:0 }} | Return Amount: {{ total_returned_amount|floatformat:2|default:0 }} | Net Amount: {{ total_net_amount|floatformat:2|default:0 }}</p>
+        <p>Gross Sold: {{ gross_qty|default:0 }} | Qty Returned: {{ returned_qty|default:0 }} | Net Qty: {{ net_qty|default:0 }} | Gross Amount: {{ gross_amount|floatformat:2|default:0 }} | Return Amount: {{ returned_amount|floatformat:2|default:0 }} | Net Amount: {{ net_amount|floatformat:2|default:0 }}</p>
     </div>
     
     <table>
         <thead>
             <tr>
                 <th>SL</th>
-                <th>Order Date</th>
-                <th>Order ID</th>
-                <th>Customer</th>
+                <th>Date</th>
+                <th>Sales Order No</th>
+                <th>Customer Name</th>
+                <th>Product Name</th>
                 <th>Gross Sold</th>
                 <th>Qty Returned</th>
                 <th>Net Qty</th>
@@ -133,30 +138,43 @@
             </tr>
         </thead>
         <tbody>
-            {% for order in sales_orders %}
+            {% for item in report_items %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ order.order_date|date:"d/m/Y" }}</td>
-                <td>{{ order.id }}</td>
-                <td>{{ order.customer.name }}</td>
-                <td>{{ order.gross_qty|default:0 }}</td>
-                <td>{{ order.returned_qty|default:0 }}</td>
-                <td>{{ order.net_qty|default:0 }}</td>
-                <td class="text-right">{{ order.gross_amount|floatformat:2|default:0 }}</td>
-                <td class="text-right">{{ order.returned_amount|floatformat:2|default:0 }}</td>
-                <td class="text-right">{{ order.net_amount|floatformat:2|default:0 }}</td>
-                <td>{{ order.sales_employee.full_name|default:"N/A" }}</td>
+                <td>{{ item.sales_order.order_date|date:"d/m/Y" }}</td>
+                <td>{{ item.sales_order.id }}</td>
+                <td>{{ item.sales_order.customer.name }}</td>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>0</td>
+                <td>{{ item.quantity }}</td>
+                <td class="text-right">{{ item.discounted_total|floatformat:2 }}</td>
+                <td class="text-right">0.00</td>
+                <td class="text-right">{{ item.discounted_total|floatformat:2 }}</td>
+                <td>{{ item.sales_order.sales_employee.full_name|default:"N/A" }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="11" class="text-center">No sales orders found.</td>
+                <td colspan="12" class="text-center">No sales data found.</td>
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" class="text-right"><strong>TOTALS:</strong></td>
+                <td><strong>{{ gross_qty|default:0 }}</strong></td>
+                <td><strong>{{ returned_qty|default:0 }}</strong></td>
+                <td><strong>{{ net_qty|default:0 }}</strong></td>
+                <td class="text-right"><strong>{{ gross_amount|floatformat:2|default:0 }}</strong></td>
+                <td class="text-right"><strong>{{ returned_amount|floatformat:2|default:0 }}</strong></td>
+                <td class="text-right"><strong>{{ net_amount|floatformat:2|default:0 }}</strong></td>
+                <td></td>
+            </tr>
+        </tfoot>
     </table>
     
     <div class="summary">
-        <p>Total Orders: {{ total_orders }} | Gross Sold: {{ total_gross_qty|default:0 }} | Qty Returned: {{ total_returned_qty|default:0 }} | Net Qty: {{ total_net_qty|default:0 }} | Gross Amount: {{ total_gross_amount|floatformat:2|default:0 }} | Return Amount: {{ total_returned_amount|floatformat:2|default:0 }} | Net Amount: {{ total_net_amount|floatformat:2|default:0 }}</p>
+        <p>Gross Sold: {{ gross_qty|default:0 }} | Qty Returned: {{ returned_qty|default:0 }} | Net Qty: {{ net_qty|default:0 }} | Gross Amount: {{ gross_amount|floatformat:2|default:0 }} | Return Amount: {{ returned_amount|floatformat:2|default:0 }} | Net Amount: {{ net_amount|floatformat:2|default:0 }}</p>
     </div>
 </body>
 </html>
