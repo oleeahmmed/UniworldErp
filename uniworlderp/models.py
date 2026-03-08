@@ -198,7 +198,7 @@ class StockTransaction(models.Model):
     def save(self, *args, **kwargs):
         with transaction.atomic():
             # Check if this is a new transaction (not an update)
-            is_new = self.pk is None
+            is_new = self._state.adding  # True only when inserting into DB for first time
             
             if is_new:
                 # Only update stock for new transactions

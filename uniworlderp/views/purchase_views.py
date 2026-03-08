@@ -258,7 +258,7 @@ class PurchaseOrderDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Delet
     def delete(self, request, *args, **kwargs):
         self.object = self.get_object()
 
-        # Revert stock quantities
+        # Revert stock quantities — StockTransaction.save() handles product stock update internally
         for item in self.object.order_items.all():
             StockTransaction.objects.create(
                 product=item.product,
@@ -267,10 +267,7 @@ class PurchaseOrderDeleteView(LoginRequiredMixin, PermissionRequiredMixin, Delet
                 reference=f"PO-{self.object.id}-Deleted",
                 owner=self.request.user
             )
-            item.product.stock_quantity -= item.quantity
-            item.product.save()
 
-        # messages.success(self.request, self.success_message)
         return super(PurchaseOrderDeleteView, self).delete(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -312,6 +309,7 @@ class PurchaseOrderReceiveView(LoginRequiredMixin, PermissionRequiredMixin, Upda
         self.object = self.get_object()
         if self.object.delivery_status == 'P':
             for item in self.object.order_items.all():
+                # StockTransaction.save() handles product stock update internally
                 StockTransaction.objects.create(
                     product=item.product,
                     transaction_type='IN',
@@ -319,9 +317,6 @@ class PurchaseOrderReceiveView(LoginRequiredMixin, PermissionRequiredMixin, Upda
                     reference=f"PO-{self.object.id}",
                     owner=self.request.user
                 )
-                # Update product stock quantity
-                item.product.stock_quantity += item.quantity
-                item.product.save()
             self.object.delivery_status = 'R'
             self.object.save()
             messages.success(request, "Purchase Order received successfully!")
