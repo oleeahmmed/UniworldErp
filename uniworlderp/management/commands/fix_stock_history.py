@@ -79,8 +79,14 @@ class Command(BaseCommand):
                             f'stock = {baseline_stock}'
                         )
                     else:
-                        baseline_stock = 0
-                        self.stdout.write('  No prior transaction found — starting from 0.')
+                        # No prior StockTransaction exists for this product.
+                        # Because the bug prevented stock updates, product.stock_quantity
+                        # still holds the correct pre-March-7 value — use that as baseline.
+                        baseline_stock = product.stock_quantity
+                        self.stdout.write(
+                            f'  No prior transaction found — using current '
+                            f'product.stock_quantity ({baseline_stock}) as baseline.'
+                        )
 
                     # Step 2: Get all broken transactions in chronological order
                     broken_txns = (
