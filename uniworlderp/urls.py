@@ -87,6 +87,9 @@ urlpatterns = [
     path('reports/stock/', report_views.StockReportView.as_view(), name='stock_report'),
     path('reports/stock/print/', report_views.StockReportPrintView.as_view(), name='stock_report_print'),
     
+    # Minimum Stock Report URL
+    path('reports/minimum-stock/', report_views.MinimumStockReportView.as_view(), name='minimum_stock_report'),
+    
     # Single Product Report Print URL
     path('reports/single-product/print/', report_views.SingleProductReportPrintView.as_view(), name='single_product_report_print'),
     

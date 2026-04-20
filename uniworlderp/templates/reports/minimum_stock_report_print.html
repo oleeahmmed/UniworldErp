@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Stock Report - Print</title>
+    <title>Minimum Stock Report - Print</title>
     <style>
         @page {
             size: A4;
@@ -73,12 +73,11 @@
             font-size: 12px;
         }
         
-        .col-sl { width: 4%; text-align: center; }
-        .col-name { width: 35%; }
-        .col-code { width: 12%; }
-        .col-unit { width: 6%; text-align: center; }
-        .col-numbers { width: 8%; text-align: right; }
-        .col-remarks { width: 15%; }
+        .col-sl { width: 8%; text-align: center; }
+        .col-name { width: 50%; }
+        .col-code { width: 20%; }
+        .col-unit { width: 10%; text-align: center; }
+        .col-stock { width: 12%; text-align: right; }
         
         .footer {
             margin-top: 20px;
@@ -118,7 +117,7 @@
             <p>Prepared by: {{ user.username|default:"System" }}</p>
         </div>
         <div class="header-center">
-            <h1 class="report-title">Stock Report</h1>
+            <h1 class="report-title">Minimum Stock Report</h1>
             <p class="report-subtitle">{{ report_date_display }}</p>
             <p style="font-size: 12px;">Generated on: {{ report_generated_at_formatted }} (BD Time)</p>
         </div>
@@ -136,11 +135,7 @@
                 <th class="col-name">Product Name</th>
                 <th class="col-code">Code</th>
                 <th class="col-unit">Unit</th>
-                <th class="col-numbers">Opening</th>
-                <th class="col-numbers">Received</th>
-                <th class="col-numbers">Issued</th>
-                <th class="col-numbers">Closing</th>
-                <th class="col-remarks">Remarks</th>
+                <th class="col-stock">Total Stock</th>
             </tr>
         </thead>
         <tbody>
@@ -150,15 +145,11 @@
                 <td class="col-name">{{ item.product_name }}</td>
                 <td class="col-code">{{ item.product_code }}</td>
                 <td class="col-unit">{{ item.unit }}</td>
-                <td class="col-numbers">{{ item.opening_stock }}</td>
-                <td class="col-numbers">{{ item.received_qty }}</td>
-                <td class="col-numbers">{{ item.issued_qty }}</td>
-                <td class="col-numbers">{{ item.closing_stock }}</td>
-                <td class="col-remarks">{{ item.remarks }}</td>
+                <td class="col-stock">{{ item.closing_stock }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="9" style="text-align: center; padding: 20px;">No data available for the selected criteria.</td>
+                <td colspan="5" style="text-align: center; padding: 20px;">No data available for the selected criteria.</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -179,4 +170,3 @@
     </script>
 </body>
 </html>
-

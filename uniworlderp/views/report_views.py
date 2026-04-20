@@ -491,7 +491,7 @@ class StockReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
         report_results = []
         with transaction.atomic():
-            for i, product in enumerate(products, 1):
+            for product in products:
                 # --- Stock Calculation Logic ---
                 
                 # 1. Get movements within the date range
@@ -516,17 +516,22 @@ class StockReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
                 remarks = "Order Required" if closing_stock <= product.reorder_level else ""
 
-                report_results.append({
-                    'sl': i,
-                    'product_name': product.name,
-                    'product_code': product.sku,
-                    'unit': product.get_unit_display(),
-                    'opening_stock': opening_stock,
-                    'received_qty': received_qty,
-                    'issued_qty': issued_qty,
-                    'closing_stock': closing_stock,
-                    'remarks': remarks,
-                })
+                # Skip products with 0 closing stock
+                if closing_stock > 0:
+                    report_results.append({
+                        'product_name': product.name,
+                        'product_code': product.sku,
+                        'unit': product.get_unit_display(),
+                        'opening_stock': opening_stock,
+                        'received_qty': received_qty,
+                        'issued_qty': issued_qty,
+                        'closing_stock': closing_stock,
+                        'remarks': remarks,
+                    })
+        
+        # Renumber the serial numbers after filtering
+        for i, item in enumerate(report_results, 1):
+            item['sl'] = i
 
         # --- Context for Template ---
         report_start_time = start_dt.strftime('%d/%m/%Y %I:%M %p')
@@ -2009,6 +2014,49 @@ class ReportPrintView(LoginRequiredMixin, View):
             'user': request.user,
             'report_generated_at': now_bdt.strftime('%d/%m/%Y %I:%M %p'),
             'print_view': True
+        }
+        
+        return render(request, self.template_name, context)
+
+
+class MinimumStockReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """View for generating and displaying minimum stock reports (only total stock)."""
+    template_name = 'reports/minimum_stock_report_print.html'
+    permission_required = 'uniworlderp.view_product'
+
+    def get(self, request, *args, **kwargs):
+        """Generate and display minimum stock report directly."""
+        # Get all active products
+        products = Product.objects.filter(is_active=True).order_by('name')
+        
+        report_results = []
+        sl = 1
+        for product in products:
+            closing_stock = product.stock_quantity or 0
+            
+            # Skip products with 0 stock
+            if closing_stock > 0:
+                report_results.append({
+                    'sl': sl,
+                    'product_name': product.name,
+                    'product_code': product.sku,
+                    'unit': product.get_unit_display(),
+                    'closing_stock': closing_stock,
+                })
+                sl += 1
+        
+        # Prepare report metadata
+        now = timezone.now()
+        bdt = pytz.timezone('Asia/Dhaka')
+        now_bdt = now.astimezone(bdt)
+        
+        context = {
+            'report_data': report_results,
+            'user': request.user,
+            'report_date_display': now_bdt.strftime('%d/%m/%Y'),
+            'report_generated_at_formatted': now_bdt.strftime('%d/%m/%Y %I:%M %p'),
+            'report_start_time': 'Current Stock',
+            'report_end_time': 'Current Stock',
         }
         
         return render(request, self.template_name, context)
