@@ -73,8 +73,17 @@
             font-size: 12px;
         }
         
+        tbody tr:nth-child(odd) {
+            background-color: #f9f9f9;
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #ffffff;
+        }
+        
         .col-sl { width: 10%; text-align: center; }
-        .col-name { width: 70%; }
+        .col-name { width: 50%; }
+        .col-price { width: 20%; text-align: right; }
         .col-stock { width: 20%; text-align: right; }
         
         .footer {
@@ -120,9 +129,7 @@
             <p style="font-size: 12px;">Generated on: {{ report_generated_at_formatted }} (BD Time)</p>
         </div>
         <div class="header-right">
-            <p><strong>Report Period:</strong></p>
-            <p>From: {{ report_start_time }}</p>
-            <p>To: {{ report_end_time }}</p>
+            <!-- Empty space for layout balance -->
         </div>
     </div>
     
@@ -131,6 +138,7 @@
             <tr>
                 <th class="col-sl">SL</th>
                 <th class="col-name">Product Name</th>
+                <th class="col-price">Price</th>
                 <th class="col-stock">Total Stock</th>
             </tr>
         </thead>
@@ -139,11 +147,12 @@
             <tr>
                 <td class="col-sl">{{ item.sl }}</td>
                 <td class="col-name">{{ item.product_name }}</td>
+                <td class="col-price">৳{{ item.price|floatformat:2 }}</td>
                 <td class="col-stock">{{ item.closing_stock }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="3" style="text-align: center; padding: 20px;">No data available for the selected criteria.</td>
+                <td colspan="4" style="text-align: center; padding: 20px;">No data available for the selected criteria.</td>
             </tr>
             {% endfor %}
         </tbody>

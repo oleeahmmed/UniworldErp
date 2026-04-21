@@ -2039,8 +2039,7 @@ class MinimumStockReportView(LoginRequiredMixin, PermissionRequiredMixin, View):
                 report_results.append({
                     'sl': sl,
                     'product_name': product.name,
-                    'product_code': product.sku,
-                    'unit': product.get_unit_display(),
+                    'price': product.price,
                     'closing_stock': closing_stock,
                 })
                 sl += 1
