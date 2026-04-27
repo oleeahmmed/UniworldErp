@@ -81,10 +81,11 @@
             background-color: #ffffff;
         }
         
-        .col-sl { width: 10%; text-align: center; }
-        .col-name { width: 50%; }
-        .col-price { width: 20%; text-align: right; }
-        .col-stock { width: 20%; text-align: right; }
+        .col-sl { width: 8%; text-align: center; }
+        .col-name { width: 30%; }
+        .col-description { width: 32%; }
+        .col-price { width: 15%; text-align: right; }
+        .col-stock { width: 15%; text-align: right; }
         
         .footer {
             margin-top: 20px;
@@ -138,6 +139,7 @@
             <tr>
                 <th class="col-sl">SL</th>
                 <th class="col-name">Product Name</th>
+                <th class="col-description">Description</th>
                 <th class="col-price">Price</th>
                 <th class="col-stock">Total Stock</th>
             </tr>
@@ -147,12 +149,13 @@
             <tr>
                 <td class="col-sl">{{ item.sl }}</td>
                 <td class="col-name">{{ item.product_name }}</td>
+                <td class="col-description">{{ item.description }}</td>
                 <td class="col-price">৳{{ item.price|floatformat:2 }}</td>
                 <td class="col-stock">{{ item.closing_stock }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" style="text-align: center; padding: 20px;">No data available for the selected criteria.</td>
+                <td colspan="5" style="text-align: center; padding: 20px;">No data available for the selected criteria.</td>
             </tr>
             {% endfor %}
         </tbody>
