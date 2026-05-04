@@ -257,8 +257,11 @@ class SalesOrder(models.Model):
     def update_total_amount(self):
         subtotal = sum(item.total for item in self.order_items.all())
         # Calculate final total: subtotal - discount + shipping
+        old_total = self.total_amount
         self.total_amount = subtotal - self.discount + self.shipping
+        print(f"      [MODEL] Updating Sales Order Total: Old={old_total}, New={self.total_amount}, Subtotal={subtotal}, Discount={self.discount}, Shipping={self.shipping}")
         self.save(update_fields=['total_amount'])
+        print(f"      [MODEL] ✓ Sales Order total updated")
 
     def save(self, *args, **kwargs):
         request = kwargs.pop('request', None)
@@ -390,9 +393,11 @@ class SalesOrderItem(models.Model):
                     old_item = SalesOrderItem.objects.get(pk=self.pk)
                     quantity_diff = self.quantity - old_item.quantity
                     quantity_changed = quantity_diff != 0
+                    print(f"      [MODEL] Existing item - Old qty: {old_item.quantity}, New qty: {self.quantity}, Diff: {quantity_diff}")
                 else:
                     quantity_diff = self.quantity
                     quantity_changed = True
+                    print(f"      [MODEL] New item - Quantity: {self.quantity}")
 
                 super().save(*args, **kwargs)
 
@@ -406,27 +411,36 @@ class SalesOrderItem(models.Model):
                         # Quantity decreased - return excess stock using 'RET' type per Requirement 5.4
                         transaction_type = 'RET' if not is_new else 'IN'
                 
+                    print(f"      [MODEL] Creating StockTransaction: Type={transaction_type}, Qty={abs(quantity_diff)}")
+                    
                     StockTransaction.objects.create(
                         product=self.product,
                         transaction_type=transaction_type,
                         quantity=abs(quantity_diff),
                         reference=f"SO-{self.sales_order.id}{'-Update' if not is_new else ''}",
                         owner=self.sales_order.owner
-                    )   
+                    )
+                    
+                    print(f"      [MODEL] ✓ StockTransaction created successfully")
 
                 self.sales_order.update_total_amount()
 
         except IntegrityError as e:
+            print(f"      [MODEL] ❌ IntegrityError: {str(e)}")
             raise ValidationError(_("Error saving SalesOrderItem: %(error)s") % {'error': str(e)})
         except ValidationError as e:
+            print(f"      [MODEL] ❌ ValidationError: {str(e)}")
             raise e
         except Exception as e:
+            print(f"      [MODEL] ❌ Exception: {str(e)}")
             raise ValidationError(_("Unexpected error saving SalesOrderItem: %(error)s") % {'error': str(e)})
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
         try:
             with transaction.atomic():
+                print(f"      [MODEL] Creating RET StockTransaction for deleted item: Qty={self.quantity}")
+                
                 StockTransaction.objects.create(
                     product=self.product,
                     transaction_type='RET',
@@ -434,11 +448,16 @@ class SalesOrderItem(models.Model):
                     reference=f"SO-{self.sales_order.id}-DeletedItem",
                     owner=self.sales_order.owner
                 )
+                
+                print(f"      [MODEL] ✓ RET StockTransaction created successfully")
 
                 sales_order = self.sales_order
                 super().delete(*args, **kwargs)
                 sales_order.update_total_amount()
+                
+                print(f"      [MODEL] ✓ Item deleted from database")
         except Exception as e:
+            print(f"      [MODEL] ❌ Error during deletion: {str(e)}")
             raise ValidationError(_("Error deleting SalesOrderItem: %(error)s") % {'error': str(e)})
 
 

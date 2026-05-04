@@ -21,10 +21,10 @@
 
     <!-- Transfer Buttons -->
     <div class="flex md:flex-col justify-center gap-2">
-        <button id="add-selected-permissions" class="p-2 rounded border bg-[var(--secondary)] text-[var(--secondary-foreground)]">
+        <button id="add-selected-permissions" class="p-2 rounded border bg-[var(--secondary)] text-[var(--secondary-foreground)]" {% if not can_change_permission %}disabled title="You don't have permission to modify permissions"{% endif %}>
             <i class="ri-arrow-right-line"></i>
         </button>
-        <button id="remove-selected-permissions" class="p-2 rounded border bg-[var(--secondary)] text-[var(--secondary-foreground)]">
+        <button id="remove-selected-permissions" class="p-2 rounded border bg-[var(--secondary)] text-[var(--secondary-foreground)]" {% if not can_change_permission %}disabled title="You don't have permission to modify permissions"{% endif %}>
             <i class="ri-arrow-left-line"></i>
         </button>
     </div>
@@ -46,6 +46,7 @@
 </div>
 
 <!-- Save Button -->
+{% if can_change_permission %}
 <div class="mt-4">
     <form method="POST">
         {% csrf_token %}
@@ -55,6 +56,13 @@
         </button>
     </form>
 </div>
+{% else %}
+<div class="mt-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-md">
+    <p class="text-sm">
+        <i class="ri-lock-line"></i> You do not have permission to modify group permissions. Contact your administrator.
+    </p>
+</div>
+{% endif %}
 
 {% endblock %}
 

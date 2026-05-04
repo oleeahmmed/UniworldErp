@@ -577,15 +577,17 @@
     }
 
     function updateFormsetIndexes() {
-        const visibleRows = Array.from(orderItemsFormset.querySelectorAll('.formset-row')).filter(
-            row => row.style.display !== 'none'
-        );
+        // Get ALL rows (including hidden/deleted ones)
+        const allRows = Array.from(orderItemsFormset.querySelectorAll('.formset-row'));
         
         const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
         if (totalForms) {
-            totalForms.value = visibleRows.length;
+            // IMPORTANT: TOTAL_FORMS must include ALL rows, even hidden/deleted ones
+            // Django formsets need to know about deleted items to process them
+            totalForms.value = allRows.length;
             
-            // Ensure at least one visible row
+            // Check if we have at least one visible row
+            const visibleRows = allRows.filter(row => row.style.display !== 'none');
             if (visibleRows.length === 0) {
                 addFormsetRow();
             }

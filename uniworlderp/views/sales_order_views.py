@@ -171,27 +171,118 @@ class SalesOrderUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateVi
 
     @transaction.atomic
     def form_valid(self, form):
+        print("\n" + "="*80)
+        print("SALES ORDER UPDATE - STARTING")
+        print("="*80)
+        
+        # Debug: Show what was posted
+        print("\nPOST Data Summary:")
+        for key, value in self.request.POST.items():
+            if key.startswith('order_items-'):
+                print(f"  {key}: {value}")
+        
         context = self.get_context_data()
         formset = context['formset']
         
         if formset.is_valid():
             # Save the sales order first
             self.object = form.save()
+            print(f"\n✓ Sales Order #{self.object.id} saved")
+            print(f"  Customer: {self.object.customer.name}")
+            print(f"  Order Date: {self.object.order_date}")
+            print(f"  Discount: {self.object.discount}")
+            print(f"  Shipping: {self.object.shipping}")
+            
             formset.instance = self.object
             
-            # Process the formset - this will handle new items and modifications
+            # Process the formset with commit=False to get deleted_objects
+            # This will handle new items and modifications without saving yet
+            print("\n" + "-"*80)
+            print("PROCESSING FORMSET")
+            print("-"*80)
+            items = formset.save(commit=False)
+            
+            print(f"\nFormset Analysis:")
+            print(f"  - New/Modified items to save: {len(items)}")
+            print(f"  - Items marked for deletion: {len(formset.deleted_objects)}")
+            
+            # Debug: Show all current items in database
+            current_items = list(self.object.order_items.all().values_list('id', 'product__name', 'quantity'))
+            print(f"\nCurrent items in database BEFORE changes:")
+            for item_id, product_name, qty in current_items:
+                print(f"  - ID {item_id}: {product_name} x {qty}")
+            
+            # Handle deletions FIRST before saving new/modified items
+            # deleted_objects is only available after calling save(commit=False)
+            if formset.deleted_objects:
+                print("\n" + "-"*80)
+                print("DELETING ITEMS")
+                print("-"*80)
+                for item in formset.deleted_objects:
+                    if item.pk:  # Only process items that exist in the database
+                        print(f"\n🗑️  Deleting Item ID: {item.pk}")
+                        print(f"   Product: {item.product.name}")
+                        print(f"   Quantity being returned: {item.quantity}")
+                        print(f"   Stock before deletion: {item.product.stock_quantity}")
+                        
+                        # The SalesOrderItem.delete method will create the appropriate stock transaction
+                        item.delete()
+                        
+                        # Refresh product to see updated stock
+                        item.product.refresh_from_db()
+                        print(f"   Stock after deletion: {item.product.stock_quantity}")
+                        print(f"   ✓ Item deleted and stock returned")
+            
+            # Save each new/modified item individually to trigger the custom save logic
             # For new items, the SalesOrderItem.save method will create appropriate stock transactions
             # For modified items, the SalesOrderItem.save method will detect quantity changes and create transactions
-            items = formset.save()
+            if items:
+                print("\n" + "-"*80)
+                print("SAVING NEW/MODIFIED ITEMS")
+                print("-"*80)
+                for item in items:
+                    is_new = item.pk is None
+                    
+                    if is_new:
+                        print(f"\n➕ Adding NEW Item")
+                        print(f"   Product: {item.product.name}")
+                        print(f"   Quantity: {item.quantity}")
+                        print(f"   Unit Price: {item.unit_price}")
+                        print(f"   Stock before adding: {item.product.stock_quantity}")
+                    else:
+                        # Get old item to compare
+                        from uniworlderp.models import SalesOrderItem
+                        old_item = SalesOrderItem.objects.get(pk=item.pk)
+                        quantity_diff = item.quantity - old_item.quantity
+                        
+                        print(f"\n✏️  Modifying EXISTING Item ID: {item.pk}")
+                        print(f"   Product: {item.product.name}")
+                        print(f"   Old Quantity: {old_item.quantity}")
+                        print(f"   New Quantity: {item.quantity}")
+                        print(f"   Quantity Change: {quantity_diff:+d}")
+                        print(f"   Stock before modification: {item.product.stock_quantity}")
+                    
+                    item.save()
+                    
+                    # Refresh product to see updated stock
+                    item.product.refresh_from_db()
+                    print(f"   Stock after save: {item.product.stock_quantity}")
+                    print(f"   ✓ Item saved successfully")
             
-            # Handle deletions separately since we need to ensure stock is returned
-            for item in formset.deleted_objects:
-                if item.pk:  # Only process items that exist in the database
-                    # The SalesOrderItem.delete method will create the appropriate stock transaction
-                    item.delete()
+            # Debug: Show all items in database AFTER changes
+            final_items = list(self.object.order_items.all().values_list('id', 'product__name', 'quantity'))
+            print(f"\nFinal items in database AFTER changes:")
+            for item_id, product_name, qty in final_items:
+                print(f"  - ID {item_id}: {product_name} x {qty}")
+            
+            print("\n" + "="*80)
+            print("SALES ORDER UPDATE - COMPLETED SUCCESSFULLY")
+            print("="*80 + "\n")
             
             return super().form_valid(form)
         else:
+            print("\n❌ FORMSET VALIDATION FAILED")
+            print(f"Formset errors: {formset.errors}")
             return self.form_invalid(form)
 
     def get_common_context(self):

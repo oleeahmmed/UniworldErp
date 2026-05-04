@@ -512,16 +512,151 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Set today's date as default for end date fields
+    // Set today's date as default for end date fields (if they exist)
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('pw-end-date').value = today;
-    document.getElementById('cw-end-date').value = today;
+    const pwEndDate = document.getElementById('pw-end-date');
+    const cwEndDate = document.getElementById('cw-end-date');
+    if (pwEndDate) pwEndDate.value = today;
+    if (cwEndDate) cwEndDate.value = today;
     
     // Set first tab as active by default
     if (tabButtons.length > 0) {
         tabButtons[0].click();
     }
+    
+    // Initialize searchable dropdowns for filter fields
+    initializeSearchableDropdowns();
 });
+
+// Searchable Dropdown Function
+function initializeSearchableDropdowns() {
+    console.log('Initializing searchable dropdowns...');
+    // Initialize searchable dropdowns for customer, product, and sales employee
+    const customerSelect = document.getElementById('customer');
+    const productSelect = document.getElementById('product');
+    const salesEmployeeSelect = document.getElementById('sales_employee');
+    
+    console.log('Customer select:', customerSelect);
+    console.log('Product select:', productSelect);
+    console.log('Sales employee select:', salesEmployeeSelect);
+    
+    if (customerSelect) createSearchableDropdown(customerSelect, 'Search customers...');
+    if (productSelect) createSearchableDropdown(productSelect, 'Search products...');
+    if (salesEmployeeSelect) createSearchableDropdown(salesEmployeeSelect, 'Search employees...');
+}
+
+function createSearchableDropdown(select, placeholder) {
+    // Check if already initialized
+    if (select.nextSibling && select.nextSibling.classList && select.nextSibling.classList.contains('dropdown-wrapper')) {
+        return;
+    }
+    
+    // Create wrapper container
+    const wrapper = document.createElement('div');
+    wrapper.className = 'relative dropdown-wrapper w-full';
+    
+    // Create button that shows/hides the dropdown
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'form-input mt-1 block w-full text-left flex justify-between items-center';
+    
+    // Create span for selected text
+    const selectedText = document.createElement('span');
+    selectedText.className = 'selected-text';
+    selectedText.textContent = select.options[select.selectedIndex]?.text || select.options[0]?.text || 'Select...';
+    
+    // Add arrow icon
+    const arrow = document.createElement('span');
+    arrow.innerHTML = '▼';
+    arrow.className = 'text-xs';
+    
+    button.appendChild(selectedText);
+    button.appendChild(arrow);
+    
+    // Create dropdown container
+    const dropdown = document.createElement('div');
+    dropdown.className = 'absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto hidden';
+    
+    // Create search input
+    const searchContainer = document.createElement('div');
+    searchContainer.className = 'p-2 sticky top-0 bg-white border-b';
+    
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.className = 'w-full p-2 border border-gray-300 rounded-md';
+    searchInput.placeholder = placeholder;
+    
+    searchContainer.appendChild(searchInput);
+    dropdown.appendChild(searchContainer);
+    
+    // Create options list
+    const optionsList = document.createElement('div');
+    optionsList.className = 'py-1';
+    
+    // Add options from the original select
+    Array.from(select.options).forEach(option => {
+        const optionElement = document.createElement('div');
+        optionElement.className = 'px-4 py-2 hover:bg-gray-100 cursor-pointer';
+        optionElement.dataset.value = option.value;
+        optionElement.textContent = option.text;
+        
+        optionElement.addEventListener('click', () => {
+            select.value = option.value;
+            selectedText.textContent = option.text;
+            dropdown.classList.add('hidden');
+            
+            // Dispatch change event to trigger any listeners
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        
+        optionsList.appendChild(optionElement);
+    });
+    
+    dropdown.appendChild(optionsList);
+    
+    // Add button click handler
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+        dropdown.classList.toggle('hidden');
+        if (!dropdown.classList.contains('hidden')) {
+            searchInput.focus();
+            
+            // Close any other open dropdowns
+            document.querySelectorAll('.dropdown-wrapper .absolute').forEach(el => {
+                if (el !== dropdown) el.classList.add('hidden');
+            });
+        }
+    });
+    
+    // Add search functionality
+    searchInput.addEventListener('input', () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        Array.from(optionsList.children).forEach(option => {
+            const text = option.textContent.toLowerCase();
+            option.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+    
+    // Insert the custom dropdown after the select
+    wrapper.appendChild(button);
+    wrapper.appendChild(dropdown);
+    
+    // Hide the original select and insert our custom dropdown
+    select.style.display = 'none';
+    select.parentNode.insertBefore(wrapper, select.nextSibling);
+    
+    // Ensure the dropdown is updated when the original select changes
+    select.addEventListener('change', () => {
+        selectedText.textContent = select.options[select.selectedIndex]?.text || 'Select...';
+    });
+}
 
 /* DISABLED: Product-wise and Customer-wise report generation functions
 // Product-wise report generation
