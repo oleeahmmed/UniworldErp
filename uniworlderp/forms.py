@@ -61,13 +61,18 @@ class BaseOrderItemForm(BaseStyleForm):
             self.fields['display_total'].initial = getattr(self.instance, 'total', 0)
 
 class CustomerVendorForm(BaseStyleForm):
+    city = forms.ChoiceField(required=False, label='City')
+    area = forms.ChoiceField(required=False, label='Area')
+
     class Meta:
         model = CustomerVendor
-        fields = ['name', 'email', 'phone_number', 'whatsapp_number', 'business_type', 'entity_type', 'address']
+        fields = ['name', 'email', 'phone_number', 'whatsapp_number', 'business_type', 'entity_type', 'address', 'city', 'area']
         help_texts = {
             'business_type': 'Select the type of business relationship (Retailer, Wholesaler, Manufacturer, or Others)',
             'phone_number': 'Phone number is required for all customers and vendors',
             'whatsapp_number': 'WhatsApp number is optional but recommended for better communication',
+            'city': 'Select the city/district the customer is located in',
+            'area': 'Select the area/thana within the chosen city',
         }
 
     def __init__(self, *args, **kwargs):
@@ -77,17 +82,25 @@ class CustomerVendorForm(BaseStyleForm):
         self.fields['phone_number'].error_messages = {
             'required': 'Phone number is required for all customers and vendors.'
         }
-        
+
         # Set field labels for better user experience
         self.fields['phone_number'].label = 'Phone Number *'
         self.fields['whatsapp_number'].label = 'WhatsApp Number'
         self.fields['business_type'].label = 'Business Type *'
-        
+
         # Make business_type required
         self.fields['business_type'].required = True
         self.fields['business_type'].error_messages = {
             'required': 'Please select a business type.'
         }
+
+        # Populate City/Area dropdowns from Bangladesh location reference data.
+        # Area choices include every area across all cities so the field
+        # validates regardless of which city is selected; the City/Area
+        # cascading filter is handled client-side via JS.
+        from .location_data import get_city_choices, get_area_choices
+        self.fields['city'].choices = [('', '---------')] + get_city_choices()
+        self.fields['area'].choices = [('', '---------')] + get_area_choices()
 
     def clean_phone_number(self):
         """Validate phone_number field to ensure it's provided"""

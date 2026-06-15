@@ -11,6 +11,39 @@ from django.db.models.functions import Coalesce
 
 from uniworlderp.models import CustomerVendor, SalesOrder, ARInvoice,PurchaseOrder
 from uniworlderp.forms import CustomerVendorForm
+
+
+# Matches placeholder phone numbers like '000-000-0000', '0000000000', '', '-', etc.
+NO_MOBILE_REGEX = r'^[0\-\s]*$'
+
+
+def get_customer_city_area_map():
+    """Builds a {city: sorted [areas]} map from the city/area values that
+    actually exist on current customer/vendor records (so the filter dropdowns
+    only ever show options that will return results)."""
+    rows = (
+        CustomerVendor.objects
+        .exclude(city__isnull=True).exclude(city='')
+        .exclude(area__isnull=True).exclude(area='')
+        .values_list('city', 'area')
+        .distinct()
+    )
+    city_area_map = {}
+    for city, area in rows:
+        city_area_map.setdefault(city, set()).add(area)
+
+    # Also include cities that have no area set at all, so they still appear
+    for city in (
+        CustomerVendor.objects
+        .exclude(city__isnull=True).exclude(city='')
+        .values_list('city', flat=True)
+        .distinct()
+    ):
+        city_area_map.setdefault(city, set())
+
+    return {city: sorted(areas) for city, areas in sorted(city_area_map.items())}
+
+
 class CustomerVendorListView(ListView):
     model = CustomerVendor
     template_name = 'customer_vendor/list.html'
@@ -21,6 +54,8 @@ class CustomerVendorListView(ListView):
         search_query = self.request.GET.get('search', '')
         entity_type = self.request.GET.get('entity_type', '')
         business_type = self.request.GET.get('business_type', '')
+        city = self.request.GET.get('city', '')
+        area = self.request.GET.get('area', '')
         queryset = CustomerVendor.objects.all()
 
         # Search filtering
@@ -35,10 +70,16 @@ class CustomerVendorListView(ListView):
         # Entity type filtering
         if entity_type:
             queryset = queryset.filter(entity_type=entity_type)
-            
+
         # Business type filtering
         if business_type:
             queryset = queryset.filter(business_type=business_type)
+
+        # City / Area filtering
+        if city:
+            queryset = queryset.filter(city=city)
+            if area:
+                queryset = queryset.filter(area=area)
 
         # Annotate with total sales and total invoices
         queryset = queryset.annotate(
@@ -54,6 +95,25 @@ class CustomerVendorListView(ListView):
         context['entity_type'] = self.request.GET.get('entity_type', '')
         context['business_type'] = self.request.GET.get('business_type', '')
         context['business_type_choices'] = CustomerVendor.BUSINESS_TYPE_CHOICES
+
+        city = self.request.GET.get('city', '')
+        area = self.request.GET.get('area', '')
+        context['city'] = city
+        context['area'] = area
+        context['city_area_map'] = get_customer_city_area_map()
+        context['cities'] = sorted(context['city_area_map'].keys())
+        context['areas'] = context['city_area_map'].get(city, [])
+
+        # Preserve current filters for the "Print List" link and pagination links
+        filter_params = self.request.GET.copy()
+        filter_params.pop('page', None)
+        context['print_query_string'] = filter_params.urlencode()
+        context['filter_query_string'] = filter_params.urlencode()
+
+        page_obj = context['page_obj']
+        context['elided_page_range'] = page_obj.paginator.get_elided_page_range(
+            page_obj.number, on_each_side=2, on_ends=1
+        )
         return context
 class CustomerVendorCreateView(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = CustomerVendor
@@ -212,6 +272,32 @@ class CustomerVendorPrintView(LoginRequiredMixin, DetailView):
         context.update({
             'company': company,
         })
+        return context
+
+
+class CustomerVendorListPrintView(LoginRequiredMixin, ListView):
+    model = CustomerVendor
+    template_name = 'customer_vendor/print_list.html'
+    context_object_name = 'customers'
+
+    def get_queryset(self):
+        city = self.request.GET.get('city', '')
+        area = self.request.GET.get('area', '')
+
+        queryset = CustomerVendor.objects.exclude(phone_number__regex=NO_MOBILE_REGEX)
+
+        if city:
+            queryset = queryset.filter(city=city)
+            if area:
+                queryset = queryset.filter(area=area)
+
+        return queryset.order_by('city', 'area', 'name')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['company'] = Company.objects.first()
+        context['city'] = self.request.GET.get('city', '')
+        context['area'] = self.request.GET.get('area', '')
         return context
 
 

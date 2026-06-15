@@ -6,26 +6,34 @@
 
 <div class="bg-[hsl(var(--background))] rounded-lg shadow-lg overflow-hidden border border-[hsl(var(--border))]">
     <div class="p-6">
-        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0 sm:space-x-4">
-            <!-- Add New Customer Button -->
-            <div class="flex items-center space-x-2">
-                <a href="{% url 'customer_vendor:customer_create' %}" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#a31319] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-lg">
+        <div class="flex flex-col gap-4 mb-4">
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{% url 'customer_vendor:customer_create' %}" class="inline-flex items-center whitespace-nowrap px-4 py-2 bg-gradient-to-br from-[#a31319] to-black text-white rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-sm">
                     <i class="ri-add-line mr-1"></i> Add New Customer
                 </a>
-                <a href="{% url 'customer_vendor:customer_report' %}" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-br from-[#0d834e] to-black text-white rounded-full hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-lg">
+                <a href="{% url 'customer_vendor:customer_report' %}" class="inline-flex items-center whitespace-nowrap px-4 py-2 bg-gradient-to-br from-[#0d834e] to-black text-white rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-sm">
                     <i class="ri-file-chart-line mr-1"></i> Customer Report
                 </a>
+                <a href="{% url 'customer_vendor:customer_list_print' %}?{{ print_query_string }}" target="_blank" class="inline-flex items-center whitespace-nowrap px-4 py-2 bg-gradient-to-br from-[#a37313] to-black text-white rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-sm">
+                    <i class="ri-printer-line mr-1"></i> Print List
+                </a>
             </div>
-        
+
             <!-- Filter Form -->
-            <form method="get" action="{% url 'customer_vendor:customer_list' %}" class="relative w-full sm:w-auto flex flex-wrap gap-2">
-                <input type="text" name="search" placeholder="Search..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-48 sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
-                <select name="entity_type" class="py-2 px-3 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-auto sm:text-sm bg-[hsl(var(--background))]">
+            <form method="get" action="{% url 'customer_vendor:customer_list' %}" class="flex flex-wrap items-center gap-2">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
+                    </div>
+                    <input type="text" name="search" placeholder="Search..." class="pl-10 pr-4 py-2 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-48 sm:text-sm bg-[hsl(var(--background))]" value="{{ request.GET.search }}">
+                </div>
+                <select name="entity_type" class="py-2 px-3 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-36 sm:text-sm bg-[hsl(var(--background))]">
                     <option value="">All Types</option>
                     <option value="customer" {% if request.GET.entity_type == 'customer' %}selected{% endif %}>Customer</option>
                     <option value="vendor" {% if request.GET.entity_type == 'vendor' %}selected{% endif %}>Vendor</option>
                 </select>
-                <select name="business_type" class="py-2 px-3 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-auto sm:text-sm bg-[hsl(var(--background))]">
+                <select name="business_type" class="py-2 px-3 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-44 sm:text-sm bg-[hsl(var(--background))]">
                     <option value="">All Business Types</option>
                     {% for choice_value, choice_label in business_type_choices %}
                         <option value="{{ choice_value }}" {% if request.GET.business_type == choice_value %}selected{% endif %}>
@@ -33,14 +41,27 @@
                         </option>
                     {% endfor %}
                 </select>
+                <select name="city" id="city-filter" class="py-2 px-3 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-36 sm:text-sm bg-[hsl(var(--background))]">
+                    <option value="">All Cities</option>
+                    {% for c in cities %}
+                        <option value="{{ c }}" {% if city == c %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+                <select name="area" id="area-filter" class="py-2 px-3 border border-[hsl(var(--border))] rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:w-36 sm:text-sm bg-[hsl(var(--background))]">
+                    <option value="">All Areas</option>
+                    {% for a in areas %}
+                        <option value="{{ a }}" {% if area == a %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
                 <button type="submit" class="px-4 py-2 bg-gradient-to-br from-[#a31319] to-black text-white rounded-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[hsl(var(--ring))] text-sm">
                     Filter
                 </button>
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="ri-search-line text-[hsl(var(--muted-foreground))]"></i>
-                </div>
+                <a href="{% url 'customer_vendor:customer_list' %}" class="px-4 py-2 border border-[hsl(var(--border))] rounded-md hover:bg-[hsl(var(--muted))] text-sm text-[hsl(var(--foreground))]">
+                    Clear
+                </a>
             </form>
         </div>
+        {{ city_area_map|json_script:"city-area-map" }}
         
         <div class="overflow-x-auto table-container">
             <div class="bg-gradient-to-br from-[#a31319] to-black rounded-lg shadow-lg overflow-hidden">
@@ -57,6 +78,8 @@
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Email</th>
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Phone Number</th>
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Business Type</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">City</th>
+                                    <th scope="col" class="px-6 py-3 cursor-pointer">Area</th>
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Total Sales</th>
                                     <th scope="col" class="px-6 py-3 cursor-pointer">Total Invoices</th>
                                     <th scope="col" class="px-6 py-3">Actions</th>
@@ -72,6 +95,8 @@
                                     <td class="px-6 py-4">{{ customer.email|default:"N/A" }}</td>
                                     <td class="px-6 py-4">{{ customer.phone_number }}</td>
                                     <td class="px-6 py-4">{{ customer.get_business_type_display }}</td>
+                                    <td class="px-6 py-4">{{ customer.city|default:"-" }}</td>
+                                    <td class="px-6 py-4">{{ customer.area|default:"-" }}</td>
                                     <td class="px-6 py-4">{{ customer.total_sales|floatformat:2 }}</td>
                                     <td class="px-6 py-4">{{ customer.total_invoices|floatformat:2 }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -108,7 +133,7 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-400">No customers available.</td>
+                                    <td colspan="10" class="px-6 py-4 text-center text-sm text-gray-400">No customers available.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -121,12 +146,12 @@
             <!-- Pagination -->
             <div class="flex-1 flex justify-between sm:hidden">
                 {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] text-sm font-medium rounded-md text-[hsl(var(--foreground))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))]">
+                    <a href="?{{ filter_query_string }}&page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] text-sm font-medium rounded-md text-[hsl(var(--foreground))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))]">
                         Previous
                     </a>
                 {% endif %}
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] text-sm font-medium rounded-md text-[hsl(var(--foreground))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))]">
+                    <a href="?{{ filter_query_string }}&page={{ page_obj.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] text-sm font-medium rounded-md text-[hsl(var(--foreground))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--muted))]">
                         Next
                     </a>
                 {% endif %}
@@ -140,26 +165,38 @@
                 <div>
                     <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                         {% if page_obj.has_previous %}
-                            <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
+                            <a href="?{{ filter_query_string }}&page=1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
+                                <span class="sr-only">First</span>
+                                <i class="ri-skip-back-line"></i>
+                            </a>
+                            <a href="?{{ filter_query_string }}&page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
                                 <span class="sr-only">Previous</span>
                                 <i class="ri-arrow-left-s-line"></i>
                             </a>
                         {% endif %}
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if page_obj.number == num %}
-                                <a href="?page={{ num }}" aria-current="page" class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                        {% for num in elided_page_range %}
+                            {% if num == page_obj.paginator.ELLIPSIS %}
+                                <span class="relative inline-flex items-center px-4 py-2 border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                                    {{ num }}
+                                </span>
+                            {% elif num == page_obj.number %}
+                                <a href="?{{ filter_query_string }}&page={{ num }}" aria-current="page" class="z-10 bg-gradient-to-br from-[#a31319] to-black border-[#a31319] text-white relative inline-flex items-center px-4 py-2 border text-sm font-medium">
                                     {{ num }}
                                 </a>
                             {% else %}
-                                <a href="?page={{ num }}" class="bg-[hsl(var(--background))] border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] relative inline-flex items-center px-4 py-2 border text-sm font-medium hover:bg-[hsl(var(--muted))]">
+                                <a href="?{{ filter_query_string }}&page={{ num }}" class="bg-[hsl(var(--background))] border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] relative inline-flex items-center px-4 py-2 border text-sm font-medium hover:bg-[hsl(var(--muted))]">
                                     {{ num }}
                                 </a>
                             {% endif %}
                         {% endfor %}
                         {% if page_obj.has_next %}
-                            <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
+                            <a href="?{{ filter_query_string }}&page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
                                 <span class="sr-only">Next</span>
                                 <i class="ri-arrow-right-s-line"></i>
+                            </a>
+                            <a href="?{{ filter_query_string }}&page={{ page_obj.paginator.num_pages }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-sm font-medium text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--muted))]">
+                                <span class="sr-only">Last</span>
+                                <i class="ri-skip-forward-line"></i>
                             </a>
                         {% endif %}
                     </nav>
@@ -173,6 +210,37 @@
 
 {% block extra_js %}
 <script>
+    // City/Area filter cascading
+    document.addEventListener('DOMContentLoaded', function () {
+        const cityAreaMap = JSON.parse(document.getElementById('city-area-map').textContent);
+        const citySelect = document.getElementById('city-filter');
+        const areaSelect = document.getElementById('area-filter');
+        const selectedArea = "{{ area }}";
+
+        function populateAreas(city, preselect) {
+            areaSelect.innerHTML = '';
+            const blankOption = document.createElement('option');
+            blankOption.value = '';
+            blankOption.textContent = 'All Areas';
+            areaSelect.appendChild(blankOption);
+
+            const areas = cityAreaMap[city] || [];
+            areas.forEach(area => {
+                const option = document.createElement('option');
+                option.value = area;
+                option.textContent = area;
+                if (area === preselect) {
+                    option.selected = true;
+                }
+                areaSelect.appendChild(option);
+            });
+        }
+
+        citySelect.addEventListener('change', function () {
+            populateAreas(citySelect.value, '');
+        });
+    });
+
     // Table sorting functionality
     document.addEventListener('DOMContentLoaded', function() {
         const table = document.getElementById('customerTable');
@@ -195,6 +263,8 @@
                     case 1: // Name
                     case 2: // Email
                     case 4: // Business Type
+                    case 5: // City
+                    case 6: // Area
                         return cellA.localeCompare(cellB) * multiplier;
                     case 3: // Phone Number
                         return cellA.replace(/\D/g, '').localeCompare(cellB.replace(/\D/g, '')) * multiplier;
@@ -213,7 +283,7 @@
         };
 
         [].forEach.call(headers, (header, index) => {
-            if (index > 0 && index < 5) {
+            if (index > 0 && index < 7) {
                 header.addEventListener('click', () => {
                     sortColumn(index);
                 });

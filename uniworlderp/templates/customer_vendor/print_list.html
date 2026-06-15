@@ -1,0 +1,86 @@
+{% load text_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer List</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-[Poppins]">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Header Section -->
+        <header class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="border-b pb-4">
+                <h1 class="text-2xl font-bold text-gray-800">{{ company.name }}</h1>
+                <p class="text-gray-600 mt-2">{{ company.address }}</p>
+                <p class="text-gray-600">{{ company.phone }}</p>
+                <p class="text-gray-600">{{ company.email }}</p>
+            </div>
+        </header>
+
+        <!-- Title / Filter Summary -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">Customer List</h2>
+                    <p class="text-gray-600 mt-1">
+                        {% if city and area %}
+                            City: {{ city }} &mdash; Area: {{ area }}
+                        {% elif city %}
+                            City: {{ city }} (all areas)
+                        {% else %}
+                            All Cities / Areas
+                        {% endif %}
+                    </p>
+                    <p class="text-gray-500 text-sm mt-1">Customers without a valid mobile number are excluded.</p>
+                </div>
+                <button onclick="window.print()" class="no-print px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700">
+                    Print
+                </button>
+            </div>
+        </div>
+
+        <!-- Customer Table -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-left text-gray-600">
+                        <th class="py-2 pr-4 w-1/5">Name</th>
+                        <th class="py-2 pr-4 w-1/6">Phone</th>
+                        <th class="py-2 pr-4 w-1/12">City</th>
+                        <th class="py-2 pr-4 w-1/6">Area</th>
+                        <th class="py-2 pr-4">Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr class="border-b align-top">
+                        <td class="py-2 pr-4 font-medium break-words">{{ customer.name }}</td>
+                        <td class="py-2 pr-4 whitespace-nowrap">{{ customer.phone_number }}</td>
+                        <td class="py-2 pr-4 break-words">{{ customer.city|default:"-" }}</td>
+                        <td class="py-2 pr-4 break-words">{{ customer.area|default:"-" }}</td>
+                        <td class="py-2 pr-4 break-words">{{ customer.address|clean_address|linebreaksbr }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-4 text-center text-gray-500">No customers found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Section -->
+        <footer class="bg-white rounded-lg shadow-md p-6">
+            <p class="text-gray-500 text-sm text-center">This document is computer generated and does not require a signature.</p>
+        </footer>
+    </div>
+</body>
+</html>

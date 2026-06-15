@@ -20,6 +20,37 @@ from decimal import Decimal
 # Minimum allowed date for any stock report queries
 MIN_STOCK_DATE = timezone.make_aware(datetime(2025, 7, 27))
 
+
+def attach_order_discount_shares(items_with_data):
+    """
+    Distribute each sales order's whole-order discount (SalesOrder.discount)
+    proportionally across its line items, based on each item's share of the
+    order's subtotal. The resulting share is folded into item.total_discount
+    and subtracted from item.net_amount, so reports built from these items
+    (including per-customer/product/employee/date summaries) account for
+    order-level discounts in addition to per-item product discounts.
+    """
+    order_ids = {item.sales_order_id for item in items_with_data}
+    if not order_ids:
+        return
+
+    order_subtotals = SalesOrderItem.objects.filter(
+        sales_order_id__in=order_ids
+    ).values('sales_order_id').annotate(subtotal=Sum('total'))
+    subtotal_map = {row['sales_order_id']: row['subtotal'] or Decimal('0.00') for row in order_subtotals}
+
+    for item in items_with_data:
+        order_discount = item.sales_order.discount or Decimal('0.00')
+        order_subtotal = subtotal_map.get(item.sales_order_id) or Decimal('0.00')
+        if order_discount > 0 and order_subtotal > 0:
+            share = (order_discount * item.total / order_subtotal).quantize(Decimal('0.01'))
+        else:
+            share = Decimal('0.00')
+        item.order_discount_share = share
+        item.total_discount = (item.total_discount or Decimal('0.00')) + share
+        item.net_amount -= share
+
+
 class ReportView(LoginRequiredMixin, View):
     template_name = 'reports/report.html'
 
@@ -170,7 +201,10 @@ class ReportView(LoginRequiredMixin, View):
             item.net_amount = item.total - item.returned_amount
             
             items_with_data.append(item)
-        
+
+        # Distribute whole-order discounts across items proportionally
+        attach_order_discount_shares(items_with_data)
+
         # Aggregate total returned quantity and amount using Sum()
         returns_aggregated = returns_qs.aggregate(
             total_returned_qty=Sum('quantity'),
@@ -189,10 +223,11 @@ class ReportView(LoginRequiredMixin, View):
         
         # Calculate gross_amount from items (using item.total which has item-level discount)
         gross_amount = sum(item.total for item in items_with_data)
-        
-        # Calculate net_amount = gross_amount - returned_amount
-        net_amount = gross_amount - returned_amount
-        
+
+        # Calculate net_amount = gross_amount - returned_amount - order-level discount shares
+        order_discount_total = sum(item.order_discount_share for item in items_with_data)
+        net_amount = gross_amount - returned_amount - order_discount_total
+
         # Calculate summary amounts with breakdown (gross, discount, return, net)
         # Group by customer
         customer_totals = {}
@@ -1719,18 +1754,22 @@ class ReportExcelView(LoginRequiredMixin, View):
             item.net_amount = item.total - item.returned_amount
             
             items_with_data.append(item)
-        
+
+        # Distribute whole-order discounts across items proportionally
+        attach_order_discount_shares(items_with_data)
+
         # Calculate gross_qty from items queryset
         gross_qty = sum(item.quantity for item in items_with_data)
-        
+
         # Calculate net_qty = gross_qty - returned_qty
         net_qty = gross_qty - returned_qty
-        
+
         # Calculate gross_amount from items (using item.total which has item-level discount)
         gross_amount = sum(item.total for item in items_with_data)
-        
-        # Calculate net_amount = gross_amount - returned_amount
-        net_amount = gross_amount - returned_amount
+
+        # Calculate net_amount = gross_amount - returned_amount - order-level discount shares
+        order_discount_total = sum(item.order_discount_share for item in items_with_data)
+        net_amount = gross_amount - returned_amount - order_discount_total
         
         # Create Excel workbook
         wb = Workbook()
@@ -1954,18 +1993,22 @@ class ReportPrintView(LoginRequiredMixin, View):
             item.net_amount = item.total - item.returned_amount
             
             items_with_data.append(item)
-        
+
+        # Distribute whole-order discounts across items proportionally
+        attach_order_discount_shares(items_with_data)
+
         # Calculate gross_qty from items queryset
         gross_qty = sum(item.quantity for item in items_with_data)
-        
+
         # Calculate net_qty = gross_qty - returned_qty
         net_qty = gross_qty - returned_qty
-        
+
         # Calculate gross_amount from items (using item.total which has item-level discount)
         gross_amount = sum(item.total for item in items_with_data)
-        
-        # Calculate net_amount = gross_amount - returned_amount
-        net_amount = gross_amount - returned_amount
+
+        # Calculate net_amount = gross_amount - returned_amount - order-level discount shares
+        order_discount_total = sum(item.order_discount_share for item in items_with_data)
+        net_amount = gross_amount - returned_amount - order_discount_total
         
         # Get filter display names
         customer_name = None

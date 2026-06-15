@@ -140,4 +140,47 @@
         location.reload();
     }
 </script>
+
+{% if form.city and form.area %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const citySelect = document.getElementById('{{ form.city.id_for_label }}');
+        const areaSelect = document.getElementById('{{ form.area.id_for_label }}');
+        if (!citySelect || !areaSelect) return;
+
+        const selectedArea = "{{ form.area.value|default:'' }}";
+
+        fetch("{% static 'images/location/city-area-map.json' %}")
+            .then(response => response.json())
+            .then(cityAreaMap => {
+                function populateAreas(city, preselect) {
+                    areaSelect.innerHTML = '';
+                    const blankOption = document.createElement('option');
+                    blankOption.value = '';
+                    blankOption.textContent = '---------';
+                    areaSelect.appendChild(blankOption);
+
+                    const areas = cityAreaMap[city] || [];
+                    areas.forEach(area => {
+                        const option = document.createElement('option');
+                        option.value = area;
+                        option.textContent = area;
+                        if (area === preselect) {
+                            option.selected = true;
+                        }
+                        areaSelect.appendChild(option);
+                    });
+                }
+
+                if (citySelect.value) {
+                    populateAreas(citySelect.value, selectedArea);
+                }
+
+                citySelect.addEventListener('change', function () {
+                    populateAreas(citySelect.value, '');
+                });
+            });
+    });
+</script>
+{% endif %}
 {% endblock %}

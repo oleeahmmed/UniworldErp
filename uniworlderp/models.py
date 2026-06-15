@@ -27,6 +27,8 @@ class CustomerVendor(models.Model):
     phone_number = models.CharField(max_length=15, verbose_name='Phone Number')
     whatsapp_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    area = models.CharField(max_length=100, blank=True, null=True, db_index=True)
     business_type = models.CharField(
         max_length=20, 
         choices=BUSINESS_TYPE_CHOICES, 

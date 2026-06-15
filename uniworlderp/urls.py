@@ -11,6 +11,7 @@ urlpatterns = [
     path('customers-vendors/edit/<uuid:pk>/', customer_views.CustomerVendorUpdateView.as_view(), name='customer_edit'),
     path('customers-vendors/delete/<uuid:pk>/', customer_views.CustomerVendorDeleteView.as_view(), name='customer_delete'),
     path('customers-vendors/print/<uuid:pk>/', customer_views.CustomerVendorPrintView.as_view(), name='customer_print'),
+    path('customers-vendors/print-list/', customer_views.CustomerVendorListPrintView.as_view(), name='customer_list_print'),
     path('customers-vendors/view/<uuid:pk>/', customer_views.CustomerVendorDetailView.as_view(), name='customer_view'),
     path('customers-vendors/<uuid:pk>/sales-orders/', customer_views.SalesOrderListView.as_view(), name='sales_order_list'),
     path('customers-vendors/<uuid:pk>/purchase-orders/', customer_views.PurchaseOrderListView.as_view(), name='purchase_order_list'),
